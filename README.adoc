@@ -1,0 +1,365 @@
+= Telemetry
+
+https://wiki.egt-ua.loc/display/EL/Logging+Policy[Wiki Logging policy]
+
+Framework which aims to ease logging affair: `Logs`, `Traces` and `Metrics`.
+
+Tel use `zap.Logger` as the heart of system.
+That why it's pass all zap functions through.
+
+== Motto
+
+Ony context all logs.
+
+Decrease external dependencies as match as possible.
+
+== Features
+
+* Jaeger log fan-in (already in box)
+* Kafka log fan-in.
+Follow example: `ExampleTelemetry_KafkaLog`
+* Kafka consumer/produce tracing spans.
+Follow examples:  `ExampleKHeader`, `ExampleTelemetry_StartSpanFromKafka`
+* Kafka health checker inside `kaf` package
+* Kafka mw consumer (recovery, debug log, trace, metric + duration)
+* Span wrapper which helps to write both onto trace logs and zap-log.
+* Configuration standardize via prebuild env with `GetConfigFromEnv`
+* Grpc All-in-One middleware client (recovery, logger, trace and metric injection) - `GrpcUnaryClientInterceptorAll`, `GrpcUnaryServerInterceptor`
+* Http All-in-One middleware server (recovery, logger, trace and metric injection) - `HttpServerMiddlewareAll`
+* graylog package `github.com/snovichkov/gelf` optimized
+** fixed non-compresed mode
+** async option which save resources during compression
+** async option has resiliency pattern: retrier
+** zap.Sync used in async mode to write all buffered messages
+** fixed bags with ignoring dispatched messages because of wrong key validation.
+** add boolean types support (they require quotes for that)
+* middleware: dynamically select level according to recovery, error in handler or just simple notification.
+* caller field tune both for `tel` and `span`
+* monitor handle health, metrics and pprof endpoint.
+Pprof enabled when DEBUG option switched on.
+* fx.Printer interface
+
+== Env
+
+.PROJECT
+project name
+
+`type`: string
+
+.NAMESPACE
+project namespace
+
+`type`: string
+
+.LOG_LEVEL
+info log
+
+`type`: string
+NOTE:  debug, info, warn, error, dpanic, panic, fatal
+
+.DEBUG
+for IsDebug() function
+
+`type`: bool
+
+.GRAYLOG_ADDR
+graylog address
+
+NOTE: address logic represented in net.Listen description
+
+`type`: string
+
+.SENTRY_DSN
+sentry dns
+
+`type`: string
+
+.MONITOR_ADDR
+address where `health`, `prometheus` would be listen
+
+NOTE: address logic represented in net.Listen description
+
+=== jaeger
+we use jaeger's config.FromEnv to retrieve furthermore k8s devops uses that var either as they are ubiquitous, so no need to create new wheel.
+
+Further i provide snippet from jaeger config section
+
+[sorce,go]
+----
+const (
+	// environment variable names
+	envServiceName                         = "JAEGER_SERVICE_NAME"
+	envDisabled                            = "JAEGER_DISABLED"
+	envRPCMetrics                          = "JAEGER_RPC_METRICS"
+	envTags                                = "JAEGER_TAGS"
+	envSamplerType                         = "JAEGER_SAMPLER_TYPE"
+	envSamplerParam                        = "JAEGER_SAMPLER_PARAM"
+	envSamplerManagerHostPort              = "JAEGER_SAMPLER_MANAGER_HOST_PORT" // Deprecated by envSamplingEndpoint
+	envSamplingEndpoint                    = "JAEGER_SAMPLING_ENDPOINT"
+	envSamplerMaxOperations                = "JAEGER_SAMPLER_MAX_OPERATIONS"
+	envSamplerRefreshInterval              = "JAEGER_SAMPLER_REFRESH_INTERVAL"
+	envReporterMaxQueueSize                = "JAEGER_REPORTER_MAX_QUEUE_SIZE"
+	envReporterFlushInterval               = "JAEGER_REPORTER_FLUSH_INTERVAL"
+	envReporterLogSpans                    = "JAEGER_REPORTER_LOG_SPANS"
+	envReporterAttemptReconnectingDisabled = "JAEGER_REPORTER_ATTEMPT_RECONNECTING_DISABLED"
+	envReporterAttemptReconnectInterval    = "JAEGER_REPORTER_ATTEMPT_RECONNECT_INTERVAL"
+	envEndpoint                            = "JAEGER_ENDPOINT"
+	envUser                                = "JAEGER_USER"
+	envPassword                            = "JAEGER_PASSWORD"
+	envAgentHost                           = "JAEGER_AGENT_HOST"
+	envAgentPort                           = "JAEGER_AGENT_PORT"
+)
+----
+
+== ToDo
+* [ ] Expose health check to specific metric
+
+== Usage
+
+=== main init
+
+[source=go]
+----
+    // create tel instance
+	t := tel.New(tel.GetConfigFromEnv())
+	defer t.Close()
+
+	// init ctx containing telemetry
+	ctx := t.Copy()
+
+    // hello msg
+	tel.FromCtx(ctx).Info("HELLO WORLD",
+		zap.Bool("is-debug-mode", tel.FromCtx(ctx).IsDebug()),
+		zap.Bool("is-log-level-debug", tel.FromCtx(ctx).Logger.Core().Enabled(zap.DebugLevel)),
+		zap.Bool("is-stream-worker", runStreamWorker),
+	)
+
+    // .... //
+
+    // ------
+    // Metrics
+    // -------
+    httpMetrics := metrics.NewHttpMetric(metrics.DefaultHTTPPathRetriever())
+
+	go tel.FromCtx(ctx).M().
+        // add grpc, http + custom local gauge metric `gauge`
+		AddMetricTracker(ctx, metrics.NewGrpcClientTracker(), httpMetrics, gauge).
+        // health check
+		AddHealthChecker(ctx, tel.HealthChecker{
+			Name:    "grpc service",
+			Handler: checkers.NewGrpcClientChecker(sbConn),
+		}).
+		Start(ctx)
+
+    // .... //
+
+    // link grpc/http/kafka-consumer clien mw
+    // init http/grpc/kafka-producer with mw
+
+    // .... //
+
+    // pass ctx to you controllers where u can use log via ctx
+	gr, _ := errgroup.WithContext(ctx)
+	gr.Go(func() error {
+		cc.Run(ctx)
+		return nil
+	})
+
+	gr.Go(func() error {
+		if runStreamWorker {
+			worker.RunStream(ctx, gauge)
+		} else {
+			worker.Run(ctx)
+		}
+
+		return nil
+	})
+	_ = gr.Wait()
+----
+
+=== grpc client init with mw (metrics are embedded in interceptor)
+
+[source=go]
+----
+func Connect(ctx context.Context, addr string) *grpc.ClientConn {
+	dialOptions := clientDialOptionsInsecure(ctx)
+	conn, err := grpc.Dial(addr, dialOptions...)
+	if err != nil {
+		tel.FromCtx(ctx).Fatal("grpc dial", zap.Error(err))
+	}
+
+	return conn
+}
+
+func clientDialOptionsInsecure(ctx context.Context) []grpc.DialOption {
+	return []grpc.DialOption{
+		grpc.WithInsecure(),
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Time:                keepAliveTime,
+			PermitWithoutStream: true,
+		}),
+		grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
+			tel.FromCtx(ctx).GrpcUnaryClientInterceptorAll(),
+			timeoutClientInterceptor(defaultTimeout),
+			waitForReadyInterceptor,
+			grpc_retry.UnaryClientInterceptor(retryOpts()...),
+		)),
+	}
+}
+
+----
+
+=== kafka-consumer example with metrics
+
+[source=go]
+----
+type consumer struct {
+	c       *kafka.Consumer
+    // most metrics all filling inside kaf.NewConsumerMw but some u should handle by yourself
+	metrics kaf.MetricsReader
+}
+
+// handleMessage mw-like wrapper for kaf.ConsumerCallBack to put own handle logic here
+func (s *consumer) handleMessage(cb kaf.ConsumerCallBack) kaf.ConsumerCallBack {
+	return func(ctx context.Context, message *kafka.Message) error {
+		if err := cb(ctx, message); err != nil {
+			return err
+		}
+
+		partition, err := s.c.CommitMessage(message)
+		if err != nil {
+			return fmt.Errorf("commit: %w", err)
+		}
+
+		s.commitNotify(partition)
+		return nil
+	}
+}
+
+func (s *consumer) process(ctx context.Context, topic string, handler kaf.ConsumerCallBack) {
+    s.metrics.AddReaderTopicsInUse()
+	defer s.metrics.RmReaderTopicsInUse()
+
+    cb := kaf.NewConsumerMw(s.metrics).HandleMessage(s.handleMessage(handler))
+
+    // ... ///
+		case m, ok := <-s.c.Events():
+			if !ok {
+				tel.FromCtx(ctx).Fatal("channel is closed.")
+			}
+			switch e := m.(type) {
+			case kafka.AssignedPartitions:
+				// ... ///
+			case kafka.RevokedPartitions:
+				// ... ///
+			case kafka.Error:
+				lvl := zapcore.ErrorLevel
+				if checkFatalKafka(e.Code()) {
+					lvl = zapcore.FatalLevel
+				}
+
+				// Errors should generally be considered as informational, the client will try to automatically recover
+				tel.FromCtx(ctx).Check(lvl, "kafka:factory error event").Write(
+					zap.Error(fmt.Errorf("%s", e.String())),
+					zap.String("code", e.Code().String()),
+				)
+			case *kafka.Message:
+				if err := cb(ctx, e); err != nil && !errors.Is(err, kaf.ErrManualCommit) {
+					tel.FromCtx(ctx).Error("factory message process", zap.Error(err))
+				}
+			case kafka.PartitionEOF:
+				// ... ///
+			default:
+				tel.FromCtx(ctx).Debug("event", zap.Any("event", m))
+    // ... ///
+    s.metrics.AddReaderTopicCommitEvents(*p.Topic, 1)
+}
+----
+
+=== pure http client example with metrics
+
+right now developer responsible to create that flow, but i guess further we will find correct approach with that
+
+[source=go]
+----
+type service struct {
+	url    url.URL
+	key    string
+	client *http.Client
+
+	metric metrics.HttpTracker
+}
+
+func (s *service) send(_ctx context.Context, p r, m interface{}) (err error) {
+     // ... ///
+
+    // right now u should handle trace by yourself
+span, _ := opentracing.StartSpanFromContext(_ctx, fmt.Sprintf("%s-%s", p.method, uri.String()))
+	defer span.Finish()
+
+	req, err := http.NewRequest(p.method, uri.String(), b)
+	if err != nil {
+		return fmt.Errorf("new request %w", err)
+	}
+
+	req.Header.Set("Content-Type", ct)
+	req.Header.Set(secKey, s.key)
+
+	// metrics wrapper just give us more information
+	res, err := s.metric.Do(s.client, req)
+	if err != nil {
+		return fmt.Errorf("post %q error %w", uri.String(), err)
+	}
+
+	defer res.Body.Close()
+    // ... ///
+}
+----
+
+=== kafka-produces
+
+producer is fully featured by tel
+
+[soruce=go]
+----
+type producer struct {
+	srv *kafka.Producer
+
+	group string
+}
+
+func (t *producer) Produce(_ctx context.Context, topic string, key []byte, value []byte, headers ...kafka.Header) error {
+	return kaf.NewProducerMiddleware(t.srv).Produce(_ctx, &kafka.Message{
+		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
+		Key:            key,
+		Value:          value,
+		Headers:        headers,
+	})
+}
+
+----
+
+=== pure http-server example uses chi (native http handler router)
+just link mw
+
+[soruce=go]
+----
+type service struct {
+	mx     *chi.Mux
+	server http.Server
+}
+
+func (s *service) mwSetup(ctx context.Context, m metrics.HttpTracker) {
+	// ... ///
+	s.mx.Use(tel.FromCtx(ctx).HttpServerMiddlewareAll(m))
+}
+
+----
+
+== grpc-server
+[soruce=go]
+----
+s := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(FromCtx(ctx).GrpcUnaryServerInterceptor()),
+	)
+----
