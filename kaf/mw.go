@@ -79,7 +79,7 @@ func (s *mwConsumer) HandleMessage(next CallBack) CallBack {
 		var err error
 
 		// new ctx instance
-		span, ctx := StartSpanFromConsumerKafka(_ctx, fmt.Sprintf("kafka.consumer.%s", e.Topic), e)
+		span, ctx := StartSpanFromConsumerKafka(_ctx, fmt.Sprintf("KAFKA:CONSUMER/%s", e.Topic), e)
 		defer span.Finish()
 
 		defer func(start time.Time) {
