@@ -12,6 +12,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -46,26 +47,28 @@ func GrpcUnaryClientInterceptor() grpc.UnaryClientInterceptor {
 		cc *grpc.ClientConn,
 		invoker grpc.UnaryInvoker,
 		opts ...grpc.CallOption,
-	) error {
-		var err error
-
+	) (err error) {
 		defer func(start time.Time) {
-			st, _ := status.FromError(err)
+			var (
+				rpcError = status.Convert(err)
+				name     = fmt.Sprintf("GRPC:CLIENT/%s", method)
+			)
 
-			FromCtx(ctx).grpcLogHelper(recover(), err,
+			// this is safe, nil error just return status Unknown
+			putGrpcError(ctx, name, rpcError)
+
+			FromCtx(ctx).grpcLogHelper(name, recover(), err,
 				zap.Duration("duration", time.Since(start)),
 				zap.String("method", method),
 				zap.String("request", marshal(req)),
 				zap.String("response", marshal(resp)),
-				zap.String("status_code", st.Code().String()),
-				zap.String("status_message", st.Message()),
-				zap.String("status_details", marshal(st.Details())),
+				zap.String("status_code", rpcError.Code().String()),
+				zap.String("status_message", rpcError.Message()),
+				zap.String("status_details", marshal(rpcError.Details())),
 			)
+
 		}(time.Now())
-
-		err = invoker(ctx, method, req, resp, cc, opts...)
-
-		return err
+		return invoker(ctx, method, req, resp, cc, opts...)
 	}
 }
 
@@ -100,7 +103,9 @@ func (t Telemetry) GrpcUnaryServerInterceptor() grpc.UnaryServerInterceptor {
 			st, _ := status.FromError(err)
 			recoveryData := recover()
 
-			FromCtx(ctx).grpcLogHelper(recoveryData, err,
+			var name = fmt.Sprintf("GRPC:SERVER/%s", info.FullMethod)
+
+			FromCtx(ctx).grpcLogHelper(name, recoveryData, err,
 				zap.Duration("duration", time.Since(start)),
 				zap.String("method", info.FullMethod),
 				zap.String("request", marshal(req)),
@@ -122,7 +127,7 @@ func (t Telemetry) GrpcUnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	}
 }
 
-func (t Telemetry) grpcLogHelper(hasRecovery interface{}, err error, fields ...zap.Field) {
+func (t Telemetry) grpcLogHelper(name string, hasRecovery interface{}, err error, fields ...zap.Field) {
 	lvl := zapcore.DebugLevel
 	if err != nil {
 		lvl = zapcore.ErrorLevel
@@ -138,7 +143,45 @@ func (t Telemetry) grpcLogHelper(hasRecovery interface{}, err error, fields ...z
 		}
 	}
 
-	t.Check(lvl, "grpc").Write(fields...)
+	t.Check(lvl, name).Write(fields...)
+}
+
+// putGrpcError
+func putGrpcError(ctx context.Context, name string, rpcError *status.Status) {
+	if rpcError.Code() == codes.OK {
+		return
+	}
+
+	FromCtx(ctx).PutFields(
+		zap.Strings("grpc-error-call", []string{name, rpcError.Err().Error()}),
+	)
+
+	switch rpcError.Code() {
+	case codes.FailedPrecondition:
+		for _, detail := range rpcError.Details() {
+			switch t := detail.(type) {
+			case *errdetails.PreconditionFailure:
+				for _, violation := range t.GetViolations() {
+					k := fmt.Sprintf("%s/%s", name, violation.Type)
+					FromCtx(ctx).PutFields(
+						zap.Strings(k, []string{violation.GetDescription(), violation.GetSubject()}),
+					)
+				}
+			}
+		}
+	case codes.InvalidArgument:
+		for _, detail := range rpcError.Details() {
+			switch t := detail.(type) {
+			case *errdetails.BadRequest:
+				for _, violation := range t.GetFieldViolations() {
+					k := fmt.Sprintf("%s/field/%s", name, violation.GetField())
+					FromCtx(ctx).PutFields(
+						zap.String(k, violation.GetDescription()),
+					)
+				}
+			}
+		}
+	}
 }
 
 func marshal(input interface{}) string {
