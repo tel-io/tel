@@ -50,6 +50,30 @@ func (s span) Error(msg string, fields ...zap.Field) {
 	s.spanLog(msg, fields...)
 }
 
+// PutFields update current logger instance with new fields,
+// which would affect only on nest write log call for current tele instance
+// Because reference it also affect context and this approach is covered in Test_telemetry_With
+func (s *span) PutFields(fields ...zap.Field) span {
+	s.Telemetry.PutFields(fields...)
+
+	for _, field := range fields {
+		switch field.Type {
+		case zapcore.StringType:
+			s.Span.SetTag(field.Key, field.String)
+		case zapcore.ErrorType:
+			s.Span.SetTag("error", field.Interface)
+		default:
+			if field.Integer > 0 {
+				s.Span.SetTag(field.Key, field.Integer)
+			} else {
+				s.Span.SetTag(field.Key, field.Interface)
+			}
+		}
+	}
+
+	return *s
+}
+
 func (s span) spanLog(msg string, fields ...zap.Field) {
 	if s.Span == nil {
 		s.Logger.WithOptions(zap.AddCallerSkip(2)).Warn("Telemetry uses span logger without real span, forgot span start and put in ctx?", zap.String("msg", msg))
