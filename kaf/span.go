@@ -6,7 +6,6 @@ import (
 	"github.com/d7561985/tel"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
-	"github.com/uber/jaeger-client-go"
 	"go.uber.org/zap"
 )
 
@@ -33,6 +32,8 @@ func StartSpanFromConsumerKafka(_ctx context.Context, span string, e *Message) (
 	s := t.T().StartSpan(span, opt...)
 	ext.Component.Set(s, "confluent-kafka-go")
 	ext.SpanKindConsumer.Set(s)
+	s.SetTag("topic", e.Topic)
+	s.SetTag("key", string(e.Key))
 
 	ctx := opentracing.ContextWithSpan(t.Ctx(), s)
 	tel.UpdateTraceFields(ctx)
@@ -42,7 +43,7 @@ func StartSpanFromConsumerKafka(_ctx context.Context, span string, e *Message) (
 
 // StartSpanProducerKafka inject current span or start new for Kafka
 func StartSpanProducerKafka(_ctx context.Context, name string, m *Message) (opentracing.Span, context.Context) {
-	span, ctx := opentracing.StartSpanFromContext(_ctx, name)
+	span, ctx := tel.FromCtx(_ctx).StartSpan(name)
 
 	if err := span.Tracer().Inject(span.Context(), opentracing.TextMap, m.Header); err != nil {
 		tel.FromCtx(ctx).Error("producer inject trace", zap.Error(err))
@@ -50,12 +51,9 @@ func StartSpanProducerKafka(_ctx context.Context, name string, m *Message) (open
 		span.LogKV("err", err.Error())
 	}
 
-	tel.FromCtx(_ctx).Debug("jaeger inject to kafka",
-		zap.Any(jaeger.TraceContextHeaderName, m.Header.GetTraceValue()))
-
 	ext.Component.Set(span, "confluent-kafka-go")
 	ext.SpanKindProducer.Set(span)
-	span.LogKV("topic-key", string(m.Key))
+	span.PutFields(zap.String("emit_topic", m.Topic), zap.String("emit_key", string(m.Key)))
 
 	return span, ctx
 }
