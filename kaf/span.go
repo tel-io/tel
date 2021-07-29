@@ -43,7 +43,7 @@ func StartSpanFromConsumerKafka(_ctx context.Context, span string, e *Message) (
 
 // StartSpanProducerKafka inject current span or start new for Kafka
 func StartSpanProducerKafka(_ctx context.Context, name string, m *Message) (opentracing.Span, context.Context) {
-	span, ctx := tel.FromCtx(_ctx).StartSpan(name)
+	span, ctx := tel.FromCtxWithSpan(_ctx).StartSpan(name)
 
 	if err := span.Tracer().Inject(span.Context(), opentracing.TextMap, m.Header); err != nil {
 		tel.FromCtx(ctx).Error("producer inject trace", zap.Error(err))
