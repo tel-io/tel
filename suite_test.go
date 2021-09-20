@@ -1,5 +1,3 @@
-// +build unit
-
 package tel
 
 import (
@@ -23,7 +21,6 @@ func (s *Suite) SetupSuite() {
 	s.l = newU(s.T())
 
 	cfg := DefaultDebugConfig()
-	cfg.GraylogAddr = s.l.LocalAddr().String()
 	s.tel = New(cfg)
 
 	// read 2 jaeger messages

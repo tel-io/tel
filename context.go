@@ -36,8 +36,8 @@ func FromCtx(ctx context.Context) *Telemetry {
 // FromCtxWithSpan retrieves from ctx tele span object
 // span object just composition of tele object with open-tracing instance which write both to log and
 // fill trace log simultaneously
-func FromCtxWithSpan(ctx context.Context) span {
-	return span{
+func FromCtxWithSpan(ctx context.Context) *span {
+	return &span{
 		Telemetry: FromCtx(ctx),
 		Span:      opentracing.SpanFromContext(ctx),
 	}

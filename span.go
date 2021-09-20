@@ -19,17 +19,17 @@ func (s span) Ctx() context.Context {
 	return opentracing.ContextWithSpan(s.Telemetry.Ctx(), s.Span)
 }
 
+// T use non trace wrap logger
+func (s span) T() *Telemetry {
+	return s.Telemetry
+}
+
 // StartSpan start absolutely new trace telemetry span
 // keep in mind than that function don't continue any trace, only create new
 // for continue span use StartSpanFromContext
 func (s span) StartSpan(name string) (span, context.Context) {
 	ss, sctx := opentracing.StartSpanFromContextWithTracer(s.Ctx(), s.trace, name)
 	return span{Telemetry: s.Telemetry, Span: ss}, sctx
-}
-
-// T use non trace wrap logger
-func (s span) T() *Telemetry {
-	return s.Telemetry
 }
 
 // Debug send message both log and trace log
