@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"gitlab.egt-ua.loc/boost/tel"
+	"github.com/d7561985/tel"
 	"go.uber.org/zap"
 )
 
