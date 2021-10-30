@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// check whole context stack: withContext, updateContext, FromCtx
+// check whole context stack: WithContext, updateContext, FromCtx
 func Test_telemetry_With(t *testing.T) {
 	ctx := NewNull().Ctx()
 	buf := SetLogOutput(ctx)

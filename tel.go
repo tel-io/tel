@@ -44,7 +44,7 @@ func New(cfg Config) (t Telemetry) {
 
 // NewTelemetryContext creates new instance and put it to @ctx
 func NewTelemetryContext(cfg Config, ctx context.Context) context.Context {
-	return withContext(ctx, New(cfg))
+	return WithContext(ctx, New(cfg))
 }
 
 // IsDebug if ENV DEBUG was true
@@ -54,12 +54,12 @@ func (t Telemetry) IsDebug() bool {
 
 // WithContext put new copy of telemetry into context
 func (t Telemetry) WithContext(ctx context.Context) context.Context {
-	return withContext(ctx, t)
+	return WithContext(ctx, t)
 }
 
 // Ctx initiate new ctx with Telemetry
 func (t Telemetry) Ctx() context.Context {
-	return withContext(context.Background(), t)
+	return WithContext(context.Background(), t)
 }
 
 // Copy resiver instance and give us more convenient way to use pipelines
@@ -121,8 +121,8 @@ func (t *Telemetry) PutFields(fields ...zap.Field) *Telemetry {
 // StartSpan start absolutely new trace telemetry span
 // keep in mind than that function don't continue any trace, only create new
 // for continue span use StartSpanFromContext
-func (t *Telemetry) StartSpan(name string) (span, context.Context) {
-	s, sctx := opentracing.StartSpanFromContextWithTracer(t.Ctx(), t.trace, name)
+func (t *Telemetry) StartSpan(name string, opts ...opentracing.StartSpanOption) (span, context.Context) {
+	s, sctx := opentracing.StartSpanFromContextWithTracer(t.Ctx(), t.trace, name, opts...)
 	return span{Telemetry: t, Span: s}, sctx
 }
 

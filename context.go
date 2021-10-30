@@ -10,7 +10,7 @@ import (
 
 type tKey struct{}
 
-func withContext(ctx context.Context, l Telemetry) context.Context {
+func WithContext(ctx context.Context, l Telemetry) context.Context {
 	if lp, ok := ctx.Value(tKey{}).(*Telemetry); ok {
 		if lp.Logger != l.Logger {
 			return ctx
@@ -60,9 +60,9 @@ func UpdateTraceFields(ctx context.Context) {
 
 // StartSpanFromContext start telemetry span witch create or continue existent trace
 // for gracefully continue trace ctx should contain both span and tele
-func StartSpanFromContext(ctx context.Context, name string) (span, context.Context) {
+func StartSpanFromContext(ctx context.Context, name string, opts ...opentracing.StartSpanOption) (span, context.Context) {
 	t := FromCtx(ctx)
-	s, sctx := opentracing.StartSpanFromContextWithTracer(ctx, t.trace, name)
+	s, sctx := opentracing.StartSpanFromContextWithTracer(ctx, t.trace, name, opts...)
 
 	return span{Telemetry: t, Span: s}, sctx
 }
