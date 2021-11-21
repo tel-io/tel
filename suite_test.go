@@ -1,6 +1,8 @@
 package tel
 
 import (
+	"bytes"
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -9,23 +11,20 @@ import (
 type Suite struct {
 	suite.Suite
 
-	l   *U
+	byf *bytes.Buffer
 	tel Telemetry
 }
 
 func (s *Suite) TearDownSuite() {
-	s.NoError(s.l.Close())
+	//s.byf.Reset()
 }
 
 func (s *Suite) SetupSuite() {
-	s.l = newU(s.T())
-
 	cfg := DefaultDebugConfig()
 	s.tel = New(cfg)
 
-	// read 2 jaeger messages
-	_ = s.tel.Sync()
-	s.l.readMessages(s.T(), 2)
+	// test purposes
+	s.byf = SetLogOutput(context.WithValue(context.Background(), tKey{}, &s.tel))
 }
 
 func TestSuite(t *testing.T) {

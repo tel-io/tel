@@ -1,6 +1,7 @@
 package tel
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,6 +12,12 @@ import (
 func Test_telemetry_With(t *testing.T) {
 	ctx := NewNull().Ctx()
 	buf := SetLogOutput(ctx)
+
+	t.Run("note tele context", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			FromCtx(context.TODO()).Info("INFO MSG")
+		})
+	})
 
 	t.Run("no injection", func(t *testing.T) {
 		// check without injection

@@ -80,6 +80,7 @@ address where `health`, `prometheus` would be listen
 NOTE: address logic represented in net.Listen description
 
 === jaeger
+
 we use jaeger's config.FromEnv to retrieve furthermore k8s devops uses that var either as they are ubiquitous, so no need to create new wheel.
 
 Further i provide snippet from jaeger config section
@@ -112,6 +113,7 @@ const (
 ----
 
 == ToDo
+
 * [ ] Expose health check to specific metric
 
 == Usage
@@ -340,6 +342,7 @@ func (t *producer) Produce(_ctx context.Context, topic string, key []byte, value
 ----
 
 === pure http-server example uses chi (native http handler router)
+
 just link mw
 
 [soruce=go]
@@ -357,6 +360,7 @@ func (s *service) mwSetup(ctx context.Context, m metrics.HttpTracker) {
 ----
 
 == grpc-server
+
 [soruce=go]
 ----
 s := grpc.NewServer(

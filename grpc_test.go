@@ -1,7 +1,9 @@
 package tel
 
 import (
+	"bufio"
 	"context"
+	"fmt"
 	"log"
 	"net"
 
@@ -79,5 +81,10 @@ func (s *Suite) TestGrpcPanicMW() {
 	s.Equal(ErrGrpcInternal, err)
 	s.Nil(res)
 
-	s.l.readMessages(s.T(), 2)
+	s.tel.Logger.Sync()
+	fmt.Println(">>>>", s.byf.String())
+	for i := 0; i < 2; i++ {
+		_, _, err := bufio.NewReader(s.byf).ReadLine()
+		s.NoError(err)
+	}
 }
