@@ -4,56 +4,53 @@ import (
 	"context"
 
 	"github.com/d7561985/tel"
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 // StartSpanFromConsumerKafka extract span from kafka's header and continue chain
 // receiver not reference because we put new fields into logger and we expect root ctx for that
 // returns ctx
-func StartSpanFromConsumerKafka(_ctx context.Context, span string, e *Message) (opentracing.Span, context.Context) {
-	opt := make([]opentracing.StartSpanOption, 0, 4)
-	opt = append(opt, opentracing.Tags{
-		"kafka.topic":     e.Topic,
-		"kafka.key":       e.Key,
-		"kafka.partition": e.Partition,
-		"kafka.timestamp": e.Timestamp.String(),
-	})
+func StartSpanFromConsumerKafka(_ctx context.Context, span string, e *Message) (trace.Span, context.Context) {
+	opt := make([]trace.SpanStartOption, 0, 5)
+	opt = append(opt, trace.WithAttributes(
+		attribute.String("kafka.topic", e.Topic),
+		semconv.MessagingKafkaMessageKeyKey.String(string(e.Key)),
+		semconv.MessagingKafkaPartitionKey.Int(int(e.Partition)),
+		attribute.String("kafka.timestamp", e.Timestamp.String()),
+		semconv.MessagingOperationReceive,
+	))
 
 	// this could be root ctx
 	t := tel.FromCtx(_ctx)
 
-	spanCtx, err := t.T().Extract(opentracing.TextMap, e.Header)
-	if err == nil {
-		opt = append(opt, opentracing.ChildOf(spanCtx))
-	}
+	cxt := otel.GetTextMapPropagator().Extract(_ctx, e.Header)
+	_, s := t.T().Start(cxt, span, opt...)
 
-	s := t.T().StartSpan(span, opt...)
-	ext.Component.Set(s, "confluent-kafka-go")
-	ext.SpanKindConsumer.Set(s)
-	s.SetTag("topic", e.Topic)
-	s.SetTag("key", string(e.Key))
-
-	ctx := opentracing.ContextWithSpan(t.Ctx(), s)
+	ctx := trace.ContextWithSpan(t.Ctx(), s)
 	tel.UpdateTraceFields(ctx)
 
 	return s, ctx
 }
 
 // StartSpanProducerKafka inject current span or start new for Kafka
-func StartSpanProducerKafka(_ctx context.Context, name string, m *Message) (opentracing.Span, context.Context) {
-	span, ctx := tel.FromCtxWithSpan(_ctx).StartSpan(name)
+func StartSpanProducerKafka(_ctx context.Context, name string, e *Message) (trace.Span, context.Context) {
+	opt := make([]trace.SpanStartOption, 0, 5)
+	opt = append(opt, trace.WithAttributes(
+		attribute.String("kafka.topic", e.Topic),
+		semconv.MessagingKafkaMessageKeyKey.String(string(e.Key)),
+		semconv.MessagingKafkaPartitionKey.Int(int(e.Partition)),
+		attribute.String("kafka.timestamp", e.Timestamp.String()),
+		semconv.MessagingOperationProcess,
+	))
 
-	if err := span.Tracer().Inject(span.Context(), opentracing.TextMap, m.Header); err != nil {
-		tel.FromCtx(ctx).Error("producer inject trace", zap.Error(err))
-		ext.Error.Set(span, true)
-		span.LogKV("err", err.Error())
-	}
+	span, ctx := tel.FromCtxWithSpan(_ctx).StartSpan(name, opt...)
+	otel.GetTextMapPropagator().Inject(ctx, e.Header)
 
-	ext.Component.Set(span, "confluent-kafka-go")
-	ext.SpanKindProducer.Set(span)
-	span.PutFields(zap.String("emit_topic", m.Topic), zap.String("emit_key", string(m.Key)))
+	span.PutFields(zap.String("emit_topic", e.Topic), zap.String("emit_key", string(e.Key)))
 
 	return span, ctx
 }

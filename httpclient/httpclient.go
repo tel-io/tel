@@ -1,5 +1,7 @@
 // Package httpclient implement tel http.client wrapper which help to handle error
 // The most important approach: perform logs by itself
+//
+// DEPRECATED: use transport inside http.client
 package httpclient
 
 import (
@@ -38,7 +40,7 @@ func (s *service) PostForm(_ctx context.Context, url string, data url.Values) (r
 	tel.FromCtx(_ctx).PutFields(zap.String("post-url", url), zap.String("post-fields", data.Encode()))
 
 	span, ctx := tel.StartSpanFromContext(_ctx, op)
-	defer span.Finish()
+	defer span.End()
 
 	return s.prepare(ctx, op, func() (*http.Response, error) {
 		return s.c.PostForm(url, data)
@@ -51,7 +53,7 @@ func (s *service) Get(_ctx context.Context, url string) (resp *http.Response, er
 	tel.FromCtx(_ctx).PutFields(zap.String("get-url", url))
 
 	span, ctx := tel.StartSpanFromContext(_ctx, op)
-	defer span.Finish()
+	defer span.End()
 
 	return s.prepare(ctx, op, func() (*http.Response, error) {
 		return s.c.Get(url)
@@ -64,7 +66,7 @@ func (s *service) Post(_ctx context.Context, url, contentType string, body []byt
 	tel.FromCtx(_ctx).PutFields(zap.String("get-url", url))
 
 	span, ctx := tel.StartSpanFromContext(_ctx, op)
-	defer span.Finish()
+	defer span.End()
 
 	return s.prepare(ctx, op, func() (*http.Response, error) {
 		return s.c.Post(url, contentType, bytes.NewReader(body))

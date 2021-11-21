@@ -11,17 +11,18 @@ import (
 type Suite struct {
 	suite.Suite
 
-	byf *bytes.Buffer
-	tel Telemetry
+	byf    *bytes.Buffer
+	tel    Telemetry
+	closer func()
 }
 
 func (s *Suite) TearDownSuite() {
-	//s.byf.Reset()
+	s.closer()
 }
 
 func (s *Suite) SetupSuite() {
 	cfg := DefaultDebugConfig()
-	s.tel = New(cfg)
+	s.tel, s.closer = New(context.Background(), cfg)
 
 	// test purposes
 	s.byf = SetLogOutput(context.WithValue(context.Background(), tKey{}, &s.tel))

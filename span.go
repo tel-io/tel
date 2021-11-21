@@ -2,21 +2,23 @@ package tel
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
-	"github.com/opentracing/opentracing-go/log"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 type span struct {
 	*Telemetry
-	opentracing.Span
+
+	trace.Span
 }
 
 func (s span) Ctx() context.Context {
-	return opentracing.ContextWithSpan(s.Telemetry.Ctx(), s.Span)
+	return trace.ContextWithSpan(s.Telemetry.Ctx(), s.Span)
 }
 
 // T use non trace wrap logger
@@ -27,27 +29,37 @@ func (s span) T() *Telemetry {
 // StartSpan start absolutely new trace telemetry span
 // keep in mind than that function don't continue any trace, only create new
 // for continue span use StartSpanFromContext
-func (s span) StartSpan(name string) (span, context.Context) {
-	ss, sctx := opentracing.StartSpanFromContextWithTracer(s.Ctx(), s.trace, name)
+func (s span) StartSpan(name string, opts ...trace.SpanStartOption) (span, context.Context) {
+	sctx, ss := s.trace.Start(s.Ctx(), name, opts...)
+
 	return span{Telemetry: s.Telemetry, Span: ss}, sctx
 }
 
 // Debug send message both log and trace log
 func (s span) Debug(msg string, fields ...zap.Field) {
 	s.Logger.WithOptions(zap.AddCallerSkip(1)).Debug(msg, fields...)
-	s.spanLog(msg, fields...)
+	s.spanLog(fields...)
+	if s.Span != nil {
+		s.Span.SetAttributes(attribute.String("msg", msg))
+	}
 }
 
 // Warn send message both log and trace log
 func (s span) Warn(msg string, fields ...zap.Field) {
 	s.Logger.WithOptions(zap.AddCallerSkip(1)).Warn(msg, fields...)
-	s.spanLog(msg, fields...)
+	s.spanLog(fields...)
+	if s.Span != nil {
+		s.Span.SetAttributes(attribute.String("msg", msg))
+	}
 }
 
 // Error send message both log and trace log
 func (s span) Error(msg string, fields ...zap.Field) {
 	s.Logger.WithOptions(zap.AddCallerSkip(1)).Error(msg, fields...)
-	s.spanLog(msg, fields...)
+	s.spanLog(fields...)
+	if s.Span != nil {
+		s.Span.SetAttributes(attribute.String("msg", msg))
+	}
 }
 
 // PutFields update current logger instance with new fields,
@@ -55,45 +67,32 @@ func (s span) Error(msg string, fields ...zap.Field) {
 // Because reference it also affect context and this approach is covered in Test_telemetry_With
 func (s *span) PutFields(fields ...zap.Field) span {
 	s.Telemetry.PutFields(fields...)
-
-	for _, field := range fields {
-		switch field.Type {
-		case zapcore.StringType:
-			s.Span.SetTag(field.Key, field.String)
-		case zapcore.ErrorType:
-			s.Span.SetTag("error", field.Interface)
-		default:
-			if field.Integer > 0 {
-				s.Span.SetTag(field.Key, field.Integer)
-			} else {
-				s.Span.SetTag(field.Key, field.Interface)
-			}
-		}
-	}
+	s.spanLog(fields...)
 
 	return *s
 }
 
-func (s span) spanLog(msg string, fields ...zap.Field) {
+// spanLog only span write
+func (s span) spanLog(fields ...zap.Field) {
 	if s.Span == nil {
-		s.Logger.WithOptions(zap.AddCallerSkip(2)).Warn("Telemetry uses span logger without real span, forgot span start and put in ctx?", zap.String("msg", msg))
+		s.Logger.WithOptions(zap.AddCallerSkip(2)).Warn("Telemetry uses span logger without real span, forgot span start and put in ctx?", zap.Stack("spanLog"))
 		return
 	}
-
-	s.Span.LogFields(log.String("msg", msg))
 
 	for _, field := range fields {
 		switch field.Type {
 		case zapcore.StringType:
-			s.Span.LogFields(log.String(field.Key, field.String))
+			s.Span.SetAttributes(attribute.String(field.Key, field.String))
 		case zapcore.ErrorType:
-			ext.Error.Set(s.Span, true)
-			s.Span.LogFields(log.Error(field.Interface.(error)))
+			val := fmt.Sprintf("%+v", field.Interface)
+			s.Span.SetAttributes(attribute.String(field.Key, val))
+			s.Span.SetStatus(codes.Error, fmt.Sprintf("%+v", field.Interface))
 		default:
 			if field.Integer > 0 {
-				s.Span.LogFields(log.Int64(field.Key, field.Integer))
+				s.Span.SetAttributes(attribute.Int64(field.Key, field.Integer))
 			} else {
-				s.Span.LogKV(field.Key, field.Interface)
+				val := fmt.Sprintf("%+v", field.Interface)
+				s.Span.SetAttributes(attribute.String(field.Key, val))
 			}
 		}
 	}

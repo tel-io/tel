@@ -10,11 +10,10 @@ import (
 	"time"
 
 	"github.com/d7561985/tel/monitoring/metrics"
-	"github.com/opentracing-contrib/go-stdlib/nethttp"
-	"github.com/opentracing/opentracing-go"
-
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 // HttpServerMiddlewareAll represent all essential metrics
@@ -24,19 +23,15 @@ import (
 //  * metrics via metrics.NewHttpMiddlewareWithOption
 func (t Telemetry) HttpServerMiddlewareAll(m metrics.HttpTracker) func(next http.Handler) http.Handler {
 	tr := func(next http.Handler) http.Handler {
-		return nethttp.Middleware(t.T(), next,
-			nethttp.MWComponentName(t.cfg.Project),
-			nethttp.OperationNameFunc(func(r *http.Request) string {
-				return "HTTP " + r.Method + r.URL.Path
+		return otelhttp.NewHandler(next, "HTTP",
+			otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
+				return operation + r.Method + r.URL.Path
 			}),
-			nethttp.MWSpanObserver(func(sp opentracing.Span, r *http.Request) {
-				//sp.SetTag("http.uri", r.URL.EscapedPath())
-			}),
-			nethttp.MWSpanFilter(func(r *http.Request) bool {
+			otelhttp.WithFilter(func(r *http.Request) bool {
 				return !(r.Method == http.MethodGet && strings.HasPrefix(r.URL.RequestURI(), "/health"))
-			}),
-		)
+			}))
 	}
+
 	mw := t.HttpServerMiddleware()
 	mtr := m.NewHttpMiddlewareWithOption()
 

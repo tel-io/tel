@@ -3,8 +3,7 @@ package tel
 import (
 	"context"
 
-	"github.com/opentracing/opentracing-go"
-	"github.com/uber/jaeger-client-go"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -39,30 +38,30 @@ func FromCtx(ctx context.Context) *Telemetry {
 func FromCtxWithSpan(ctx context.Context) *span {
 	return &span{
 		Telemetry: FromCtx(ctx),
-		Span:      opentracing.SpanFromContext(ctx),
+		Span:      trace.SpanFromContext(ctx),
 	}
 }
 
 // UpdateTraceFields during session start good way to update tracing fields
 // @prefix - for split different inter-service calls: kafka, grpc, db and etc
 func UpdateTraceFields(ctx context.Context) {
-	span := opentracing.SpanFromContext(ctx)
+	span := trace.SpanFromContext(ctx)
 	if span == nil {
 		return
 	}
 
-	if sc, ok := span.Context().(jaeger.SpanContext); ok {
+	if span.SpanContext().HasTraceID() {
 		FromCtx(ctx).Logger = FromCtx(ctx).Logger.With(
-			zap.String("trace-id-", sc.TraceID().String()),
+			zap.String("trace-id-", span.SpanContext().TraceID().String()),
 		)
 	}
 }
 
 // StartSpanFromContext start telemetry span witch create or continue existent trace
 // for gracefully continue trace ctx should contain both span and tele
-func StartSpanFromContext(ctx context.Context, name string, opts ...opentracing.StartSpanOption) (span, context.Context) {
+func StartSpanFromContext(ctx context.Context, name string, opts ...trace.SpanStartOption) (span, context.Context) {
 	t := FromCtx(ctx)
-	s, sctx := opentracing.StartSpanFromContextWithTracer(ctx, t.trace, name, opts...)
+	cxt, s := t.T().Start(ctx, name, opts...)
 
-	return span{Telemetry: t, Span: s}, sctx
+	return span{Telemetry: t, Span: s}, cxt
 }

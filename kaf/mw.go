@@ -7,8 +7,8 @@ import (
 
 	"github.com/d7561985/tel"
 	"github.com/d7561985/tel/monitoring/metrics"
-	"github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
+	"go.opentelemetry.io/otel/propagation"
 	"go.uber.org/zap"
 )
 
@@ -21,8 +21,7 @@ var (
 
 type (
 	KHeader interface {
-		opentracing.TextMapReader
-		opentracing.TextMapWriter
+		propagation.TextMapCarrier
 		GetTraceValue() []byte
 	}
 
@@ -80,7 +79,7 @@ func (s *mwConsumer) HandleMessage(next CallBack) CallBack {
 
 		// new ctx instance
 		span, ctx := StartSpanFromConsumerKafka(_ctx, fmt.Sprintf("KAFKA:CONSUMER/%s", e.Topic), e)
-		defer span.Finish()
+		defer span.End()
 
 		defer func(start time.Time) {
 			rv := recover()

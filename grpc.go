@@ -9,8 +9,6 @@ import (
 
 	"github.com/d7561985/tel/monitoring/metrics"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-	"github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -18,6 +16,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 )
 
 var ErrGrpcInternal = status.New(codes.Internal, "internal server error").Err()
@@ -29,17 +29,7 @@ var ErrGrpcInternal = status.New(codes.Internal, "internal server error").Err()
 //  * metrics via metrics.UnaryClientInterceptor
 func (t Telemetry) GrpcUnaryClientInterceptorAll(ignore ...string) grpc.UnaryClientInterceptor {
 	return grpc_middleware.ChainUnaryClient(
-		otgrpc.OpenTracingClientInterceptor(t.T(),
-			otgrpc.LogPayloads(),
-			otgrpc.IncludingSpans(func(parentSpanCtx opentracing.SpanContext, method string, _, _ interface{}) bool {
-				for _, m := range ignore {
-					if m == method {
-						return false
-					}
-				}
-
-				return true
-			})),
+		otelgrpc.UnaryClientInterceptor(),
 		GrpcUnaryClientInterceptor(ignore...),
 		metrics.UnaryClientInterceptor(),
 	)
@@ -85,23 +75,13 @@ func GrpcUnaryClientInterceptor(ignore ...string) grpc.UnaryClientInterceptor {
 }
 
 // GrpcUnaryServerInterceptorAll setup recovery, metrics, tracing and debug option according goal of our framework
-// Execution order:
+// Execution order:otelgrpc
 //  * opentracing injection via otgrpc.OpenTracingServerInterceptor
 //  * ctx new instance, recovery, measure execution time + debug log via own GrpcUnaryServerInterceptor
 //  * metrics via metrics.UnaryServerInterceptor
 func (t Telemetry) GrpcUnaryServerInterceptorAll(ignore ...string) grpc.UnaryServerInterceptor {
 	return grpc_middleware.ChainUnaryServer(
-		otgrpc.OpenTracingServerInterceptor(t.T(),
-			otgrpc.LogPayloads(),
-			otgrpc.IncludingSpans(func(parentSpanCtx opentracing.SpanContext, method string, _, _ interface{}) bool {
-				for _, m := range ignore {
-					if m == method {
-						return false
-					}
-				}
-
-				return true
-			})),
+		otelgrpc.UnaryServerInterceptor(),
 		t.GrpcUnaryServerInterceptor(ignore...),
 		metrics.UnaryServerInterceptor(),
 	)

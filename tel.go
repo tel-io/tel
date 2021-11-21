@@ -8,14 +8,15 @@ import (
 	"time"
 
 	"github.com/d7561985/tel/monitoring/metrics"
-	"github.com/opentracing/opentracing-go"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 type Telemetry struct {
 	*zap.Logger
 
-	trace opentracing.Tracer
+	trace trace.Tracer
 	mon   Monitor
 
 	cfg Config
@@ -24,27 +25,39 @@ type Telemetry struct {
 func NewNull() Telemetry {
 	return Telemetry{
 		Logger: zap.NewExample(),
-		trace:  opentracing.GlobalTracer(),
+		trace:  trace.NewNoopTracerProvider().Tracer(instrumentationName),
 		mon:    createNilMonitor(),
 	}
 }
 
-func New(cfg Config) (t Telemetry) {
+func New(ctx context.Context, cfg Config) (t Telemetry, closer func()) {
 	// required as it use for generate uid
 	rand.Seed(time.Now().Unix())
 
 	t.cfg = cfg
-
 	t.Logger = newLogger(cfg)
-	t.trace = newTracer(fmt.Sprintf("%s_%s", cfg.Namespace, cfg.Project), t.Logger)
+
+	srvc := fmt.Sprintf("%s_%s", cfg.Namespace, cfg.Project)
+	tr, tExporter := newOtlpTrace(ctx, srvc, "v0.0.0")
+
+	t.trace = tr
 	t.mon = newMonitor(cfg)
 
-	return t
+	return t, func() {
+		cxt, cancel := context.WithTimeout(ctx, time.Second)
+		defer cancel()
+
+		if err := tExporter.Shutdown(cxt); err != nil {
+			otel.Handle(err)
+		}
+	}
 }
 
 // NewTelemetryContext creates new instance and put it to @ctx
-func NewTelemetryContext(cfg Config, ctx context.Context) context.Context {
-	return WithContext(ctx, New(cfg))
+func NewTelemetryContext(ctx context.Context, cfg Config) (cxt context.Context, closer func()) {
+	t, closer := New(ctx, cfg)
+
+	return WithContext(ctx, t), closer
 }
 
 // IsDebug if ENV DEBUG was true
@@ -68,7 +81,7 @@ func (t Telemetry) Copy() Telemetry {
 }
 
 // T returns opentracing instance
-func (t Telemetry) T() opentracing.Tracer {
+func (t Telemetry) T() trace.Tracer {
 	return t.trace
 }
 
@@ -106,7 +119,7 @@ func (t *Telemetry) StartMonitor() {
 
 // WithSpan create span logger where we can duplicate messages both tracer and logger
 // Furthermore we create new log instance with trace fields
-func (t *Telemetry) WithSpan(s opentracing.Span) span {
+func (t *Telemetry) WithSpan(s trace.Span) span {
 	return span{Telemetry: t, Span: s}
 }
 
@@ -121,9 +134,10 @@ func (t *Telemetry) PutFields(fields ...zap.Field) *Telemetry {
 // StartSpan start absolutely new trace telemetry span
 // keep in mind than that function don't continue any trace, only create new
 // for continue span use StartSpanFromContext
-func (t *Telemetry) StartSpan(name string, opts ...opentracing.StartSpanOption) (span, context.Context) {
-	s, sctx := opentracing.StartSpanFromContextWithTracer(t.Ctx(), t.trace, name, opts...)
-	return span{Telemetry: t, Span: s}, sctx
+func (t *Telemetry) StartSpan(name string, opts ...trace.SpanStartOption) (span, context.Context) {
+	cxt, s := t.trace.Start(t.Ctx(), name, opts...)
+
+	return span{Telemetry: t, Span: s}, cxt
 }
 
 // Printf expose fx.Printer interface as debug output

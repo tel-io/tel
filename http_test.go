@@ -20,7 +20,10 @@ const testString = "Hello World"
 const postContent = "XXX"
 
 func TestTelemetry_HttpServerMiddlewareAll(t *testing.T) {
-	ctx := New(DefaultDebugConfig()).Ctx()
+	srv, closer := New(context.Background(), DefaultDebugConfig())
+	defer closer()
+
+	ctx := srv.Ctx()
 	buf := SetLogOutput(ctx)
 
 	// key value helps check if our middleware not damage already existent context with own values
