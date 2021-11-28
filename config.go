@@ -21,6 +21,8 @@ type Config struct {
 	Debug     bool   `env:"DEBUG" envDefault:"false"`
 
 	MonitorAddr string `env:"MONITOR_ADDR" envDefault:"0.0.0.0:8011"`
+
+	OtelAddr string `env:"OTEL_EXPORTER_OTLP_ENDPOINT" envDefault:"0.0.0.0:4317"`
 }
 
 func DefaultConfig() Config {
@@ -32,6 +34,7 @@ func DefaultConfig() Config {
 		Namespace:   "default",
 		LogLevel:    "info",
 		MonitorAddr: "0.0.0.0:8011",
+		OtelAddr:    "127.0.0.1:4317",
 	}
 }
 

@@ -3,21 +3,27 @@ package tel
 import (
 	"context"
 	"fmt"
-	"io"
 	"math/rand"
 	"time"
 
 	"github.com/d7561985/tel/monitoring/metrics"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+)
+
+var (
+	globalTelemetry Telemetry = NewNull()
 )
 
 type Telemetry struct {
 	*zap.Logger
 
 	trace trace.Tracer
-	mon   Monitor
+	mon   Monitor // mon obsolete
+	meter metric.Meter
 
 	cfg Config
 }
@@ -26,11 +32,12 @@ func NewNull() Telemetry {
 	return Telemetry{
 		Logger: zap.NewExample(),
 		trace:  trace.NewNoopTracerProvider().Tracer(instrumentationName),
+		meter:  metric.NewNoopMeterProvider().Meter(instrumentationName),
 		mon:    createNilMonitor(),
 	}
 }
 
-func New(ctx context.Context, cfg Config) (t Telemetry, closer func()) {
+func New(ctx context.Context, cfg Config) (t Telemetry, closer func(context.Context)) {
 	// required as it use for generate uid
 	rand.Seed(time.Now().Unix())
 
@@ -38,26 +45,32 @@ func New(ctx context.Context, cfg Config) (t Telemetry, closer func()) {
 	t.Logger = newLogger(cfg)
 
 	srvc := fmt.Sprintf("%s_%s", cfg.Namespace, cfg.Project)
-	tr, tExporter := newOtlpTrace(ctx, srvc, "v0.0.0")
+	trCloser := newOtlpTrace(ctx, cfg.OtelAddr, srvc)
+	metCloser := newOtlpMetic(ctx, cfg.OtelAddr)
 
-	t.trace = tr
 	t.mon = newMonitor(cfg)
+	t.trace = otel.Tracer(srvc + "_tracer")
+	t.meter = global.Meter(srvc+"_meter", metric.WithInstrumentationVersion("hello"))
 
-	return t, func() {
-		cxt, cancel := context.WithTimeout(ctx, time.Second)
-		defer cancel()
+	return t, func(cnx context.Context) {
+		trCloser(cnx)
+		metCloser(cnx)
 
-		if err := tExporter.Shutdown(cxt); err != nil {
-			otel.Handle(err)
-		}
+		t.close()
 	}
 }
 
-// NewTelemetryContext creates new instance and put it to @ctx
-func NewTelemetryContext(ctx context.Context, cfg Config) (cxt context.Context, closer func()) {
-	t, closer := New(ctx, cfg)
+// Close properly Telemetry instance
+func (t *Telemetry) close() {
+	t.Info("Tel close begins")
 
-	return WithContext(ctx, t), closer
+	if t.mon != nil {
+		t.mon.GracefulStop(t.Ctx())
+	}
+
+	if err := t.Logger.Sync(); err != nil {
+		t.Logger.Error("Telemetry logger sync at close", zap.Error(err))
+	}
 }
 
 // IsDebug if ENV DEBUG was true
@@ -90,23 +103,8 @@ func (t Telemetry) M() Monitor {
 	return t.mon
 }
 
-// Close properly Telemetry instance
-func (t *Telemetry) Close() {
-	t.Info("Tel close begins")
-
-	if closer, ok := t.trace.(io.Closer); ok {
-		if err := closer.Close(); err != nil {
-			t.Logger.Error("Telemetry tracer close at close", zap.Error(err))
-		}
-	}
-
-	if t.mon != nil {
-		t.mon.GracefulStop(t.Ctx())
-	}
-
-	if err := t.Logger.Sync(); err != nil {
-		t.Logger.Error("Telemetry logger sync at close", zap.Error(err))
-	}
+func (t Telemetry) MM() metric.Meter {
+	return t.meter
 }
 
 // StartMonitor is blocking operation
@@ -143,4 +141,12 @@ func (t *Telemetry) StartSpan(name string, opts ...trace.SpanStartOption) (span,
 // Printf expose fx.Printer interface as debug output
 func (t *Telemetry) Printf(msg string, items ...interface{}) {
 	t.Debug(fmt.Sprintf(msg, items...))
+}
+
+func Global() Telemetry {
+	return globalTelemetry
+}
+
+func SetGlobal(t Telemetry) {
+	globalTelemetry = t
 }

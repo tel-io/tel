@@ -1,0 +1,48 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    const_labels:
+      namespace: MY_NAMESPACE
+      project: MY_PROJECT
+  logging:
+  otlp:
+    endpoint: tempo:55680
+    insecure: true
+
+processors:
+  resource:
+    attributes:
+      - key: host.name
+        value: zone-1
+        action: upsert
+      - key: host.name2
+        from_attribute: host.name
+        action: insert
+      - key: host.name3
+        from_attribute: host.name
+        action: insert
+  batch:
+
+extensions:
+  health_check:
+  pprof:
+    endpoint: :1888
+  zpages:
+    endpoint: :55679
+
+service:
+  extensions: [pprof, zpages, health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [logging, otlp]
+    metrics:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [logging, prometheus]

@@ -4,21 +4,25 @@ import (
 	"bytes"
 	"context"
 	"log"
-	"os"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/host"
+	rt "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"google.golang.org/grpc"
-
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/metric/global"
+	"go.opentelemetry.io/otel/propagation"
+	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
+	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
+	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
+	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 const flushTimeout = 5 * time.Second
@@ -56,18 +60,59 @@ func newLogger(l Config) *zap.Logger {
 	return pl
 }
 
+func newOtlpMetic(ctx context.Context, otelAgentAddr string) func(ctx context.Context) {
+	metricClient := otlpmetricgrpc.NewClient(
+		otlpmetricgrpc.WithInsecure(),
+		otlpmetricgrpc.WithEndpoint(otelAgentAddr),
+		//otlpmetricgrpc.WithDialOption(grpc.WithBlock()),
+	)
+
+	metricExp, err := otlpmetric.New(ctx, metricClient)
+	handleErr(err, "Failed to create the collector metric exporter")
+
+	res, err := resource.New(ctx,
+		resource.WithProcess(),
+		resource.WithHost(),
+	)
+	handleErr(err, "failed to create resource")
+
+	pusher := controller.New(
+		processor.NewFactory(
+			simple.NewWithExactDistribution(),
+			metricExp,
+		),
+		controller.WithExporter(metricExp),
+		controller.WithCollectPeriod(5*time.Second),
+		controller.WithResource(res),
+	)
+	global.SetMeterProvider(pusher)
+
+	err = pusher.Start(ctx)
+	handleErr(err, "Failed to start metric pusher")
+
+	err = rt.Start()
+	handleErr(err, "Failed to start runtime metric")
+
+	err = host.Start()
+	handleErr(err, "Failed to start host metric")
+
+	return func(cxt context.Context) {
+		// pushes any last exports to the receiver
+		if err := pusher.Stop(cxt); err != nil {
+			otel.Handle(err)
+		}
+	}
+}
+
 // OtraceInit init exporter which should be properly closed
 //user otel.GetTracerProvider() to rieach trace
-func newOtlpTrace(ctx context.Context, service, ver string) (trace.Tracer, *otlptrace.Exporter) {
-	otelAgentAddr, ok := os.LookupEnv("OTEL_EXPORTER_OTLP_ENDPOINT")
-	if !ok {
-		otelAgentAddr = "0.0.0.0:4317"
-	}
-
+func newOtlpTrace(ctx context.Context, otelAgentAddr, service string) func(ctx context.Context) {
 	traceClient := otlptracegrpc.NewClient(
 		otlptracegrpc.WithInsecure(),
 		otlptracegrpc.WithEndpoint(otelAgentAddr),
-		otlptracegrpc.WithDialOption(grpc.WithBlock()))
+		//otlptracegrpc.WithDialOption(grpc.WithBlock()),
+	)
+
 	traceExp, err := otlptrace.New(ctx, traceClient)
 	handleErr(err, "Failed to create the collector trace exporter")
 
@@ -94,10 +139,11 @@ func newOtlpTrace(ctx context.Context, service, ver string) (trace.Tracer, *otlp
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 	otel.SetTracerProvider(tracerProvider)
 
-	// ToDo: more conventions?
-	tr := tracerProvider.Tracer(instrumentationName, trace.WithInstrumentationVersion(ver))
-
-	return tr, traceExp
+	return func(cxt context.Context) {
+		if err := traceExp.Shutdown(cxt); err != nil {
+			otel.Handle(err)
+		}
+	}
 }
 
 // @l used only for handling some error to our log system

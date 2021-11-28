@@ -21,7 +21,7 @@ const postContent = "XXX"
 
 func TestTelemetry_HttpServerMiddlewareAll(t *testing.T) {
 	srv, closer := New(context.Background(), DefaultDebugConfig())
-	defer closer()
+	defer closer(context.Background())
 
 	ctx := srv.Ctx()
 	buf := SetLogOutput(ctx)

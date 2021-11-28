@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -13,11 +14,12 @@ type Suite struct {
 
 	byf    *bytes.Buffer
 	tel    Telemetry
-	closer func()
+	closer func(ctx context.Context)
 }
 
 func (s *Suite) TearDownSuite() {
-	s.closer()
+	<-time.After(time.Second * 35)
+	s.closer(context.Background())
 }
 
 func (s *Suite) SetupSuite() {

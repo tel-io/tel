@@ -3,14 +3,15 @@ package tel
 import (
 	"bufio"
 	"context"
-	"fmt"
 	"log"
 	"net"
 
 	"github.com/d7561985/tel/monitoring/metrics"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/examples/helloworld/helloworld"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
 )
 
 type Fixture struct {
@@ -55,6 +56,9 @@ func CreateMockServer(ctx context.Context, fx Fixture) (net.Listener, *grpc.Serv
 }
 
 func (s *Suite) TestGrpcPanicMW() {
+	_, s2 := s.tel.T().Start(context.Background(), "test-pp")
+	defer s2.End()
+
 	ctx := s.tel.Ctx()
 
 	l, srv := CreateMockServer(ctx, Fixture{
@@ -78,11 +82,13 @@ func (s *Suite) TestGrpcPanicMW() {
 
 	client := helloworld.NewGreeterClient(dial)
 	res, err := client.SayHello(ctx, &helloworld.HelloRequest{})
-	s.Equal(ErrGrpcInternal, err)
+	fromError, ok := status.FromError(err)
+	s.True(ok)
+	s.Equal(codes.Internal, fromError.Code())
 	s.Nil(res)
 
 	s.tel.Logger.Sync()
-	fmt.Println(">>>>", s.byf.String())
+
 	for i := 0; i < 2; i++ {
 		_, _, err := bufio.NewReader(s.byf).ReadLine()
 		s.NoError(err)
