@@ -13,10 +13,15 @@ services:
       - "55680"  # otlp grpc
       - "55681"  # otlp http
       - "9411"   # zipkin
+  loki:
+    image: grafana/loki:2.4.0
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
 
   # Collector
   otel-collector:
-    image: otel/opentelemetry-collector:0.32.0
+    image: otel/opentelemetry-collector-contrib:0.40.0
     command: [ "--config=/etc/otel-collector-config.yaml", "${OTELCOL_ARGS}" ]
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
@@ -27,6 +32,8 @@ services:
       - "13133:13133" # health_check extension
       - "4317:4317"    # OTLP gRPC receiver
       - "55670:55679" # zpages extension
+      - "24224:24224" # fluentforwarder
+      - "24224:24224/udp" # fluentforwarder
     depends_on:
       - tempo
 
@@ -51,3 +58,19 @@ services:
       GF_AUTH_DISABLE_LOGIN_FORM: true
     ports:
       - "3000:3000"
+
+  # Log generator
+  flog:
+    image: mingrammer/flog:0.4.3
+    # Output 1 log per second in JSON format
+    command: ["--format=json", "--loop", "--delay=1s", "--number=1"]
+    depends_on:
+      - otel-collector
+    logging:
+      driver: fluentd
+      options:
+        # Allow time for otel-collector to spin up, then forward fluentd logs to the fluentforwarder receiver.
+        fluentd-async-connect: "true"
+        # Use nanosecond precision
+        fluentd-sub-second-precision: "true"
+

@@ -21,3 +21,6 @@ datasources:
     editable: false
     apiVersion: 1
     uid: tempo
+  - name: Loki
+    type: loki
+    url: http://loki:3100
