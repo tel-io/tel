@@ -24,3 +24,9 @@ datasources:
   - name: Loki
     type: loki
     url: http://loki:3100
+    jsonData:
+      derivedFields:
+        - datasourceUid: tempo
+          matcherRegex: "\"traceID\":\"(\\w+)\""
+          name: trace
+          url: '$${__value.raw}'

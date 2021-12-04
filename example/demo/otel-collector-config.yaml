@@ -18,11 +18,28 @@ exporters:
       insecure: true
   loki:
     endpoint: "http://loki:3100/loki/api/v1/push"
+    sending_queue:
+      # Enabled indicates whether to not enqueue batches before sending to the consumerSender.
+      enabled: false
+      # NumConsumers is the number of consumers from the queue.
+      num_consumers: 100
+      # QueueSize is the maximum number of batches allowed in queue at a given time.
+      queue_size: 10000
+    tenant_id: yyy
+    # Labels defines how labels should be applied to log streams sent to Loki.
     labels:
-      attributes:
+      # ResourceAttributes are the resource attributes that are allowed to be added as labels on a log stream.
+      resource:
+        project: ""
+        namespace: ""
         container_name: ""
         source: ""
-
+      # Attributes are the log record attributes that are allowed to be added as labels on a log stream.
+      attributes:
+        level: ""
+# flog required attibutes for container
+#        container_name: ""
+#        source: ""
 processors:
   resource:
     attributes:
@@ -72,6 +89,6 @@ service:
       processors: [batch, resource]
       exporters: [logging, prometheus]
     logs:
-      receivers: [ fluentforward ]
+      receivers: [ fluentforward, otlp ]
       processors: [ memory_limiter, batch ]
-      exporters: [ loki ]
+      exporters: [ logging, loki ]

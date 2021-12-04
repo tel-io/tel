@@ -10,7 +10,7 @@ services:
     ports:
       - "14268"  # jaeger ingest
       - "3200"   # tempo
-      - "55680"  # otlp grpc
+      - "55680:55680"  # otlp grpc
       - "55681"  # otlp http
       - "9411"   # zipkin
   loki:
@@ -53,24 +53,25 @@ services:
       - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
     environment:
       GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
-      GF_AUTH_ANONYMOUS_ENABLED: true
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
-      GF_AUTH_DISABLE_LOGIN_FORM: true
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
     ports:
       - "3000:3000"
 
-  # Log generator
-  flog:
-    image: mingrammer/flog:0.4.3
-    # Output 1 log per second in JSON format
-    command: ["--format=json", "--loop", "--delay=1s", "--number=1"]
-    depends_on:
-      - otel-collector
-    logging:
-      driver: fluentd
-      options:
-        # Allow time for otel-collector to spin up, then forward fluentd logs to the fluentforwarder receiver.
-        fluentd-async-connect: "true"
-        # Use nanosecond precision
-        fluentd-sub-second-precision: "true"
+#  # Log generator
+#  flog:
+#    image: mingrammer/flog:0.4.3
+#    # Output 1 log per second in JSON format
+#    command: ["--format=json", "--loop", "--delay=1s", "--number=1"]
+#    depends_on:
+#      - otel-collector
+#    logging:
+#      driver: fluentd
+#      options:
+#        # Allow time for otel-collector to spin up, then forward fluentd logs to the fluentforwarder receiver.
+#        fluentd-async-connect: "true"
+#        # Use nanosecond precision
+#        fluentd-sub-second-precision: "true"
+
 
