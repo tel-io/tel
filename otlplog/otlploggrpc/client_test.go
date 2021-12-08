@@ -21,6 +21,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/d7561985/tel/otlplog/otlploggrpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -30,7 +31,7 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	commonpb "go.opentelemetry.io/proto/otlp/common/v1"
@@ -41,27 +42,27 @@ var roSpans = tracetest.SpanStubs{{Name: "Span 0"}}.Snapshots()
 func TestNew_endToEnd(t *testing.T) {
 	tests := []struct {
 		name           string
-		additionalOpts []otlptracegrpc.Option
+		additionalOpts []otlploggrpc.Option
 	}{
 		{
 			name: "StandardExporter",
 		},
 		{
 			name: "WithCompressor",
-			additionalOpts: []otlptracegrpc.Option{
-				otlptracegrpc.WithCompressor(gzip.Name),
+			additionalOpts: []otlploggrpc.Option{
+				otlploggrpc.WithCompressor(gzip.Name),
 			},
 		},
 		{
 			name: "WithServiceConfig",
-			additionalOpts: []otlptracegrpc.Option{
-				otlptracegrpc.WithServiceConfig("{}"),
+			additionalOpts: []otlploggrpc.Option{
+				otlploggrpc.WithServiceConfig("{}"),
 			},
 		},
 		{
 			name: "WithDialOptions",
-			additionalOpts: []otlptracegrpc.Option{
-				otlptracegrpc.WithDialOption(grpc.WithBlock()),
+			additionalOpts: []otlploggrpc.Option{
+				otlploggrpc.WithDialOption(grpc.WithBlock()),
 			},
 		},
 	}
@@ -73,15 +74,15 @@ func TestNew_endToEnd(t *testing.T) {
 	}
 }
 
-func newGRPCExporter(t *testing.T, ctx context.Context, endpoint string, additionalOpts ...otlptracegrpc.Option) *otlptrace.Exporter {
-	opts := []otlptracegrpc.Option{
-		otlptracegrpc.WithInsecure(),
-		otlptracegrpc.WithEndpoint(endpoint),
-		otlptracegrpc.WithReconnectionPeriod(50 * time.Millisecond),
+func newGRPCExporter(t *testing.T, ctx context.Context, endpoint string, additionalOpts ...otlploggrpc.Option) *otlptrace.Exporter {
+	opts := []otlploggrpc.Option{
+		otlploggrpc.WithInsecure(),
+		otlploggrpc.WithEndpoint(endpoint),
+		otlploggrpc.WithReconnectionPeriod(50 * time.Millisecond),
 	}
 
 	opts = append(opts, additionalOpts...)
-	client := otlptracegrpc.NewClient(opts...)
+	client := otlploggrpc.NewClient(opts...)
 	exp, err := otlptrace.New(ctx, client)
 	if err != nil {
 		t.Fatalf("failed to create a new collector exporter: %v", err)
@@ -89,7 +90,7 @@ func newGRPCExporter(t *testing.T, ctx context.Context, endpoint string, additio
 	return exp
 }
 
-func newExporterEndToEndTest(t *testing.T, additionalOpts []otlptracegrpc.Option) {
+func newExporterEndToEndTest(t *testing.T, additionalOpts []otlploggrpc.Option) {
 	mc := runMockCollectorAtEndpoint(t, "localhost:56561")
 
 	defer func() {
@@ -120,10 +121,10 @@ func TestExporterShutdown(t *testing.T) {
 	<-time.After(5 * time.Millisecond)
 
 	otlptracetest.RunExporterShutdownTest(t, func() otlptrace.Client {
-		return otlptracegrpc.NewClient(
-			otlptracegrpc.WithInsecure(),
-			otlptracegrpc.WithEndpoint(mc.endpoint),
-			otlptracegrpc.WithReconnectionPeriod(50*time.Millisecond))
+		return otlploggrpc.NewClient(
+			otlploggrpc.WithInsecure(),
+			otlploggrpc.WithEndpoint(mc.endpoint),
+			otlploggrpc.WithReconnectionPeriod(50*time.Millisecond))
 	})
 }
 
@@ -167,8 +168,8 @@ func TestNew_collectorConnectionDiesThenReconnectsWhenInRestMode(t *testing.T) {
 	reconnectionPeriod := 20 * time.Millisecond
 	ctx := context.Background()
 	exp := newGRPCExporter(t, ctx, mc.endpoint,
-		otlptracegrpc.WithRetry(otlptracegrpc.RetryConfig{Enabled: false}),
-		otlptracegrpc.WithReconnectionPeriod(reconnectionPeriod))
+		otlploggrpc.WithRetry(otlploggrpc.RetryConfig{Enabled: false}),
+		otlploggrpc.WithReconnectionPeriod(reconnectionPeriod))
 	defer func() { require.NoError(t, exp.Shutdown(ctx)) }()
 
 	// Wait for a connection.
@@ -226,8 +227,8 @@ func TestNew_collectorConnectionDiesThenReconnects(t *testing.T) {
 	reconnectionPeriod := 50 * time.Millisecond
 	ctx := context.Background()
 	exp := newGRPCExporter(t, ctx, mc.endpoint,
-		otlptracegrpc.WithRetry(otlptracegrpc.RetryConfig{Enabled: false}),
-		otlptracegrpc.WithReconnectionPeriod(reconnectionPeriod))
+		otlploggrpc.WithRetry(otlploggrpc.RetryConfig{Enabled: false}),
+		otlploggrpc.WithReconnectionPeriod(reconnectionPeriod))
 	defer func() { require.NoError(t, exp.Shutdown(ctx)) }()
 
 	mc.ln.WaitForConn()
@@ -314,7 +315,7 @@ func TestNew_withHeaders(t *testing.T) {
 
 	ctx := context.Background()
 	exp := newGRPCExporter(t, ctx, mc.endpoint,
-		otlptracegrpc.WithHeaders(map[string]string{"header1": "value1"}))
+		otlploggrpc.WithHeaders(map[string]string{"header1": "value1"}))
 	require.NoError(t, exp.ExportSpans(ctx, roSpans))
 
 	defer func() {
@@ -368,7 +369,7 @@ func TestNew_WithTimeout(t *testing.T) {
 			}()
 
 			ctx := context.Background()
-			exp := newGRPCExporter(t, ctx, mc.endpoint, otlptracegrpc.WithTimeout(tt.timeout), otlptracegrpc.WithRetry(otlptracegrpc.RetryConfig{Enabled: false}))
+			exp := newGRPCExporter(t, ctx, mc.endpoint, otlploggrpc.WithTimeout(tt.timeout), otlploggrpc.WithRetry(otlploggrpc.RetryConfig{Enabled: false}))
 			defer func() {
 				_ = exp.Shutdown(ctx)
 			}()
@@ -396,7 +397,7 @@ func TestNew_withInvalidSecurityConfiguration(t *testing.T) {
 	}()
 
 	ctx := context.Background()
-	driver := otlptracegrpc.NewClient(otlptracegrpc.WithEndpoint(mc.endpoint))
+	driver := otlploggrpc.NewClient(otlploggrpc.WithEndpoint(mc.endpoint))
 	exp, err := otlptrace.New(ctx, driver)
 	if err != nil {
 		t.Fatalf("failed to create a new collector exporter: %v", err)
@@ -551,8 +552,8 @@ func TestDisconnected(t *testing.T) {
 	// setting a blocking connection, so dialing to the invalid
 	// endpoint actually fails.
 	exp := newGRPCExporter(t, ctx, "invalid",
-		otlptracegrpc.WithReconnectionPeriod(time.Hour),
-		otlptracegrpc.WithDialOption(
+		otlploggrpc.WithReconnectionPeriod(time.Hour),
+		otlploggrpc.WithDialOption(
 			grpc.WithBlock(),
 			grpc.FailOnNonTempDialError(true),
 		),

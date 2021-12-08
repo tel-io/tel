@@ -16,15 +16,16 @@ import (
 	health "github.com/d7561985/tel/monitoring/heallth"
 	"github.com/d7561985/tel/otlplog"
 	"github.com/d7561985/tel/otlplog/otlploggrpc"
+	"github.com/d7561985/tel/pkg/tracetransform"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 	"go.opentelemetry.io/otel/trace"
 	v1 "go.opentelemetry.io/proto/otlp/common/v1"
 	tracepb "go.opentelemetry.io/proto/otlp/logs/v1"
-	rss "go.opentelemetry.io/proto/otlp/resource/v1"
 )
 
 func handleErr(err error, message string) {
@@ -51,6 +52,7 @@ func main() {
 
 	// TODO: Use baggage when supported to extract labels from baggage.
 	commonLabels := []attribute.KeyValue{
+		attribute.String("userID", "e64916d9-bfd0-4f79-8ee3-847f2d034d20"),
 		//attribute.String("namespace", cfg.Namespace),
 		//attribute.String("project", cfg.Project),
 	}
@@ -110,14 +112,18 @@ A:
 		//requestLatency.Record(ctx, ms, commonLabels...)
 		//requestCount.Add(ctx, 1, commonLabels...)
 
-		t.MM().RecordBatch(ctx,
-			commonLabels,
-			requestLatency.Measurement(ms),
-			requestCount.Measurement(1),
-		)
+		//t.MM().RecordBatch(ctx,
+		//	commonLabels,
+		//	requestLatency.Measurement(ms),
+		//	requestCount.Measurement(1),
+		//)
 
 		for j := 0; j < 100; j++ {
-			go sendLog(span, q, ctx)
+			go func(span trace.Span, q otlplog.Client) {
+				requestCount.Add(ctx, 1, commonLabels...)
+				requestLatency.Measurement(ms)
+				sendLog(ctx, span, q)
+			}(span, q)
 		}
 
 		<-time.After(time.Second)
@@ -127,7 +133,7 @@ A:
 	<-ctx.Done()
 }
 
-func sendLog(span trace.Span, q otlplog.Client, ctx context.Context) {
+func sendLog(ctx context.Context, span trace.Span, q otlplog.Client) {
 	trID := span.SpanContext().TraceID()
 	spanID := span.SpanContext().SpanID()
 
@@ -148,6 +154,33 @@ func sendLog(span trace.Span, q otlplog.Client, ctx context.Context) {
 	}
 
 	namespae := nss[rand.Int()%len(nss)]
+
+	res, _ := resource.New(ctx,
+		resource.WithFromEnv(),
+		resource.WithProcess(),
+		resource.WithTelemetrySDK(),
+		resource.WithHost(),
+		resource.WithAttributes(
+			// the service name used to display traces in backends
+			semconv.ServiceNameKey.String("tel"),
+			attribute.KeyValue{
+				Key:   "project",
+				Value: attribute.StringValue(x[namespae][rand.Int()%len(x[namespae])]),
+			},
+			attribute.KeyValue{
+				Key:   "namespace",
+				Value: attribute.StringValue(namespae),
+			},
+			attribute.KeyValue{
+				Key:   "source",
+				Value: attribute.StringValue("tel2"),
+			},
+			attribute.KeyValue{
+				Key:   "container_name",
+				Value: attribute.StringValue([]string{"A2", "A1", "A3", "A4"}[rand.Int()%4]),
+			},
+		),
+	)
 
 	err := q.UploadLogs(ctx, []*tracepb.ResourceLogs{{
 		SchemaUrl: semconv.SchemaURL,
@@ -177,28 +210,7 @@ func sendLog(span trace.Span, q otlplog.Client, ctx context.Context) {
 				},
 			},
 		},
-		Resource: &rss.Resource{
-			Attributes: []*v1.KeyValue{
-				{
-					Key: "container_name",
-					Value: &v1.AnyValue{Value: &v1.AnyValue_StringValue{
-						StringValue: []string{"A2", "A1", "A3", "A4"}[rand.Int()%4]}},
-				},
-				{
-					Key:   "source",
-					Value: &v1.AnyValue{Value: &v1.AnyValue_StringValue{StringValue: "tel"}},
-				},
-				{
-					Key: "namespace",
-					Value: &v1.AnyValue{Value: &v1.AnyValue_StringValue{
-						StringValue: namespae}},
-				},
-				{
-					Key: "project",
-					Value: &v1.AnyValue{Value: &v1.AnyValue_StringValue{
-						StringValue: x[namespae][rand.Int()%len(x[namespae])]}},
-				},
-			}},
+		Resource: tracetransform.Resource(res),
 	},
 	})
 	if err != nil {

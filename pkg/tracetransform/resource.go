@@ -12,27 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package connection
+package tracetransform // import "go.opentelemetry.io/otel/exporters/otlp/otlptrace/internal/tracetransform"
 
 import (
-	"os"
-	"testing"
-	"unsafe"
-
-	ottest "go.opentelemetry.io/otel/internal/internaltest"
+	"go.opentelemetry.io/otel/sdk/resource"
+	resourcepb "go.opentelemetry.io/proto/otlp/resource/v1"
 )
 
-// Ensure struct alignment prior to running tests.
-func TestMain(m *testing.M) {
-	fields := []ottest.FieldOffset{
-		{
-			Name:   "Connection.lastConnectErrPtr",
-			Offset: unsafe.Offsetof(Connection{}.lastConnectErrPtr),
-		},
+// Resource transforms a Resource into an OTLP Resource.
+func Resource(r *resource.Resource) *resourcepb.Resource {
+	if r == nil {
+		return nil
 	}
-	if !ottest.Aligned8Byte(fields, os.Stderr) {
-		os.Exit(1)
-	}
-
-	os.Exit(m.Run())
+	return &resourcepb.Resource{Attributes: ResourceAttributes(r)}
 }
