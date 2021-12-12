@@ -52,7 +52,7 @@ func UpdateTraceFields(ctx context.Context) {
 
 	if span.SpanContext().HasTraceID() {
 		FromCtx(ctx).Logger = FromCtx(ctx).Logger.With(
-			zap.String("trace-id-", span.SpanContext().TraceID().String()),
+			zap.String("traceID", span.SpanContext().TraceID().String()),
 		)
 	}
 }
