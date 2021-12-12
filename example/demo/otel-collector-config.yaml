@@ -34,6 +34,9 @@ exporters:
         namespace: ""
         container_name: ""
         source: ""
+        "service.version": ""
+        "service.namespace": ""
+        "service.name": ""
       # Attributes are the log record attributes that are allowed to be added as labels on a log stream.
       attributes:
         level: ""
@@ -78,16 +81,16 @@ extensions:
     endpoint: :55679
 
 service:
-  extensions: [pprof, zpages, health_check]
+  extensions: [ pprof, zpages, health_check ]
   pipelines:
     traces:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [logging, otlp]
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ logging, otlp ]
     metrics:
-      receivers: [otlp]
-      processors: [batch, resource]
-      exporters: [logging, prometheus]
+      receivers: [ otlp ]
+      processors: [ batch, resource ]
+      exporters: [ logging, prometheus ]
     logs:
       receivers: [ fluentforward, otlp ]
       processors: [ memory_limiter, batch ]

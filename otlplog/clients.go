@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package otlplog // import "go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+package otlplog
 
 import (
 	"context"
@@ -48,7 +48,7 @@ type Client interface {
 	// UploadLogs should transform the passed traces to the wire
 	// format and send it to the collector. May be called
 	// concurrently.
-	UploadLogs(ctx context.Context, protoSpans []*tracepb.ResourceLogs) error
+	UploadLogs(ctx context.Context, protoSpans *tracepb.ResourceLogs) error
 	// DO NOT CHANGE: any modification will not be backwards compatible and
 	// must never be done outside of a new major release.
 }

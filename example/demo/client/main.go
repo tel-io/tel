@@ -17,6 +17,7 @@ import (
 	"github.com/d7561985/tel/otlplog"
 	"github.com/d7561985/tel/otlplog/otlploggrpc"
 	"github.com/d7561985/tel/pkg/tracetransform"
+	"github.com/d7561985/tel/pkg/zapotel"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/baggage"
@@ -26,6 +27,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	v1 "go.opentelemetry.io/proto/otlp/common/v1"
 	tracepb "go.opentelemetry.io/proto/otlp/logs/v1"
+	"go.uber.org/zap"
 )
 
 func handleErr(err error, message string) {
@@ -39,8 +41,14 @@ func main() {
 	defer cancel()
 
 	cfg := tel.DefaultConfig()
-	t, closer := tel.New(ccx, cfg)
-	defer closer(context.Background())
+	res := tel.CreateRes(ccx, cfg)
+
+	logExporter := zapotel.NewLogOtelExporter(ccx, res, cfg)
+	core, closer := zapotel.NewCore(logExporter)
+	defer closer(ccx)
+
+	t, cc := tel.New(ccx, cfg, res, tel.WithZapCore(core))
+	defer cc(ccx)
 
 	// fill ctx with extra data
 	method, err := baggage.NewMember("namespace", cfg.Namespace)
@@ -100,7 +108,7 @@ A:
 		default:
 		}
 
-		cxt, span := t.T().Start(ctx, "ExecuteRequest")
+		span, cxt := t.StartSpan("ExecuteRequest")
 		<-time.After(time.Second)
 		start := time.Now()
 		makeRequest(cxt)
@@ -119,11 +127,13 @@ A:
 		//)
 
 		for j := 0; j < 100; j++ {
-			go func(span trace.Span, q otlplog.Client) {
+			go func(ctx context.Context, q otlplog.Client) {
 				requestCount.Add(ctx, 1, commonLabels...)
 				requestLatency.Measurement(ms)
 				sendLog(ctx, span, q)
-			}(span, q)
+
+				tel.FromCtxWithSpan(ctx).Info("test info message", zap.String("field-A", "a"))
+			}(cxt, q)
 		}
 
 		<-time.After(time.Second)
@@ -182,7 +192,7 @@ func sendLog(ctx context.Context, span trace.Span, q otlplog.Client) {
 		),
 	)
 
-	err := q.UploadLogs(ctx, []*tracepb.ResourceLogs{{
+	err := q.UploadLogs(ctx, &tracepb.ResourceLogs{
 		SchemaUrl: semconv.SchemaURL,
 		InstrumentationLibraryLogs: []*tracepb.InstrumentationLibraryLogs{
 			{
@@ -211,7 +221,6 @@ func sendLog(ctx context.Context, span trace.Span, q otlplog.Client) {
 			},
 		},
 		Resource: tracetransform.Resource(res),
-	},
 	})
 	if err != nil {
 		log.Println(trID.String(), len(trID), "=>>", err.Error())

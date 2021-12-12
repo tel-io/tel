@@ -55,26 +55,40 @@ func newLogger(l Config) *zap.Logger {
 		log.Fatalf("zap build error: %s", err)
 	}
 
-	pl = pl.With(zap.String("project", l.Project), zap.String("namespace", l.Namespace))
+	zap.ReplaceGlobals(pl)
 
 	return pl
 }
 
-func newOtlpMetic(ctx context.Context, otelAgentAddr string) func(ctx context.Context) {
+func CreateRes(ctx context.Context, l Config) *resource.Resource {
+	res, _ := resource.New(ctx,
+		resource.WithFromEnv(),
+		resource.WithProcess(),
+		resource.WithTelemetrySDK(),
+		resource.WithHost(),
+		resource.WithAttributes(
+			// the service name used to display traces in backends
+			// key: service.name
+			semconv.ServiceNameKey.String(l.Project),
+			// key: service.namespace
+			semconv.ServiceNamespaceKey.String(l.Namespace),
+			// key: service.version
+			semconv.ServiceVersionKey.String("v0.0.0"),
+		),
+	)
+
+	return res
+}
+
+func newOtlpMetic(ctx context.Context, res *resource.Resource, l Config) func(ctx context.Context) {
 	metricClient := otlpmetricgrpc.NewClient(
 		otlpmetricgrpc.WithInsecure(),
-		otlpmetricgrpc.WithEndpoint(otelAgentAddr),
+		otlpmetricgrpc.WithEndpoint(l.OtelAddr),
 		//otlpmetricgrpc.WithDialOption(grpc.WithBlock()),
 	)
 
 	metricExp, err := otlpmetric.New(ctx, metricClient)
 	handleErr(err, "Failed to create the collector metric exporter")
-
-	res, err := resource.New(ctx,
-		resource.WithProcess(),
-		resource.WithHost(),
-	)
-	handleErr(err, "failed to create resource")
 
 	pusher := controller.New(
 		processor.NewFactory(
@@ -106,27 +120,15 @@ func newOtlpMetic(ctx context.Context, otelAgentAddr string) func(ctx context.Co
 
 // OtraceInit init exporter which should be properly closed
 //user otel.GetTracerProvider() to rieach trace
-func newOtlpTrace(ctx context.Context, otelAgentAddr, service string) func(ctx context.Context) {
+func newOtlpTrace(ctx context.Context, res *resource.Resource, l Config) func(ctx context.Context) {
 	traceClient := otlptracegrpc.NewClient(
 		otlptracegrpc.WithInsecure(),
-		otlptracegrpc.WithEndpoint(otelAgentAddr),
+		otlptracegrpc.WithEndpoint(l.OtelAddr),
 		//otlptracegrpc.WithDialOption(grpc.WithBlock()),
 	)
 
 	traceExp, err := otlptrace.New(ctx, traceClient)
 	handleErr(err, "Failed to create the collector trace exporter")
-
-	res, err := resource.New(ctx,
-		resource.WithFromEnv(),
-		resource.WithProcess(),
-		resource.WithTelemetrySDK(),
-		resource.WithHost(),
-		resource.WithAttributes(
-			// the service name used to display traces in backends
-			semconv.ServiceNameKey.String(service),
-		),
-	)
-	handleErr(err, "failed to create resource")
 
 	bsp := sdktrace.NewBatchSpanProcessor(traceExp)
 	tracerProvider := sdktrace.NewTracerProvider(

@@ -10,6 +10,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/global"
+	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -17,6 +18,10 @@ import (
 var (
 	globalTelemetry Telemetry = NewNull()
 )
+
+type Option interface {
+	apply(*Telemetry)
+}
 
 type Telemetry struct {
 	*zap.Logger
@@ -37,7 +42,7 @@ func NewNull() Telemetry {
 	}
 }
 
-func New(ctx context.Context, cfg Config) (t Telemetry, closer func(context.Context)) {
+func New(ctx context.Context, cfg Config, res *resource.Resource, opts ...Option) (t Telemetry, closer func(context.Context)) {
 	// required as it use for generate uid
 	rand.Seed(time.Now().Unix())
 
@@ -45,18 +50,27 @@ func New(ctx context.Context, cfg Config) (t Telemetry, closer func(context.Cont
 	t.Logger = newLogger(cfg)
 
 	srvc := fmt.Sprintf("%s_%s", cfg.Namespace, cfg.Project)
-	trCloser := newOtlpTrace(ctx, cfg.OtelAddr, srvc)
-	metCloser := newOtlpMetic(ctx, cfg.OtelAddr)
+	trCloser := newOtlpTrace(ctx, res, cfg)
+	metCloser := newOtlpMetic(ctx, res, cfg)
 
 	t.mon = newMonitor(cfg)
 	t.trace = otel.Tracer(srvc + "_tracer")
 	t.meter = global.Meter(srvc+"_meter", metric.WithInstrumentationVersion("hello"))
+
+	t.Apply(opts...)
 
 	return t, func(cnx context.Context) {
 		trCloser(cnx)
 		metCloser(cnx)
 
 		t.close()
+	}
+}
+
+// Apply options on fly
+func (t *Telemetry) Apply(opts ...Option) {
+	for _, opt := range opts {
+		opt.apply(t)
 	}
 }
 
@@ -134,6 +148,8 @@ func (t *Telemetry) PutFields(fields ...zap.Field) *Telemetry {
 // for continue span use StartSpanFromContext
 func (t *Telemetry) StartSpan(name string, opts ...trace.SpanStartOption) (span, context.Context) {
 	cxt, s := t.trace.Start(t.Ctx(), name, opts...)
+
+	UpdateTraceFields(cxt)
 
 	return span{Telemetry: t, Span: s}, cxt
 }

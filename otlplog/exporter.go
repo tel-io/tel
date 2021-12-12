@@ -5,7 +5,9 @@ import (
 	"errors"
 	"sync"
 
-	tracepb "go.opentelemetry.io/proto/otlp/logs/v1"
+	"github.com/d7561985/tel/otlplog/logskd"
+	"github.com/d7561985/tel/pkg/logtransform"
+	"go.opentelemetry.io/otel/sdk/resource"
 )
 
 var (
@@ -15,6 +17,7 @@ var (
 // Exporter exports trace data in the OTLP wire format.
 type Exporter struct {
 	client Client
+	res    *resource.Resource
 
 	mu      sync.RWMutex
 	started bool
@@ -24,9 +27,15 @@ type Exporter struct {
 }
 
 // ExportLogs exports a batch of spans.
-func (e *Exporter) ExportLogs(ctx context.Context, ss []*tracepb.ResourceLogs) error {
-	return e.client.UploadLogs(ctx, ss)
+func (e *Exporter) ExportLogs(ctx context.Context, in []logskd.Log) error {
+	if len(in) == 0 {
+		return nil
+	}
+
+	return e.client.UploadLogs(ctx, logtransform.Trans(e.res, in))
 }
+
+var _ logskd.Exporter = &Exporter{}
 
 // Start establishes a connection to the receiving endpoint.
 func (e *Exporter) Start(ctx context.Context) error {
@@ -64,8 +73,8 @@ func (e *Exporter) Shutdown(ctx context.Context) error {
 }
 
 // New constructs a new Exporter and starts it.
-func New(ctx context.Context, client Client) (*Exporter, error) {
-	exp := NewUnstarted(client)
+func New(ctx context.Context, client Client, res *resource.Resource) (*Exporter, error) {
+	exp := NewUnstarted(client, res)
 	if err := exp.Start(ctx); err != nil {
 		return nil, err
 	}
@@ -73,8 +82,9 @@ func New(ctx context.Context, client Client) (*Exporter, error) {
 }
 
 // NewUnstarted constructs a new Exporter and does not start it.
-func NewUnstarted(client Client) *Exporter {
+func NewUnstarted(client Client, res *resource.Resource) *Exporter {
 	return &Exporter{
 		client: client,
+		res:    res,
 	}
 }
