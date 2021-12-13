@@ -1,8 +1,8 @@
-version: "2"
+version: "3"
 services:
   # To eventually offload to Tempo...
   tempo:
-    image: grafana/tempo:latest
+    image: grafana/tempo:r21-9a16234
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./tempo-local.yaml:/etc/tempo.yaml
@@ -10,7 +10,7 @@ services:
     ports:
       - "14268"  # jaeger ingest
       - "3200"   # tempo
-      - "55680:55680"  # otlp grpc
+      - "55680"  # otlp grpc
       - "55681"  # otlp http
       - "9411"   # zipkin
   loki:
@@ -47,7 +47,7 @@ services:
 
   grafana:
     container_name: grafana
-    image: grafana/grafana
+    image: grafana/grafana:8.3.2
     volumes:
       - ./grafana.ini:/etc/grafana/grafana.ini
       - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
@@ -58,20 +58,3 @@ services:
       GF_AUTH_DISABLE_LOGIN_FORM: "true"
     ports:
       - "3000:3000"
-
-#  # Log generator
-#  flog:
-#    image: mingrammer/flog:0.4.3
-#    # Output 1 log per second in JSON format
-#    command: ["--format=json", "--loop", "--delay=1s", "--number=1"]
-#    depends_on:
-#      - otel-collector
-#    logging:
-#      driver: fluentd
-#      options:
-#        # Allow time for otel-collector to spin up, then forward fluentd logs to the fluentforwarder receiver.
-#        fluentd-async-connect: "true"
-#        # Use nanosecond precision
-#        fluentd-sub-second-precision: "true"
-
-
