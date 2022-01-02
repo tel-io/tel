@@ -90,9 +90,11 @@ func newOtlpMetic(ctx context.Context, res *resource.Resource, l Config) func(ct
 	metricExp, err := otlpmetric.New(ctx, metricClient)
 	handleErr(err, "Failed to create the collector metric exporter")
 
+	simple.NewWithInexpensiveDistribution()
 	pusher := controller.New(
 		processor.NewFactory(
-			simple.NewWithExactDistribution(),
+			//simple.NewWithExactDistribution(),
+			simple.NewWithInexpensiveDistribution(),
 			metricExp,
 		),
 		controller.WithExporter(metricExp),

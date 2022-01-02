@@ -1,0 +1,58 @@
+= Telemetry.V2 Otel Protocol
+
+Framework which aims to ease logging affair: `Logs`, `Traces` and `Metrics`.
+
+V2 version launch usage of OpenTelemetry specification for all logging directions. This mean that all logging propagators uses `OTEL` protocol
+
+Tel use `zap.Logger` as the heart of system. That why it's pass all zap functions through.
+
+
+== Motto
+
+Ony context all logs.
+
+Decrease external dependencies as match as possible.
+
+== Features
+* OTEL trace
+
+== Env
+
+.PROJECT
+project name
+
+`type`: string
+
+.NAMESPACE
+project namespace
+
+`type`: string
+
+.LOG_LEVEL
+info log
+
+`type`: string
+NOTE:  debug, info, warn, error, dpanic, panic, fatal
+
+.DEBUG
+for IsDebug() function
+
+`type`: bool
+
+.SENTRY_DSN
+sentry dns
+
+`type`: string
+
+.MONITOR_ADDR
+address where `health`, `prometheus` would be listen
+
+NOTE: address logic represented in net.Listen description
+
+== ToDo
+
+* [ ] Expose health check to specific metric
+
+== Usage
+
+Tale look in `example/demo` folder.

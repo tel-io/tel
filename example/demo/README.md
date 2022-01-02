@@ -1,8 +1,12 @@
 # Demo
 
-
 * rate(system_cpu_time{}[1m])
 
+inside demo folder:
+
+1. run docker-compose: `$ docker-composer up`
+2. go run client: `$ go run client/main.go`
+3. visit: [http://127.0.0.1:3000](http://127.0.0.1:3000)
 
 ## tempo
 examples: https://github.com/grafana/tempo/tree/main/example/docker-compose/otel-collector
