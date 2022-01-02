@@ -7,6 +7,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 	v1 "go.opentelemetry.io/proto/otlp/common/v1"
 	tracepb "go.opentelemetry.io/proto/otlp/logs/v1"
+	"strings"
 )
 
 func Trans(res *resource.Resource, in []logskd.Log) *tracepb.ResourceLogs {
@@ -36,10 +37,16 @@ func Trans(res *resource.Resource, in []logskd.Log) *tracepb.ResourceLogs {
 		ss = append(ss, v)
 	}
 
+	// loki extractor not support dots
+	r := tracetransform.Resource(res)
+	for i := range r.Attributes {
+		r.Attributes[i].Key = strings.ReplaceAll(r.Attributes[i].Key, ".", "_")
+	}
+
 	return &tracepb.ResourceLogs{
 		// SchemaUrl should set here version for semver which we fill resources
 		SchemaUrl: semconv.SchemaURL,
-		Resource:  tracetransform.Resource(res),
+		Resource:  r,
 		InstrumentationLibraryLogs: []*tracepb.InstrumentationLibraryLogs{{
 			Logs: ss,
 		}},

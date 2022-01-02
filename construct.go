@@ -69,7 +69,7 @@ func CreateRes(ctx context.Context, l Config) *resource.Resource {
 		resource.WithAttributes(
 			// the service name used to display traces in backends
 			// key: service.name
-			semconv.ServiceNameKey.String(l.Project),
+			semconv.ServiceNameKey.String(l.Service),
 			// key: service.namespace
 			semconv.ServiceNamespaceKey.String(l.Namespace),
 			// key: service.version

@@ -40,7 +40,7 @@ func main() {
 	ccx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cfg := tel.DefaultConfig()
+	cfg := tel.DefaultDebugConfig()
 	res := tel.CreateRes(ccx, cfg)
 
 	logExporter := zapotel.NewLogOtelExporter(ccx, res, cfg)
@@ -53,7 +53,7 @@ func main() {
 	// fill ctx with extra data
 	method, err := baggage.NewMember("namespace", cfg.Namespace)
 	handleErr(err, "validate ns")
-	client, err := baggage.NewMember("project", cfg.Project)
+	client, err := baggage.NewMember("project", cfg.Service)
 	handleErr(err, "validate project")
 	bag, err := baggage.New(method, client)
 	handleErr(err, "create bag")
@@ -62,7 +62,7 @@ func main() {
 	commonLabels := []attribute.KeyValue{
 		attribute.String("userID", "e64916d9-bfd0-4f79-8ee3-847f2d034d20"),
 		//attribute.String("namespace", cfg.Namespace),
-		//attribute.String("project", cfg.Project),
+		//attribute.String("project", cfg.Service),
 	}
 
 	teleCtx := tel.WithContext(ccx, t)
@@ -130,9 +130,18 @@ A:
 			go func(ctx context.Context, q otlplog.Client) {
 				requestCount.Add(ctx, 1, commonLabels...)
 				requestLatency.Measurement(ms)
-				sendLog(ctx, span, q)
+				//sendLog(ctx, span, q)
 
-				tel.FromCtxWithSpan(ctx).Info("test info message", zap.String("field-A", "a"))
+				switch rand.Int() % 4 {
+				case 0:
+					tel.FromCtxWithSpan(ctx).Info("test info message", zap.String("field-A", "a"))
+				case 1:
+					tel.FromCtxWithSpan(ctx).Warn("test info message", zap.String("field-A", "a"))
+				case 2:
+					tel.FromCtxWithSpan(ctx).Debug("test info message", zap.String("field-A", "a"))
+				case 3:
+					tel.FromCtxWithSpan(ctx).Error("test info message", zap.String("field-A", "a"))
+				}
 			}(cxt, q)
 		}
 

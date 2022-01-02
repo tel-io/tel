@@ -7,21 +7,28 @@ import (
 )
 
 const (
-	envProject   = "PROJECT"
+	// in go.opentelemetry.io/otel/sdk/resource/env declared none-exported svcNameKey
+	// with: OTEL_SERVICE_NAME
+	envBackPortProject = "PROJECT"
+	//
+	envServiceName = "OTEL_SERVICE_NAME"
+
 	envNamespace = "NAMESPACE"
 	envLogLevel  = "LOG_LEVEL"
 	envDebug     = "DEBUG"
 	envMon       = "MONITOR_ADDR"
+	evnOtel      = "OTEL_EXPORTER_OTLP_ENDPOINT"
 )
 
 type Config struct {
-	Project   string `env:"PROJECT"`
+	Service   string `env:"OTEL_SERVICE_NAME"`
 	Namespace string `env:"NAMESPACE"`
 	LogLevel  string `env:"LOG_LEVEL" envDefault:"info"`
 	Debug     bool   `env:"DEBUG" envDefault:"false"`
 
 	MonitorAddr string `env:"MONITOR_ADDR" envDefault:"0.0.0.0:8011"`
 
+	// OtelAddr addres where grpc open-telemetry exporter serve
 	OtelAddr string `env:"OTEL_EXPORTER_OTLP_ENDPOINT" envDefault:"0.0.0.0:4317"`
 }
 
@@ -30,7 +37,7 @@ func DefaultConfig() Config {
 	host = strings.ToLower(strings.ReplaceAll(host, "-", "_"))
 
 	return Config{
-		Project:     host,
+		Service:     host,
 		Namespace:   "default",
 		LogLevel:    "info",
 		MonitorAddr: "0.0.0.0:8011",
@@ -50,10 +57,15 @@ func DefaultDebugConfig() Config {
 func GetConfigFromEnv() Config {
 	c := DefaultConfig()
 
-	str(envProject, &c.Project)
+	str(envServiceName, &c.Service)
+	if c.Service == "" {
+		str(envBackPortProject, &c.Service)
+	}
+
 	str(envNamespace, &c.Namespace)
 	str(envLogLevel, &c.LogLevel)
 	str(envMon, &c.MonitorAddr)
+	str(evnOtel, &c.OtelAddr)
 
 	bl(envDebug, &c.Debug)
 

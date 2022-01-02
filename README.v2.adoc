@@ -18,8 +18,11 @@ Decrease external dependencies as match as possible.
 
 == Env
 
+.OTEL_SERVICE_NAME
+service name
+
 .PROJECT
-project name
+obsolete but mean the same as `OTEL_SERVICE_NAME`
 
 `type`: string
 
@@ -48,6 +51,12 @@ sentry dns
 address where `health`, `prometheus` would be listen
 
 NOTE: address logic represented in net.Listen description
+
+.OTEL_EXPORTER_OTLP_ENDPOINT
+Address to otel collector server via GRPC protocol
+
+.OTEL_RESOURCE_ATTRIBUTES
+This optional variable, handled by open-telemetry SDK. Separator is semicolon. Put additional resources variables, very suitable!
 
 == ToDo
 

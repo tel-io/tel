@@ -35,6 +35,7 @@ exporters:
         container_name: ""
         source: ""
         # todo: check if semconv translate dot to underscore!!!
+        # semconv not translate dots. right now we use hack, and all resources we cast to underscore
         service_version: ""
         service_namespace: ""
         service_name: ""

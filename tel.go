@@ -49,7 +49,7 @@ func New(ctx context.Context, cfg Config, res *resource.Resource, opts ...Option
 	t.cfg = cfg
 	t.Logger = newLogger(cfg)
 
-	srvc := fmt.Sprintf("%s_%s", cfg.Namespace, cfg.Project)
+	srvc := fmt.Sprintf("%s_%s", cfg.Namespace, cfg.Service)
 	trCloser := newOtlpTrace(ctx, res, cfg)
 	metCloser := newOtlpMetic(ctx, res, cfg)
 
