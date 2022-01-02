@@ -12,13 +12,10 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
-	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 type core struct {
-	zapcore.LevelEnabler
-
 	enc zapcore.Encoder
 
 	exporter logskd.Exporter
@@ -56,10 +53,9 @@ func NewCore(ex logskd.Exporter) (zapcore.Core, func(ctx context.Context)) {
 	}
 
 	c := &core{
-		LevelEnabler: zap.NewAtomicLevel(),
-		enc:          zapcore.NewJSONEncoder(encoder),
-		exporter:     ex,
-		batch:        batcher,
+		enc:      zapcore.NewJSONEncoder(encoder),
+		exporter: ex,
+		batch:    batcher,
 	}
 
 	return c, func(ctx context.Context) {
@@ -67,12 +63,13 @@ func NewCore(ex logskd.Exporter) (zapcore.Core, func(ctx context.Context)) {
 	}
 }
 
+func (c *core) Enabled(zapcore.Level) bool { return true }
+
 func (c *core) With(fields []zapcore.Field) zapcore.Core {
 	clone := &core{
-		LevelEnabler: c.LevelEnabler,
-		enc:          c.enc.Clone(),
-		exporter:     c.exporter,
-		batch:        c.batch,
+		enc:      c.enc.Clone(),
+		exporter: c.exporter,
+		batch:    c.batch,
 	}
 
 	for _, field := range fields {
@@ -83,11 +80,7 @@ func (c *core) With(fields []zapcore.Field) zapcore.Core {
 }
 
 func (c *core) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
-	if c.Enabled(ent.Level) {
-		return ce.AddCore(ent, c)
-	}
-
-	return ce
+	return ce.AddCore(ent, c)
 }
 
 func (c *core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
