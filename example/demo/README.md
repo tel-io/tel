@@ -11,7 +11,7 @@ inside demo folder:
 ## tempo
 examples: https://github.com/grafana/tempo/tree/main/example/docker-compose/otel-collector
 
-seach enable:
+search enable:
 * https://github.com/grafana/tempo/tree/main/example/docker-compose/tempo-search
 
 ## loki setup
