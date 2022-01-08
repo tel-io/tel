@@ -13,7 +13,7 @@ exporters:
       license: LICENSE
   logging:
   otlp:
-    endpoint: tempo:55680
+    endpoint: tempo:4317
     tls:
       insecure: true
   loki:

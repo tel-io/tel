@@ -2,7 +2,7 @@ version: "3"
 services:
   # To eventually offload to Tempo...
   tempo:
-    image: grafana/tempo:r21-9a16234
+    image: grafana/tempo:r24-161073a
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./tempo-local.yaml:/etc/tempo.yaml
@@ -10,8 +10,8 @@ services:
     ports:
       - "14268"  # jaeger ingest
       - "3200"   # tempo
-      - "55680"  # otlp grpc
-      - "55681"  # otlp http
+      - "4317"  # otlp grpc
+      - "4318"  # otlp http
       - "9411"   # zipkin
   loki:
     image: grafana/loki:2.4.0
@@ -21,7 +21,7 @@ services:
 
   # Collector
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.40.0
+    image: otel/opentelemetry-collector-contrib:latest
     command: [ "--config=/etc/otel-collector-config.yaml", "${OTELCOL_ARGS}" ]
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
