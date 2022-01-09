@@ -38,38 +38,46 @@ func (s span) StartSpan(name string, opts ...trace.SpanStartOption) (span, conte
 // Debug send message both log and trace log
 func (s span) Debug(msg string, fields ...zap.Field) {
 	s.Logger.WithOptions(zap.AddCallerSkip(1)).Debug(msg, fields...)
-	s.spanLog(fields...)
-	if s.Span != nil {
-		s.Span.SetAttributes(attribute.String("msg", msg))
-	}
+	s.send(msg, fields...)
+}
+
+// Info send message both log and trace log
+func (s span) Info(msg string, fields ...zap.Field) {
+	s.Logger.WithOptions(zap.AddCallerSkip(1)).Info(msg, fields...)
+	s.send(msg, fields...)
 }
 
 // Warn send message both log and trace log
 func (s span) Warn(msg string, fields ...zap.Field) {
 	s.Logger.WithOptions(zap.AddCallerSkip(1)).Warn(msg, fields...)
-	s.spanLog(fields...)
-	if s.Span != nil {
-		s.Span.SetAttributes(attribute.String("msg", msg))
-	}
+	s.send(msg, fields...)
 }
 
 // Error send message both log and trace log
 func (s span) Error(msg string, fields ...zap.Field) {
 	s.Logger.WithOptions(zap.AddCallerSkip(1)).Error(msg, fields...)
-	s.spanLog(fields...)
-	if s.Span != nil {
-		s.Span.SetAttributes(attribute.String("msg", msg))
-	}
+	s.send(msg, fields...)
 }
 
 // PutFields update current logger instance with new fields,
 // which would affect only on nest write log call for current tele instance
 // Because reference it also affect context and this approach is covered in Test_telemetry_With
 func (s *span) PutFields(fields ...zap.Field) span {
+	// save for further log only
 	s.Telemetry.PutFields(fields...)
+	// instant write
 	s.spanLog(fields...)
 
 	return *s
+}
+
+func (s span) send(msg string, fields ...zap.Field) {
+	if s.Span == nil {
+		return
+	}
+
+	s.Span.AddEvent(msg)
+	s.spanLog(fields...)
 }
 
 // spanLog only span write

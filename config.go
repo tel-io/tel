@@ -17,7 +17,7 @@ const (
 	envLogLevel  = "LOG_LEVEL"
 	envDebug     = "DEBUG"
 	envMon       = "MONITOR_ADDR"
-	evnOtel      = "OTEL_EXPORTER_OTLP_ENDPOINT"
+	evnOtel      = "OTEL_COLLECTOR_GRPC_ADDR"
 )
 
 type Config struct {

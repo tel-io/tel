@@ -59,7 +59,7 @@ address where `health`, `prometheus` would be listen
 
 NOTE: address logic represented in net.Listen description
 
-.OTEL_EXPORTER_OTLP_ENDPOINT
+.OTEL_COLLECTOR_GRPC_ADDR
 Address to otel collector server via GRPC protocol
 
 .OTEL_RESOURCE_ATTRIBUTES
