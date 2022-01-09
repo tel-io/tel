@@ -2,15 +2,9 @@ package zapotel
 
 import (
 	"context"
-	"log"
-
-	"github.com/d7561985/tel"
-	"github.com/d7561985/tel/otlplog"
 	"github.com/d7561985/tel/otlplog/logskd"
-	"github.com/d7561985/tel/otlplog/otlploggrpc"
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap/zapcore"
 )
@@ -20,18 +14,6 @@ type core struct {
 
 	exporter logskd.Exporter
 	batch    logskd.LogProcessor
-}
-
-func NewLogOtelExporter(ctx context.Context, res *resource.Resource, cfg tel.Config) logskd.Exporter {
-	client := otlploggrpc.NewClient(otlploggrpc.WithInsecure(),
-		otlploggrpc.WithEndpoint(cfg.OtelAddr))
-
-	logExporter, err := otlplog.New(ctx, client, res)
-	if err != nil {
-		log.Fatalf("failed to create the collector log exporter: %v", err)
-	}
-
-	return logExporter
 }
 
 func NewCore(ex logskd.Exporter) (zapcore.Core, func(ctx context.Context)) {
@@ -91,6 +73,9 @@ func (c *core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
 
 	lg := logskd.NewLog(entry.LoggerName, buf.Bytes(),
 		attribute.String("level", entry.Level.String()))
+
+	// ToDo: !!!!!
+	lg.SetSpan(nil)
 
 	c.batch.Write(lg)
 

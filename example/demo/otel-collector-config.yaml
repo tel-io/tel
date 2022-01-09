@@ -17,6 +17,7 @@ exporters:
     tls:
       insecure: true
   loki:
+    format: body
     endpoint: "http://loki:3100/loki/api/v1/push"
     sending_queue:
       # Enabled indicates whether to not enqueue batches before sending to the consumerSender.

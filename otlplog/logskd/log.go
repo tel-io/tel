@@ -26,6 +26,8 @@ type Log interface {
 	Severity() tracepb.SeverityNumber
 
 	Span() trace.Span
+
+	SetSpan(in trace.Span)
 }
 
 type log struct {
@@ -44,6 +46,8 @@ func (l log) Attributes() []attribute.KeyValue { return l.attributes }
 func (l log) Body() string                     { return string(l.body) }
 func (l log) Span() trace.Span                 { return l.span }
 func (l log) Severity() tracepb.SeverityNumber { return tracepb.SeverityNumber_SEVERITY_NUMBER_INFO }
+
+func (l *log) SetSpan(in trace.Span) { l.span = in }
 
 func NewLog(name string, body []byte, attributes ...attribute.KeyValue) Log {
 	return &log{
