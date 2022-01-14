@@ -22,7 +22,7 @@ func NewCore(ex logskd.LogProcessor) zapcore.Core {
 		NameKey:        "_logger",
 		LevelKey:       "level",
 		CallerKey:      "_caller",
-		MessageKey:     "short_message",
+		MessageKey:     "message",
 		StacktraceKey:  "full_message",
 		LineEnding:     zapcore.DefaultLineEnding,
 		EncodeName:     zapcore.FullNameEncoder,
@@ -68,7 +68,7 @@ func (c *core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
 	lg := logskd.NewLog(entry.LoggerName, buf.Bytes(),
 		attribute.String("level", entry.Level.String()))
 
-	// ToDo: !!!!!
+	// ToDo: How we pass tele span here without ctx propagation?
 	lg.SetSpan(nil)
 
 	c.batch.Write(lg)
