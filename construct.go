@@ -3,9 +3,13 @@ package tel
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"log"
 	"time"
 
+	"github.com/d7561985/tel/otlplog/logskd"
+	"github.com/d7561985/tel/otlplog/otlploggrpc"
+	"github.com/d7561985/tel/pkg/zapotel"
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	rt "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
@@ -25,40 +29,9 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-const flushTimeout = 5 * time.Second
-
-// debugJaeger helps investigate local problems, it's shouldn't be useful on any kind of stages
-const debugJaeger = false
-
 const (
 	instrumentationName = "github.com/d7561985/tel"
 )
-
-func newLogger(l Config) *zap.Logger {
-	var lvl zapcore.Level
-
-	if err := lvl.Set(l.LogLevel); err != nil {
-		log.Fatalf("zap set log lever %q err: %s", l.LogLevel, err)
-	}
-
-	zapconfig := zap.NewProductionConfig()
-	zapconfig.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
-	zapconfig.Level = zap.NewAtomicLevelAt(lvl)
-
-	pl, err := zapconfig.Build(
-		zap.WithCaller(true),
-		zap.AddStacktrace(zapcore.ErrorLevel),
-		zap.IncreaseLevel(lvl),
-	)
-
-	if err != nil {
-		log.Fatalf("zap build error: %s", err)
-	}
-
-	zap.ReplaceGlobals(pl)
-
-	return pl
-}
 
 func CreateRes(ctx context.Context, l Config) *resource.Resource {
 	res, _ := resource.New(ctx,
@@ -80,11 +53,54 @@ func CreateRes(ctx context.Context, l Config) *resource.Resource {
 	return res
 }
 
+func newLogger(ctx context.Context, res *resource.Resource, l Config) (*zap.Logger, func(ctx context.Context)) {
+	var lvl zapcore.Level
+
+	handleErr(lvl.Set(l.LogLevel), fmt.Sprintf("zap set log lever %q", l.LogLevel))
+
+	zapconfig := zap.NewProductionConfig()
+	zapconfig.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
+	zapconfig.Level = zap.NewAtomicLevelAt(lvl)
+
+	pl, err := zapconfig.Build(
+		zap.WithCaller(true),
+		zap.AddStacktrace(zapcore.ErrorLevel),
+		zap.IncreaseLevel(lvl),
+	)
+
+	handleErr(err, "zap build")
+
+	// exporter part
+	opts := []otlploggrpc.Option{otlploggrpc.WithEndpoint(l.OtelConfig.Addr)}
+	if l.WithInsecure {
+		opts = append(opts, otlploggrpc.WithInsecure())
+	}
+
+	logExporter, err := otlploggrpc.New(ctx, res, opts...)
+	handleErr(err, "Failed to create the collector log exporter")
+
+	batcher := logskd.NewBatchLogProcessor(logExporter)
+	cc := zapotel.NewCore(batcher)
+
+	pl = pl.WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+		return zapcore.NewTee(core, cc)
+	}))
+
+	zap.ReplaceGlobals(pl)
+
+	return pl, func(ctx context.Context) {
+		handleErr(batcher.Shutdown(ctx), "batcher shutdown")
+	}
+}
+
 func newOtlpMetic(ctx context.Context, res *resource.Resource, l Config) func(ctx context.Context) {
-	metricClient := otlpmetricgrpc.NewClient(
-		otlpmetricgrpc.WithInsecure(),
-		otlpmetricgrpc.WithEndpoint(l.OtelAddr),
-		//otlpmetricgrpc.WithDialOption(grpc.WithBlock()),
+	opts := []otlpmetricgrpc.Option{otlpmetricgrpc.WithEndpoint(l.OtelConfig.Addr)}
+	if l.OtelConfig.WithInsecure {
+		opts = append(opts, otlpmetricgrpc.WithInsecure())
+	}
+
+	metricClient := otlpmetricgrpc.NewClient(opts...,
+	//otlpmetricgrpc.WithDialOption(grpc.WithBlock()),
 	)
 
 	metricExp, err := otlpmetric.New(ctx, metricClient)
@@ -123,10 +139,13 @@ func newOtlpMetic(ctx context.Context, res *resource.Resource, l Config) func(ct
 // OtraceInit init exporter which should be properly closed
 //user otel.GetTracerProvider() to rieach trace
 func newOtlpTrace(ctx context.Context, res *resource.Resource, l Config) func(ctx context.Context) {
-	traceClient := otlptracegrpc.NewClient(
-		otlptracegrpc.WithInsecure(),
-		otlptracegrpc.WithEndpoint(l.OtelAddr),
-		//otlptracegrpc.WithDialOption(grpc.WithBlock()),
+	opts := []otlptracegrpc.Option{otlptracegrpc.WithEndpoint(l.OtelConfig.Addr)}
+	if l.OtelConfig.WithInsecure {
+		opts = append(opts, otlptracegrpc.WithInsecure())
+	}
+
+	traceClient := otlptracegrpc.NewClient(opts...,
+	//otlptracegrpc.WithDialOption(grpc.WithBlock()),
 	)
 
 	traceExp, err := otlptrace.New(ctx, traceClient)
@@ -144,44 +163,11 @@ func newOtlpTrace(ctx context.Context, res *resource.Resource, l Config) func(ct
 	otel.SetTracerProvider(tracerProvider)
 
 	return func(cxt context.Context) {
-		if err := traceExp.Shutdown(cxt); err != nil {
+		if err = traceExp.Shutdown(cxt); err != nil {
 			otel.Handle(err)
 		}
 	}
 }
-
-// @l used only for handling some error to our log system
-//func newTracer(service string, l *zap.Logger) opentracing.Tracer {
-//	cfg, err := jconf.FromEnv()
-//	if err != nil {
-//		log.Fatalf("trace config load: %s", err)
-//	}
-//
-//	cfg.ServiceName = service
-//
-//	// Param is a value passed to the sampler.
-//	// Valid values for Param field are:
-//	// - for "const" sampler, 0 or 1 for always false/true respectively
-//	// - for "probabilistic" sampler, a probability between 0 and 1
-//	// - for "rateLimiting" sampler, the number of spans per second
-//	// - for "remote" sampler, param is the same as for "probabilistic"
-//	cfg.Sampler.Type = jaeger.SamplerTypeConst
-//	cfg.Reporter.BufferFlushInterval = flushTimeout
-//	cfg.Sampler.Param = 1 // all spans should be fired
-//
-//	if debugJaeger {
-//		cfg.Reporter.LogSpans = true // log output span events
-//	}
-//
-//	tracer, _, err := cfg.NewTracer(jconf.Logger(&jl{l}))
-//	if err != nil {
-//		log.Fatalf("trace create: %s", err)
-//	}
-//
-//	opentracing.InitGlobalTracer(tracer)
-//
-//	return tracer
-//}
 
 func newMonitor(cfg Config) Monitor {
 	return createMonitor(cfg.MonitorAddr, cfg.Debug)

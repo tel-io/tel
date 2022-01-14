@@ -87,7 +87,7 @@ func (s *Suite) TestGrpcPanicMW() {
 	s.Equal(codes.Internal, fromError.Code())
 	s.Nil(res)
 
-	s.tel.Logger.Sync()
+	_ = s.tel.Logger.Sync()
 
 	for i := 0; i < 2; i++ {
 		_, _, err := bufio.NewReader(s.byf).ReadLine()

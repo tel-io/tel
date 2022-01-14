@@ -10,7 +10,6 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/global"
-	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -19,9 +18,7 @@ var (
 	globalTelemetry Telemetry = NewNull()
 )
 
-type Option interface {
-	apply(*Telemetry)
-}
+var GenServiceName func(string, string) string = defaultServiceFmt
 
 type Telemetry struct {
 	*zap.Logger
@@ -30,7 +27,7 @@ type Telemetry struct {
 	mon   Monitor // mon obsolete
 	meter metric.Meter
 
-	cfg Config
+	cfg *Config
 }
 
 func NewNull() Telemetry {
@@ -42,35 +39,39 @@ func NewNull() Telemetry {
 	}
 }
 
-func New(ctx context.Context, cfg Config, res *resource.Resource, opts ...Option) (t Telemetry, closer func(context.Context)) {
+func New(ctx context.Context, cfg Config) (Telemetry, func()) {
 	// required as it use for generate uid
 	rand.Seed(time.Now().Unix())
 
-	t.cfg = cfg
-	t.Logger = newLogger(cfg)
+	res := CreateRes(ctx, cfg)
+	srvName := GenServiceName(cfg.Namespace, cfg.Service)
 
-	srvc := fmt.Sprintf("%s_%s", cfg.Namespace, cfg.Service)
-	trCloser := newOtlpTrace(ctx, res, cfg)
-	metCloser := newOtlpMetic(ctx, res, cfg)
+	// init OTEL
+	logger, closer := newLogger(ctx, res, cfg)
+	closers := []func(context.Context){closer}
+	closers = append(closers,
+		newOtlpTrace(ctx, res, cfg),
+		newOtlpMetic(ctx, res, cfg),
+	)
 
-	t.mon = newMonitor(cfg)
-	t.trace = otel.Tracer(srvc + "_tracer")
-	t.meter = global.Meter(srvc+"_meter", metric.WithInstrumentationVersion("hello"))
+	out := Telemetry{
+		cfg:    &cfg,
+		Logger: logger,
 
-	t.Apply(opts...)
-
-	return t, func(cnx context.Context) {
-		trCloser(cnx)
-		metCloser(cnx)
-
-		t.close()
+		trace: otel.Tracer(srvName + "_tracer"),
+		mon:   newMonitor(cfg),
+		meter: global.Meter(srvName+"_meter", metric.WithInstrumentationVersion("hello")),
 	}
-}
 
-// Apply options on fly
-func (t *Telemetry) Apply(opts ...Option) {
-	for _, opt := range opts {
-		opt.apply(t)
+	return out, func() {
+		ccx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		defer cancel()
+
+		for _, cb := range closers {
+			cb(ccx)
+		}
+
+		out.close()
 	}
 }
 
@@ -165,4 +166,8 @@ func Global() Telemetry {
 
 func SetGlobal(t Telemetry) {
 	globalTelemetry = t
+}
+
+func defaultServiceFmt(ns, service string) string {
+	return fmt.Sprintf("%s_%s", ns, service)
 }

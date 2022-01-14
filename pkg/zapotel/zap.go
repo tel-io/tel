@@ -2,6 +2,7 @@ package zapotel
 
 import (
 	"context"
+
 	"github.com/d7561985/tel/otlplog/logskd"
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/attribute"
@@ -12,13 +13,10 @@ import (
 type core struct {
 	enc zapcore.Encoder
 
-	exporter logskd.Exporter
-	batch    logskd.LogProcessor
+	batch logskd.LogProcessor
 }
 
-func NewCore(ex logskd.Exporter) (zapcore.Core, func(ctx context.Context)) {
-	batcher := logskd.NewBatchLogProcessor(ex)
-
+func NewCore(ex logskd.LogProcessor) zapcore.Core {
 	encoder := zapcore.EncoderConfig{
 		TimeKey:        "timestamp",
 		NameKey:        "_logger",
@@ -35,23 +33,19 @@ func NewCore(ex logskd.Exporter) (zapcore.Core, func(ctx context.Context)) {
 	}
 
 	c := &core{
-		enc:      zapcore.NewJSONEncoder(encoder),
-		exporter: ex,
-		batch:    batcher,
+		enc:   zapcore.NewJSONEncoder(encoder),
+		batch: ex,
 	}
 
-	return c, func(ctx context.Context) {
-		batcher.Shutdown(ctx)
-	}
+	return c
 }
 
 func (c *core) Enabled(zapcore.Level) bool { return true }
 
 func (c *core) With(fields []zapcore.Field) zapcore.Core {
 	clone := &core{
-		enc:      c.enc.Clone(),
-		exporter: c.exporter,
-		batch:    c.batch,
+		enc:   c.enc.Clone(),
+		batch: c.batch,
 	}
 
 	for _, field := range fields {

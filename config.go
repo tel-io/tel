@@ -18,7 +18,14 @@ const (
 	envDebug     = "DEBUG"
 	envMon       = "MONITOR_ADDR"
 	evnOtel      = "OTEL_COLLECTOR_GRPC_ADDR"
+	envOtelInsec = "OTEL_EXPORTER_WITH_INSECURE"
 )
+
+type OtelConfig struct {
+	// OtelAddr addres where grpc open-telemetry exporter serve
+	Addr         string `env:"OTEL_EXPORTER_OTLP_ENDPOINT" envDefault:"0.0.0.0:4317"`
+	WithInsecure bool   `env:"OTEL_EXPORTER_WITH_INSECURE" envDefault:"true"`
+}
 
 type Config struct {
 	Service   string `env:"OTEL_SERVICE_NAME"`
@@ -28,8 +35,7 @@ type Config struct {
 
 	MonitorAddr string `env:"MONITOR_ADDR" envDefault:"0.0.0.0:8011"`
 
-	// OtelAddr addres where grpc open-telemetry exporter serve
-	OtelAddr string `env:"OTEL_EXPORTER_OTLP_ENDPOINT" envDefault:"0.0.0.0:4317"`
+	OtelConfig
 }
 
 func DefaultConfig() Config {
@@ -41,7 +47,10 @@ func DefaultConfig() Config {
 		Namespace:   "default",
 		LogLevel:    "info",
 		MonitorAddr: "0.0.0.0:8011",
-		OtelAddr:    "127.0.0.1:4317",
+		OtelConfig: OtelConfig{
+			Addr:         "127.0.0.1:4317",
+			WithInsecure: true,
+		},
 	}
 }
 
@@ -65,9 +74,10 @@ func GetConfigFromEnv() Config {
 	str(envNamespace, &c.Namespace)
 	str(envLogLevel, &c.LogLevel)
 	str(envMon, &c.MonitorAddr)
-	str(evnOtel, &c.OtelAddr)
+	str(evnOtel, &c.OtelConfig.Addr)
 
 	bl(envDebug, &c.Debug)
+	bl(envOtelInsec, &c.OtelConfig.WithInsecure)
 
 	return c
 }

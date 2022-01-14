@@ -12,7 +12,7 @@ import (
 // Test_monitor_Start check if health endpoint is working
 func Test_monitor_Start(t *testing.T) {
 	srv, closer := New(context.TODO(), DefaultConfig())
-	defer closer(context.Background())
+	defer closer()
 
 	ctx := srv.Ctx()
 

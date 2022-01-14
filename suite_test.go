@@ -14,12 +14,12 @@ type Suite struct {
 
 	byf    *bytes.Buffer
 	tel    Telemetry
-	closer func(ctx context.Context)
+	closer func()
 }
 
 func (s *Suite) TearDownSuite() {
 	<-time.After(time.Second * 35)
-	s.closer(context.Background())
+	s.closer()
 }
 
 func (s *Suite) SetupSuite() {

@@ -62,6 +62,9 @@ NOTE: address logic represented in net.Listen description
 .OTEL_COLLECTOR_GRPC_ADDR
 Address to otel collector server via GRPC protocol
 
+.OTEL_EXPORTER_WITH_INSECURE
+With insecure ...
+
 .OTEL_RESOURCE_ATTRIBUTES
 This optional variable, handled by open-telemetry SDK. Separator is semicolon. Put additional resources variables, very suitable!
 

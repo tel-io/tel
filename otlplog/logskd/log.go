@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/sdk/instrumentation"
 	"go.opentelemetry.io/otel/trace"
 	tracepb "go.opentelemetry.io/proto/otlp/logs/v1"
 )
@@ -35,7 +34,7 @@ type log struct {
 	body       []byte
 	time       uint64
 	attributes []attribute.KeyValue
-	library    instrumentation.Library
+	//library    instrumentation.Library
 
 	span trace.Span
 }

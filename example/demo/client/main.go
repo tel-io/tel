@@ -12,9 +12,6 @@ import (
 
 	"github.com/d7561985/tel"
 	health "github.com/d7561985/tel/monitoring/heallth"
-	"github.com/d7561985/tel/otlplog"
-	"github.com/d7561985/tel/otlplog/otlploggrpc"
-	"github.com/d7561985/tel/pkg/zapotel"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/baggage"
@@ -37,22 +34,10 @@ func main() {
 	ccx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cfg := tel.DefaultDebugConfig()
-	res := tel.CreateRes(ccx, cfg)
+	cfg := tel.GetConfigFromEnv()
 
-	logExporter, err := otlploggrpc.New(ccx, res,
-		otlploggrpc.WithInsecure(),
-		otlploggrpc.WithEndpoint(cfg.OtelAddr))
-
-	if err != nil {
-		log.Fatalf("failed to create the collector log exporter: %v", err)
-	}
-
-	core, closer := zapotel.NewCore(logExporter)
-	defer closer(ccx)
-
-	t, cc := tel.New(ccx, cfg, res, tel.WithZapCore(core))
-	defer cc(ccx)
+	t, cc := tel.New(ccx, cfg)
+	defer cc()
 
 	// fill ctx with extra data
 	method, err := baggage.NewMember("namespace", cfg.Namespace)
@@ -100,11 +85,6 @@ func main() {
 			metric.WithDescription("The number of requests processed"),
 		)
 
-	q := otlploggrpc.NewClient(otlploggrpc.WithInsecure(),
-		otlploggrpc.WithEndpoint(cfg.OtelAddr))
-
-	fmt.Println(q.Start(ctx))
-
 A:
 	for {
 		select {
@@ -113,7 +93,7 @@ A:
 		default:
 		}
 
-		oneShoot(t, commonLabels, q)
+		oneShoot(t, commonLabels)
 
 		<-time.After(time.Second)
 	}
@@ -122,7 +102,7 @@ A:
 	<-ctx.Done()
 }
 
-func oneShoot(t tel.Telemetry, commonLabels []attribute.KeyValue, q otlplog.Client) {
+func oneShoot(t tel.Telemetry, commonLabels []attribute.KeyValue) {
 	span, cxt := t.StartSpan("ExecuteRequest")
 	<-time.After(time.Second)
 	start := time.Now()
@@ -142,7 +122,7 @@ func oneShoot(t tel.Telemetry, commonLabels []attribute.KeyValue, q otlplog.Clie
 	//)
 
 	for j := 0; j < 100; j++ {
-		go func(ctx context.Context, q otlplog.Client) {
+		go func(ctx context.Context) {
 			requestCount.Add(ctx, 1, commonLabels...)
 			requestLatency.Measurement(ms)
 
@@ -156,7 +136,7 @@ func oneShoot(t tel.Telemetry, commonLabels []attribute.KeyValue, q otlplog.Clie
 			case 3:
 				tel.FromCtxWithSpan(ctx).Error("test info message", zap.Error(fmt.Errorf("fieldA")))
 			}
-		}(cxt, q)
+		}(cxt)
 	}
 }
 

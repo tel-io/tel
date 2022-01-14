@@ -1,13 +1,14 @@
 package logtransform
 
 import (
+	"strings"
+
 	"github.com/d7561985/tel/otlplog/logskd"
 	"github.com/d7561985/tel/pkg/tracetransform"
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 	v1 "go.opentelemetry.io/proto/otlp/common/v1"
 	tracepb "go.opentelemetry.io/proto/otlp/logs/v1"
-	"strings"
 )
 
 func Trans(res *resource.Resource, in []logskd.Log) *tracepb.ResourceLogs {
@@ -22,6 +23,15 @@ func Trans(res *resource.Resource, in []logskd.Log) *tracepb.ResourceLogs {
 			Body: &v1.AnyValue{Value: &v1.AnyValue_StringValue{
 				StringValue: log.Body(),
 			}},
+			//Body: &v1.AnyValue{Value: &v1.AnyValue_KvlistValue{
+			//	KvlistValue: &v1.KeyValueList{
+			//		Values: []*v1.KeyValue{
+			//			{
+			//				Key:   "BODY",
+			//				Value: &v1.AnyValue{Value: &v1.AnyValue_StringValue{StringValue: "log.Body()"}}},
+			//		},
+			//	},
+			//}},
 			Attributes: tracetransform.KeyValues(log.Attributes()),
 		}
 
