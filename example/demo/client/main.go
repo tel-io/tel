@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/d7561985/tel"
@@ -26,7 +26,7 @@ var (
 
 func handleErr(err error, message string) {
 	if err != nil {
-		log.Fatalf("%s: %v", message, err)
+		zap.L().Fatal(message, zap.Error(err))
 	}
 }
 
@@ -66,7 +66,7 @@ func main() {
 
 	go func() {
 		cn := make(chan os.Signal, 1)
-		signal.Notify(cn, os.Interrupt)
+		signal.Notify(cn, os.Kill, syscall.SIGINT, syscall.SIGTERM)
 		<-cn
 		cancel()
 	}()
@@ -98,7 +98,7 @@ A:
 		<-time.After(time.Second)
 	}
 
-	log.Println("OK")
+	zap.L().Info("OK")
 	<-ctx.Done()
 }
 
@@ -162,5 +162,6 @@ func makeRequest(ctx context.Context) {
 	if err != nil {
 		panic(err)
 	}
+
 	res.Body.Close()
 }

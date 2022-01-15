@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/d7561985/tel/otlplog/logskd"
 	"github.com/d7561985/tel/otlplog/otlploggrpc"
+	"github.com/d7561985/tel/pkg/grpcerr"
+	"github.com/d7561985/tel/pkg/otelerr"
 	"github.com/d7561985/tel/pkg/zapotel"
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	rt "go.opentelemetry.io/contrib/instrumentation/runtime"
@@ -27,6 +28,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"google.golang.org/grpc/grpclog"
 )
 
 const (
@@ -71,6 +73,7 @@ func newLogger(ctx context.Context, res *resource.Resource, l Config) (*zap.Logg
 	handleErr(err, "zap build")
 
 	// exporter part
+	// this initiation controversy SRP, but right now we just speed up our development
 	opts := []otlploggrpc.Option{otlploggrpc.WithEndpoint(l.OtelConfig.Addr)}
 	if l.WithInsecure {
 		opts = append(opts, otlploggrpc.WithInsecure())
@@ -88,8 +91,14 @@ func newLogger(ctx context.Context, res *resource.Resource, l Config) (*zap.Logg
 
 	zap.ReplaceGlobals(pl)
 
+	// grpc error logger, we use it for debug connection to collector at least
+	grpclog.SetLoggerV2(new(grpcerr.Logger))
+
+	// otel handler also intersect logs
+	otel.SetErrorHandler(new(otelerr.Handler))
+
 	return pl, func(ctx context.Context) {
-		handleErr(batcher.Shutdown(ctx), "batcher shutdown")
+		handleErr(batcher.Shutdown(ctx), "batched shutdown")
 	}
 }
 
@@ -190,6 +199,6 @@ func SetLogOutput(ctx context.Context) *bytes.Buffer {
 
 func handleErr(err error, message string) {
 	if err != nil {
-		log.Fatalf("%s: %v", message, err)
+		zap.L().Fatal(message, zap.Error(err))
 	}
 }
