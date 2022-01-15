@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"os"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/d7561985/tel"
+	"github.com/d7561985/tel/example/demo/pkg/demo"
 	health "github.com/d7561985/tel/monitoring/heallth"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
@@ -35,6 +35,7 @@ func main() {
 	defer cancel()
 
 	cfg := tel.GetConfigFromEnv()
+	cfg.LogEncode = "console"
 
 	t, cc := tel.New(ccx, cfg)
 	defer cc()
@@ -126,15 +127,22 @@ func oneShoot(t tel.Telemetry, commonLabels []attribute.KeyValue) {
 			requestCount.Add(ctx, 1, commonLabels...)
 			requestLatency.Measurement(ms)
 
-			switch rand.Int() % 4 {
+			x := []zap.Field{zap.String("fieldA", "a"),
+				zap.Int("fieldB", 100400), zap.Bool("fieldC", true)}
+
+			switch rand.Int() % 5 {
 			case 0:
-				tel.FromCtxWithSpan(ctx).Info("test info message", zap.String("fieldA", "a"))
+				tel.FromCtxWithSpan(ctx).Info("test info message", x...)
 			case 1:
-				tel.FromCtxWithSpan(ctx).Warn("test info message", zap.String("fieldA", "a"))
+				tel.FromCtxWithSpan(ctx).Warn("test info message", x...)
 			case 2:
-				tel.FromCtxWithSpan(ctx).Debug("test info message", zap.String("fieldA", "a"))
+				tel.FromCtxWithSpan(ctx).Debug("test info message", x...)
 			case 3:
-				tel.FromCtxWithSpan(ctx).Error("test info message", zap.Error(fmt.Errorf("fieldA")))
+				tel.FromCtxWithSpan(ctx).Error("show errorVerbose", append(x,
+					zap.Error(demo.E()))...)
+			case 4:
+				tel.FromCtxWithSpan(ctx).Error("show stack", append(x,
+					zap.String("additional", demo.StackTrace()))...)
 			}
 		}(cxt)
 	}

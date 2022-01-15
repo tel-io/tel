@@ -15,11 +15,15 @@ const (
 
 	envNamespace = "NAMESPACE"
 	envLogLevel  = "LOG_LEVEL"
+	envLogEncode = "LOG_ENCODE"
+
 	envDebug     = "DEBUG"
 	envMon       = "MONITOR_ADDR"
 	evnOtel      = "OTEL_COLLECTOR_GRPC_ADDR"
 	envOtelInsec = "OTEL_EXPORTER_WITH_INSECURE"
 )
+
+const DisableLog = "none"
 
 type OtelConfig struct {
 	// OtelAddr addres where grpc open-telemetry exporter serve
@@ -31,6 +35,8 @@ type Config struct {
 	Service   string `env:"OTEL_SERVICE_NAME"`
 	Namespace string `env:"NAMESPACE"`
 	LogLevel  string `env:"LOG_LEVEL" envDefault:"info"`
+	// Valid values are "json", "console" or "none"
+	LogEncode string `env:"LOG_ENCODE" envDefault:"json"`
 	Debug     bool   `env:"DEBUG" envDefault:"false"`
 
 	MonitorAddr string `env:"MONITOR_ADDR" envDefault:"0.0.0.0:8011"`
@@ -45,6 +51,7 @@ func DefaultConfig() Config {
 	return Config{
 		Service:     host,
 		Namespace:   "default",
+		LogEncode:   "json",
 		LogLevel:    "info",
 		MonitorAddr: "0.0.0.0:8011",
 		OtelConfig: OtelConfig{
@@ -58,6 +65,7 @@ func DefaultDebugConfig() Config {
 	c := DefaultConfig()
 	c.Debug = true
 	c.LogLevel = "debug"
+	c.LogEncode = "console"
 
 	return c
 }
@@ -73,11 +81,19 @@ func GetConfigFromEnv() Config {
 
 	str(envNamespace, &c.Namespace)
 	str(envLogLevel, &c.LogLevel)
+	str(envLogEncode, &c.LogEncode)
+
+	// if none console opt - use always json by default
+	if c.LogEncode != "console" && c.LogEncode != DisableLog {
+		c.LogEncode = "json"
+	}
+
 	str(envMon, &c.MonitorAddr)
 	str(evnOtel, &c.OtelConfig.Addr)
 
-	bl(envDebug, &c.Debug)
 	bl(envOtelInsec, &c.OtelConfig.WithInsecure)
+
+	bl(envDebug, &c.Debug)
 
 	return c
 }

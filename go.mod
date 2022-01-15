@@ -33,7 +33,10 @@ require (
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 )
 
-require github.com/cenkalti/backoff/v4 v4.1.2
+require (
+	github.com/cenkalti/backoff/v4 v4.1.2
+	github.com/go-logfmt/logfmt v0.5.1
+)
 
 require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
@@ -52,6 +55,7 @@ require (
 	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/shirou/gopsutil/v3 v3.21.9 // indirect
+	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/tklauser/go-sysconf v0.3.9 // indirect
 	github.com/tklauser/numcpus v0.3.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.3.0 // indirect

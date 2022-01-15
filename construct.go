@@ -10,7 +10,7 @@ import (
 	"github.com/d7561985/tel/otlplog/otlploggrpc"
 	"github.com/d7561985/tel/pkg/grpcerr"
 	"github.com/d7561985/tel/pkg/otelerr"
-	"github.com/d7561985/tel/pkg/zapotel"
+	"github.com/d7561985/tel/pkg/zlogfmt"
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	rt "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
@@ -63,6 +63,13 @@ func newLogger(ctx context.Context, res *resource.Resource, l Config) (*zap.Logg
 	zapconfig := zap.NewProductionConfig()
 	zapconfig.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
 	zapconfig.Level = zap.NewAtomicLevelAt(lvl)
+	zapconfig.Encoding = l.LogEncode
+
+	if zapconfig.Encoding == DisableLog {
+		zapconfig.Encoding = "console"
+		zapconfig.OutputPaths = nil
+		zapconfig.ErrorOutputPaths = nil
+	}
 
 	pl, err := zapconfig.Build(
 		zap.WithCaller(true),
@@ -83,7 +90,7 @@ func newLogger(ctx context.Context, res *resource.Resource, l Config) (*zap.Logg
 	handleErr(err, "Failed to create the collector log exporter")
 
 	batcher := logskd.NewBatchLogProcessor(logExporter)
-	cc := zapotel.NewCore(batcher)
+	cc := zlogfmt.NewCore(batcher)
 
 	pl = pl.WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
 		return zapcore.NewTee(core, cc)

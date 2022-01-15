@@ -4,6 +4,8 @@ import (
 	"context"
 )
 
+//go:generate mockery --name LogProcessor --outpkg logprocmocks --output logprocmocks
+
 type LogProcessor interface {
 	// Write log to processor
 	Write(s Log)

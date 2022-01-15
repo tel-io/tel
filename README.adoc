@@ -41,6 +41,11 @@ project namespace
 .LOG_LEVEL
 info log
 
+.LOG_ENCODE
+valid options: `console` and `json` or "none"
+
+none - disable print to console (only OTEL or critical errors)
+
 `type`: string
 NOTE:  debug, info, warn, error, dpanic, panic, fatal
 

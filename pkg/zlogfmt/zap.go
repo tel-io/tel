@@ -1,4 +1,4 @@
-package zapotel
+package zlogfmt
 
 import (
 	"context"
@@ -10,46 +10,39 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// ZapCore module transpile zap fields into logfmt format for Grafana Loki
+// Using Otel Exstractor
 type core struct {
-	enc zapcore.Encoder
-
 	batch logskd.LogProcessor
+	buf   *ObjectEncoder
 }
 
-func NewCore(ex logskd.LogProcessor) zapcore.Core {
-	encoder := zapcore.EncoderConfig{
-		TimeKey:        "timestamp",
-		NameKey:        "_logger",
-		LevelKey:       "level",
-		CallerKey:      "_caller",
-		MessageKey:     "message",
-		StacktraceKey:  "full_message",
-		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeName:     zapcore.FullNameEncoder,
-		EncodeTime:     zapcore.EpochTimeEncoder,
-		EncodeLevel:    zapcore.LowercaseLevelEncoder,
-		EncodeCaller:   zapcore.ShortCallerEncoder,
-		EncodeDuration: zapcore.SecondsDurationEncoder,
-	}
+const (
+	TimeKey       = "timestamp"
+	LevelKey      = "level"
+	CallerKey     = "_caller"
+	MessageKey    = "msg"
+	StacktraceKey = "stack"
+)
 
+// NewCore create zap Core instance which transcede logfmt for Grafana Loki
+func NewCore(ex logskd.LogProcessor) zapcore.Core {
 	c := &core{
-		enc:   zapcore.NewJSONEncoder(encoder),
 		batch: ex,
+		buf:   New(nil),
 	}
 
 	return c
 }
 
+// Enabled always returns true, because that we always protected from basic root
+// so, this should implemented only if we use that core as main
 func (c *core) Enabled(zapcore.Level) bool { return true }
 
 func (c *core) With(fields []zapcore.Field) zapcore.Core {
 	clone := &core{
-		enc:   c.enc.Clone(),
 		batch: c.batch,
-	}
-
-	for _, field := range fields {
-		field.AddTo(clone.enc)
+		buf:   c.buf.Clone(fields),
 	}
 
 	return clone
@@ -60,12 +53,12 @@ func (c *core) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.Check
 }
 
 func (c *core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
-	buf, err := c.enc.EncodeEntry(entry, fields)
+	buf, err := c.buf.EncodeEntry(entry, fields)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	lg := logskd.NewLog(entry.LoggerName, buf.Bytes(),
+	lg := logskd.NewLog(entry.LoggerName, buf,
 		attribute.String("level", entry.Level.String()))
 
 	// ToDo: How we pass tele span here without ctx propagation?
