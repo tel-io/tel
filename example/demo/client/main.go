@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -105,6 +106,7 @@ A:
 
 func oneShoot(t tel.Telemetry, commonLabels []attribute.KeyValue) {
 	span, cxt := t.StartSpan("ExecuteRequest")
+
 	<-time.After(time.Second)
 	start := time.Now()
 	makeRequest(cxt)
@@ -122,7 +124,11 @@ func oneShoot(t tel.Telemetry, commonLabels []attribute.KeyValue) {
 	//	requestCount.Measurement(1),
 	//)
 
+	wg := sync.WaitGroup{}
+
 	for j := 0; j < 100; j++ {
+		wg.Add(1)
+
 		go func(ctx context.Context) {
 			requestCount.Add(ctx, 1, commonLabels...)
 			requestLatency.Measurement(ms)
@@ -132,20 +138,24 @@ func oneShoot(t tel.Telemetry, commonLabels []attribute.KeyValue) {
 
 			switch rand.Int() % 5 {
 			case 0:
-				tel.FromCtxWithSpan(ctx).Info("test info message", x...)
+				tel.FromCtx(ctx).Info("test info message", x...)
 			case 1:
-				tel.FromCtxWithSpan(ctx).Warn("test info message", x...)
+				tel.FromCtx(ctx).Warn("test info message", x...)
 			case 2:
-				tel.FromCtxWithSpan(ctx).Debug("test info message", x...)
+				tel.FromCtx(ctx).Debug("test info message", x...)
 			case 3:
-				tel.FromCtxWithSpan(ctx).Error("show errorVerbose", append(x,
+				tel.FromCtx(ctx).Error("show errorVerbose", append(x,
 					zap.Error(demo.E()))...)
 			case 4:
-				tel.FromCtxWithSpan(ctx).Error("show stack", append(x,
+				tel.FromCtx(ctx).Error("show stack", append(x,
 					zap.String("additional", demo.StackTrace()))...)
 			}
+
+			wg.Done()
 		}(cxt)
 	}
+
+	wg.Wait()
 }
 
 func makeRequest(ctx context.Context) {

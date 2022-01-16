@@ -18,15 +18,16 @@ type core struct {
 }
 
 const (
-	TimeKey       = "timestamp"
 	LevelKey      = "level"
 	CallerKey     = "_caller"
 	MessageKey    = "msg"
 	StacktraceKey = "stack"
 )
 
+var _ zapcore.Core = new(core)
+
 // NewCore create zap Core instance which transcede logfmt for Grafana Loki
-func NewCore(ex logskd.LogProcessor) zapcore.Core {
+func NewCore(ex logskd.LogProcessor) *core {
 	c := &core{
 		batch: ex,
 		buf:   New(nil),

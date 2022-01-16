@@ -16,7 +16,11 @@ func WithContext(ctx context.Context, l Telemetry) context.Context {
 		}
 	}
 
-	return context.WithValue(ctx, tKey{}, &l)
+	return WrapContext(ctx, &l)
+}
+
+func WrapContext(ctx context.Context, l *Telemetry) context.Context {
+	return context.WithValue(ctx, tKey{}, l)
 }
 
 // FromCtx retrieves from ctx tel object
@@ -30,16 +34,6 @@ func FromCtx(ctx context.Context) *Telemetry {
 	v.PutFields(zap.String("warn", "use null Telemetry"))
 
 	return &v
-}
-
-// FromCtxWithSpan retrieves from ctx tele span object
-// span object just composition of tele object with open-tracing instance which write both to log and
-// fill trace log simultaneously
-func FromCtxWithSpan(ctx context.Context) *span {
-	return &span{
-		Telemetry: FromCtx(ctx),
-		Span:      trace.SpanFromContext(ctx),
-	}
 }
 
 // UpdateTraceFields during session start good way to update tracing fields
@@ -59,9 +53,11 @@ func UpdateTraceFields(ctx context.Context) {
 
 // StartSpanFromContext start telemetry span witch create or continue existent trace
 // for gracefully continue trace ctx should contain both span and tele
-func StartSpanFromContext(ctx context.Context, name string, opts ...trace.SpanStartOption) (span, context.Context) {
+func StartSpanFromContext(ctx context.Context, name string, opts ...trace.SpanStartOption) (
+	trace.Span, context.Context) {
 	t := FromCtx(ctx)
+
 	cxt, s := t.T().Start(ctx, name, opts...)
 
-	return span{Telemetry: t, Span: s}, cxt
+	return s, WrapContext(cxt, t.WithSpan(s))
 }

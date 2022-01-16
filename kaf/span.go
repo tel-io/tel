@@ -47,10 +47,10 @@ func StartSpanProducerKafka(_ctx context.Context, name string, e *Message) (trac
 		semconv.MessagingOperationProcess,
 	))
 
-	span, ctx := tel.FromCtxWithSpan(_ctx).StartSpan(name, opt...)
+	span, ctx := tel.StartSpanFromContext(_ctx, name, opt...)
 	otel.GetTextMapPropagator().Inject(ctx, e.Header)
 
-	span.PutFields(zap.String("emit_topic", e.Topic), zap.String("emit_key", string(e.Key)))
+	tel.FromCtx(ctx).PutFields(zap.String("emit_topic", e.Topic), zap.String("emit_key", string(e.Key)))
 
 	return span, ctx
 }

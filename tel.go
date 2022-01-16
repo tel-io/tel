@@ -7,11 +7,13 @@ import (
 	"time"
 
 	"github.com/d7561985/tel/monitoring/metrics"
+	"github.com/d7561985/tel/pkg/ztrace"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var (
@@ -130,12 +132,6 @@ func (t *Telemetry) StartMonitor() {
 	t.mon.Start(ctx)
 }
 
-// WithSpan create span logger where we can duplicate messages both tracer and logger
-// Furthermore we create new log instance with trace fields
-func (t *Telemetry) WithSpan(s trace.Span) span {
-	return span{Telemetry: t, Span: s}
-}
-
 // PutFields update current logger instance with new fields,
 // which would affect only on nest write log call for current tele instance
 // Because reference it also affect context and this approach is covered in Test_telemetry_With
@@ -147,12 +143,25 @@ func (t *Telemetry) PutFields(fields ...zap.Field) *Telemetry {
 // StartSpan start absolutely new trace telemetry span
 // keep in mind than that function don't continue any trace, only create new
 // for continue span use StartSpanFromContext
-func (t *Telemetry) StartSpan(name string, opts ...trace.SpanStartOption) (span, context.Context) {
-	cxt, s := t.trace.Start(t.Ctx(), name, opts...)
+//
+// return context where embed telemetry with span writer
+func (t *Telemetry) StartSpan(name string, opts ...trace.SpanStartOption) (trace.Span, context.Context) {
+	cxt, s := t.trace.Start(context.Background(), name, opts...)
 
-	UpdateTraceFields(cxt)
+	ccx := WithContext(cxt, *t.WithSpan(s))
+	UpdateTraceFields(ccx)
 
-	return span{Telemetry: t, Span: s}, cxt
+	return s, ccx
+}
+
+// WithSpan create span logger where we can duplicate messages both tracer and logger
+// Furthermore we create new log instance with trace fields
+func (t Telemetry) WithSpan(s trace.Span) *Telemetry {
+	t.Logger = t.Logger.WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+		return zapcore.NewTee(core, ztrace.New(s))
+	}))
+
+	return &t
 }
 
 // Printf expose fx.Printer interface as debug output
