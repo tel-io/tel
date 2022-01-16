@@ -1,7 +1,6 @@
 package zlogfmt
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -23,7 +22,7 @@ var (
 
 type ObjectEncoder struct {
 	*logfmt.Encoder
-	buf *bytes.Buffer
+	buf *buffer.Buffer
 
 	// for encoding generic values by reflection
 	reflectBuf *buffer.Buffer
@@ -31,14 +30,16 @@ type ObjectEncoder struct {
 }
 
 func New(buf []byte) *ObjectEncoder {
-	b := bytes.NewBuffer(buf)
-	if b.Len() > 0 {
-		b.Write([]byte(" "))
+	p := Get()
+	_, _ = p.Write(buf)
+
+	if p.Len() > 0 {
+		_, _ = p.Write([]byte(" "))
 	}
 
 	return &ObjectEncoder{
-		buf:     b,
-		Encoder: logfmt.NewEncoder(b),
+		buf:     p,
+		Encoder: logfmt.NewEncoder(p),
 	}
 }
 
@@ -60,9 +61,13 @@ func (o *ObjectEncoder) EncodeEntry(entry zapcore.Entry, fields []zapcore.Field)
 		fields = append(fields, zap.String(StacktraceKey, entry.Stack))
 	}
 
-	return o.Clone(
+	w := o.Clone(
 		append(fields, zap.String(MessageKey, entry.Message)),
-	).buf.Bytes(), nil
+	)
+
+	defer w.buf.Free()
+
+	return w.buf.Bytes(), nil
 }
 
 func (o *ObjectEncoder) resetReflectBuf() {
@@ -88,43 +93,39 @@ func (o *ObjectEncoder) AddObject(key string, marshaler zapcore.ObjectMarshaler)
 	return marshaler.MarshalLogObject(o)
 }
 
-func (o ObjectEncoder) AddBinary(key string, value []byte) {
+func (o *ObjectEncoder) AddBinary(key string, value []byte) {
 	_ = o.EncodeKeyval(key, base64.StdEncoding.EncodeToString(value))
 }
 
-func (o ObjectEncoder) AddByteString(key string, value []byte) {
+func (o *ObjectEncoder) AddByteString(key string, value []byte) {
 	_ = o.EncodeKeyval(key, string(value))
 }
 
-func (o ObjectEncoder) AddBool(key string, value bool) {
+func (o *ObjectEncoder) AddBool(key string, value bool) {
 	_ = o.EncodeKeyval(key, fmt.Sprintf("%t", value))
 }
 
-func (o ObjectEncoder) AddComplex128(key string, value complex128) {
+func (o *ObjectEncoder) AddComplex128(key string, value complex128) {
 	_ = o.EncodeKeyval(key, value)
 }
 
-func (o ObjectEncoder) AddComplex64(key string, value complex64) {
+func (o *ObjectEncoder) AddComplex64(key string, value complex64) {
 	_ = o.EncodeKeyval(key, value)
 }
 
-func (o ObjectEncoder) AddDuration(key string, value time.Duration) {
+func (o *ObjectEncoder) AddDuration(key string, value time.Duration) {
 	_ = o.EncodeKeyval(key, value.String())
 }
 
-func (o ObjectEncoder) AddFloat64(key string, value float64) {
+func (o *ObjectEncoder) AddFloat64(key string, value float64) {
 	_ = o.EncodeKeyval(key, value)
 }
 
-func (o ObjectEncoder) AddFloat32(key string, value float32) {
+func (o *ObjectEncoder) AddFloat32(key string, value float32) {
 	_ = o.EncodeKeyval(key, value)
 }
 
 func (o ObjectEncoder) AddInt(key string, value int) {
-	_ = o.EncodeKeyval(key, value)
-}
-
-func (o ObjectEncoder) AddInt64(key string, value int64) {
 	_ = o.EncodeKeyval(key, value)
 }
 
@@ -136,7 +137,7 @@ func (o ObjectEncoder) AddInt16(key string, value int16) {
 	_ = o.EncodeKeyval(key, value)
 }
 
-func (o ObjectEncoder) AddInt8(key string, value int8) {
+func (o *ObjectEncoder) AddInt8(key string, value int8) {
 	_ = o.EncodeKeyval(key, value)
 }
 
@@ -158,31 +159,35 @@ func (o *ObjectEncoder) AddString(key, value string) {
 	_ = o.EndRecord()
 }
 
-func (o ObjectEncoder) AddTime(key string, value time.Time) {
+func (o *ObjectEncoder) AddInt64(key string, value int64) {
+	_ = o.EncodeKeyval(key, value)
+}
+
+func (o *ObjectEncoder) AddTime(key string, value time.Time) {
 	_ = o.EncodeKeyval(key, value.Format(time.RFC3339))
 }
 
-func (o ObjectEncoder) AddUint(key string, value uint) {
+func (o *ObjectEncoder) AddUint(key string, value uint) {
 	_ = o.EncodeKeyval(key, value)
 }
 
-func (o ObjectEncoder) AddUint64(key string, value uint64) {
+func (o *ObjectEncoder) AddUint64(key string, value uint64) {
 	_ = o.EncodeKeyval(key, value)
 }
 
-func (o ObjectEncoder) AddUint32(key string, value uint32) {
+func (o *ObjectEncoder) AddUint32(key string, value uint32) {
 	_ = o.EncodeKeyval(key, value)
 }
 
-func (o ObjectEncoder) AddUint16(key string, value uint16) {
+func (o *ObjectEncoder) AddUint16(key string, value uint16) {
 	_ = o.EncodeKeyval(key, value)
 }
 
-func (o ObjectEncoder) AddUint8(key string, value uint8) {
+func (o *ObjectEncoder) AddUint8(key string, value uint8) {
 	_ = o.EncodeKeyval(key, value)
 }
 
-func (o ObjectEncoder) AddUintptr(key string, value uintptr) {
+func (o *ObjectEncoder) AddUintptr(key string, value uintptr) {
 	_ = o.EncodeKeyval(key, uint64(value))
 }
 
@@ -198,6 +203,6 @@ func (o *ObjectEncoder) AddReflected(key string, value interface{}) error {
 	return o.EncodeKeyval(key, string(o.reflectBuf.Bytes()))
 }
 
-func (o ObjectEncoder) OpenNamespace(key string) {
+func (o *ObjectEncoder) OpenNamespace(key string) {
 	_ = o.EndRecord()
 }
