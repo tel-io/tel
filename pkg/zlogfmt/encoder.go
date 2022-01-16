@@ -31,6 +31,8 @@ type ObjectEncoder struct {
 
 func New(buf []byte) *ObjectEncoder {
 	p := Get()
+	p.Reset()
+
 	_, _ = p.Write(buf)
 
 	if p.Len() > 0 {
@@ -67,7 +69,8 @@ func (o *ObjectEncoder) EncodeEntry(entry zapcore.Entry, fields []zapcore.Field)
 
 	defer w.buf.Free()
 
-	return w.buf.Bytes(), nil
+	// cast perform implicit copy
+	return []byte(w.buf.String()), nil
 }
 
 func (o *ObjectEncoder) resetReflectBuf() {
@@ -155,7 +158,7 @@ func (o *ObjectEncoder) AddString(key, value string) {
 
 	_ = o.EndRecord()
 	_ = o.EncodeKeyval(key, "")
-	o.buf.WriteString(value)
+	_, _ = o.buf.WriteString(value)
 	_ = o.EndRecord()
 }
 
