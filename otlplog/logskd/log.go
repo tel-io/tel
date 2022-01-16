@@ -1,11 +1,10 @@
 package logskd
 
 import (
-	"time"
-
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	tracepb "go.opentelemetry.io/proto/otlp/logs/v1"
+	"go.uber.org/zap/zapcore"
 )
 
 type Log interface {
@@ -30,29 +29,45 @@ type Log interface {
 }
 
 type log struct {
-	name       string
+	entry      zapcore.Entry
 	body       []byte
-	time       uint64
 	attributes []attribute.KeyValue
-	//library    instrumentation.Library
-
-	span trace.Span
+	span       trace.Span
 }
 
-func (l log) Name() string                     { return l.name }
-func (l log) Time() uint64                     { return l.time }
+func (l log) Name() string                     { return l.entry.LoggerName }
+func (l log) Time() uint64                     { return uint64(l.entry.Time.UnixNano()) }
 func (l log) Attributes() []attribute.KeyValue { return l.attributes }
 func (l log) Body() string                     { return string(l.body) }
 func (l log) Span() trace.Span                 { return l.span }
-func (l log) Severity() tracepb.SeverityNumber { return tracepb.SeverityNumber_SEVERITY_NUMBER_INFO }
+func (l log) Severity() tracepb.SeverityNumber { return ConvLvl(l.entry.Level) }
+func (l *log) SetSpan(in trace.Span)           { l.span = in }
 
-func (l *log) SetSpan(in trace.Span) { l.span = in }
-
-func NewLog(name string, body []byte, attributes ...attribute.KeyValue) Log {
+func NewLog(entry zapcore.Entry, body []byte, attributes ...attribute.KeyValue) Log {
 	return &log{
-		name:       name,
-		time:       uint64(time.Now().UnixNano()),
+		entry:      entry,
 		body:       body,
 		attributes: attributes,
 	}
+}
+
+func ConvLvl(in zapcore.Level) tracepb.SeverityNumber {
+	switch in {
+	case zapcore.DebugLevel:
+		return tracepb.SeverityNumber_SEVERITY_NUMBER_DEBUG
+	case zapcore.InfoLevel:
+		return tracepb.SeverityNumber_SEVERITY_NUMBER_INFO
+	case zapcore.WarnLevel:
+		return tracepb.SeverityNumber_SEVERITY_NUMBER_WARN
+	case zapcore.ErrorLevel:
+		return tracepb.SeverityNumber_SEVERITY_NUMBER_ERROR
+	case zapcore.DPanicLevel:
+		return tracepb.SeverityNumber_SEVERITY_NUMBER_FATAL2
+	case zapcore.PanicLevel:
+		return tracepb.SeverityNumber_SEVERITY_NUMBER_FATAL3
+	case zapcore.FatalLevel:
+		return tracepb.SeverityNumber_SEVERITY_NUMBER_FATAL
+	}
+
+	return tracepb.SeverityNumber_SEVERITY_NUMBER_UNSPECIFIED
 }

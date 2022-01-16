@@ -23,6 +23,7 @@ func Trans(res *resource.Resource, in []logskd.Log) *tracepb.ResourceLogs {
 			Body: &v1.AnyValue{Value: &v1.AnyValue_StringValue{
 				StringValue: log.Body(),
 			}},
+			// AnyValue only json decoder supported
 			//Body: &v1.AnyValue{Value: &v1.AnyValue_KvlistValue{
 			//	KvlistValue: &v1.KeyValueList{
 			//		Values: []*v1.KeyValue{

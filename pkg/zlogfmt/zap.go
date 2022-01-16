@@ -5,7 +5,6 @@ import (
 
 	"github.com/d7561985/tel/otlplog/logskd"
 	"github.com/pkg/errors"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap/zapcore"
 )
@@ -14,7 +13,7 @@ import (
 // Using Otel Exstractor
 type core struct {
 	batch logskd.LogProcessor
-	buf   *ObjectEncoder
+	buf   *AtrEncoder
 }
 
 const (
@@ -29,7 +28,7 @@ const (
 func NewCore(ex logskd.LogProcessor) zapcore.Core {
 	c := &core{
 		batch: ex,
-		buf:   New(nil),
+		buf:   NewAttr(),
 	}
 
 	return c
@@ -53,13 +52,12 @@ func (c *core) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.Check
 }
 
 func (c *core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
-	buf, err := c.buf.EncodeEntry(entry, fields)
+	buf, attr, err := c.buf.EncodeEntry(entry, fields)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	lg := logskd.NewLog(entry.LoggerName, buf,
-		attribute.String("level", entry.Level.String()))
+	lg := logskd.NewLog(entry, buf, attr...)
 
 	// ToDo: How we pass tele span here without ctx propagation?
 	lg.SetSpan(nil)

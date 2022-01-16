@@ -2,18 +2,32 @@ package zlogfmt
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/go-logfmt/logfmt"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"go.uber.org/zap/buffer"
 	"go.uber.org/zap/zapcore"
+)
+
+var (
+	_pool = buffer.NewPool()
+	// Get retrieves a buffer from the pool, creating one if necessary.
+	Get = _pool.Get
 )
 
 type ObjectEncoder struct {
 	*logfmt.Encoder
 	buf *bytes.Buffer
+
+	// for encoding generic values by reflection
+	reflectBuf *buffer.Buffer
+	reflectEnc *json.Encoder
 }
 
 func New(buf []byte) *ObjectEncoder {
@@ -46,13 +60,21 @@ func (o *ObjectEncoder) EncodeEntry(entry zapcore.Entry, fields []zapcore.Field)
 		fields = append(fields, zap.String(StacktraceKey, entry.Stack))
 	}
 
-	fields = append(fields,
-		zap.String(LevelKey, entry.Level.String()),
-		zap.Time(TimeKey, entry.Time),
-		zap.String(MessageKey, entry.Message),
-	)
+	return o.Clone(
+		append(fields, zap.String(MessageKey, entry.Message)),
+	).buf.Bytes(), nil
+}
 
-	return o.Clone(fields).buf.Bytes(), nil
+func (o *ObjectEncoder) resetReflectBuf() {
+	if o.reflectBuf == nil {
+		o.reflectBuf = Get()
+		o.reflectEnc = json.NewEncoder(o.reflectBuf)
+
+		// For consistency with our custom JSON encoder.
+		o.reflectEnc.SetEscapeHTML(false)
+	} else {
+		o.reflectBuf.Reset()
+	}
 }
 
 func (o *ObjectEncoder) AddArray(key string, marshaler zapcore.ArrayMarshaler) error {
@@ -61,11 +83,13 @@ func (o *ObjectEncoder) AddArray(key string, marshaler zapcore.ArrayMarshaler) e
 }
 
 func (o *ObjectEncoder) AddObject(key string, marshaler zapcore.ObjectMarshaler) error {
+	_ = o.EndRecord()
+
 	return marshaler.MarshalLogObject(o)
 }
 
 func (o ObjectEncoder) AddBinary(key string, value []byte) {
-	_ = o.EncodeKeyval(key, fmt.Sprintf("%x", value))
+	_ = o.EncodeKeyval(key, base64.StdEncoding.EncodeToString(value))
 }
 
 func (o ObjectEncoder) AddByteString(key string, value []byte) {
@@ -85,7 +109,7 @@ func (o ObjectEncoder) AddComplex64(key string, value complex64) {
 }
 
 func (o ObjectEncoder) AddDuration(key string, value time.Duration) {
-	_ = o.EncodeKeyval(key, value)
+	_ = o.EncodeKeyval(key, value.String())
 }
 
 func (o ObjectEncoder) AddFloat64(key string, value float64) {
@@ -159,16 +183,21 @@ func (o ObjectEncoder) AddUint8(key string, value uint8) {
 }
 
 func (o ObjectEncoder) AddUintptr(key string, value uintptr) {
-	//TODO implement me
-	panic("implement me")
+	_ = o.EncodeKeyval(key, uint64(value))
 }
 
-func (o ObjectEncoder) AddReflected(key string, value interface{}) error {
-	//TODO implement me
-	panic("implement me")
+func (o *ObjectEncoder) AddReflected(key string, value interface{}) error {
+	o.resetReflectBuf()
+
+	if err := o.reflectEnc.Encode(value); err != nil {
+		return errors.WithStack(err)
+	}
+
+	o.reflectBuf.TrimNewline()
+
+	return o.EncodeKeyval(key, string(o.reflectBuf.Bytes()))
 }
 
 func (o ObjectEncoder) OpenNamespace(key string) {
-	//TODO implement me
-	panic("implement me")
+	_ = o.EndRecord()
 }
