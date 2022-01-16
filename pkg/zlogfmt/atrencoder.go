@@ -47,7 +47,7 @@ func (a *AtrEncoder) EncodeEntry(entry zapcore.Entry, fields []zapcore.Field) ([
 
 	fields = append(fields, zap.String(LevelKey, entry.Level.String()))
 
-	body := fmt.Sprintf("%s=%s", MessageKey, entry.Message)
+	body := fmt.Sprintf(`%s="%s"`, MessageKey, entry.Message)
 
 	n := a.Clone(fields)
 
@@ -117,7 +117,13 @@ func (a *AtrEncoder) AddInt8(key string, value int8) {
 	a.attrs = append(a.attrs, attribute.Int(key, int(value)))
 }
 
+// AddString has multi-line issue
 func (a *AtrEncoder) AddString(key, value string) {
+	//if strings.Contains(value, " ") {
+	//	a.attrs = append(a.attrs, attribute.String(key, fmt.Sprintf(`"%s"`, value)))
+	//	return
+	//}
+
 	a.attrs = append(a.attrs, attribute.String(key, value))
 }
 
