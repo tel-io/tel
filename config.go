@@ -74,10 +74,13 @@ func DefaultDebugConfig() Config {
 func GetConfigFromEnv() Config {
 	c := DefaultConfig()
 
-	str(envServiceName, &c.Service)
-	if c.Service == "" {
-		str(envBackPortProject, &c.Service)
+	var srv string
+	str(envServiceName, &srv)
+	if srv == "" {
+		str(envBackPortProject, &srv)
 	}
+
+	c.Service = srv
 
 	str(envNamespace, &c.Namespace)
 	str(envLogLevel, &c.LogLevel)
