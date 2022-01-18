@@ -24,6 +24,11 @@ func TestObjectEncoder(t *testing.T) {
 			[]zap.Field{zap.Bool("bool", false), zap.String("d1", dumpExample)},
 			[]string{"bool=false", dumpExample},
 		},
+		{
+			"key replaaser",
+			[]zap.Field{zap.Float64("float64 my favorite", 1.01), zap.Complex128("complex", 123)},
+			[]string{"float64_my_favorite=1.01", "complex=(123+0i)"},
+		},
 	}
 
 	for _, test := range tests {

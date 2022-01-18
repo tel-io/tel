@@ -20,6 +20,7 @@ var (
 	Get = _pool.Get
 )
 
+// ObjectEncoder used only for loki export
 type ObjectEncoder struct {
 	*logfmt.Encoder
 	buf *buffer.Buffer
@@ -47,7 +48,10 @@ func New(buf []byte) *ObjectEncoder {
 
 func (o *ObjectEncoder) Clone(fields []zapcore.Field) *ObjectEncoder {
 	oe := New(o.buf.Bytes())
+
 	for _, field := range fields {
+		lokiKeyMutator(&field.Key)
+
 		field.AddTo(oe)
 	}
 
