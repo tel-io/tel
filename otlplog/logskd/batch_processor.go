@@ -83,19 +83,20 @@ func (bsp *batchProcessor) Shutdown(ctx context.Context) error {
 			close(bsp.stopCh)
 			bsp.stopWait.Wait()
 			if bsp.e != nil {
-				if err := bsp.e.Shutdown(ctx); err != nil {
+				if err = bsp.e.Shutdown(ctx); err != nil {
 					otel.Handle(err)
 				}
 			}
 			close(wait)
 		}()
-		// Wait until the wait group is done or the context is cancelled
+		// Wait until the wait group is done or the context is canceled
 		select {
 		case <-wait:
 		case <-ctx.Done():
 			err = ctx.Err()
 		}
 	})
+
 	return err
 }
 
@@ -123,13 +124,14 @@ func (bsp *batchProcessor) ForceFlush(ctx context.Context) error {
 			wait <- bsp.exportLogs(ctx)
 			close(wait)
 		}()
-		// Wait until the export is finished or the context is cancelled/timed out
+		// Wait until the export is finished or the context is canceled/timed out
 		select {
 		case err = <-wait:
 		case <-ctx.Done():
 			err = ctx.Err()
 		}
 	}
+
 	return err
 }
 
@@ -159,6 +161,7 @@ func (bsp *batchProcessor) exportLogs(ctx context.Context) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -181,6 +184,7 @@ func (bsp *batchProcessor) processQueue() {
 		case sd := <-bsp.queue:
 			if ffs, ok := sd.(forceFlush); ok {
 				close(ffs.flushed)
+
 				continue
 			}
 			bsp.batchMutex.Lock()

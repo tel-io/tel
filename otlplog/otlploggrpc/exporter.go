@@ -2,6 +2,7 @@ package otlploggrpc
 
 import (
 	"context"
+
 	"github.com/d7561985/tel/otlplog"
 	"go.opentelemetry.io/otel/sdk/resource"
 )

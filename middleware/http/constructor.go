@@ -1,4 +1,4 @@
-package httpclient
+package http
 
 import (
 	"crypto/rand"
@@ -16,6 +16,7 @@ func httpClient(ca []byte) *http.Client {
 		ClientCAs:          pool,
 		InsecureSkipVerify: false,
 		Rand:               rand.Reader,
+		MinVersion:         tls.VersionTLS13,
 	}
 
 	return &http.Client{

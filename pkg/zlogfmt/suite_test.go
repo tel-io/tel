@@ -21,7 +21,7 @@ func (s *Suite) SetupSuite() {
 	s.mocks = new(logprocmocks.LogProcessor)
 	s.core = NewCore(s.mocks)
 
-	// don't print via zap main core
+	// don't print via zap main Core
 	q := zap.NewDevelopmentConfig()
 
 	q.OutputPaths = nil

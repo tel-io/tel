@@ -15,19 +15,19 @@ const (
 	workerWriter = "writer"
 )
 
-type MetricsReader interface {
-	AddReaderTopicsInUse() MetricsReader
-	RmReaderTopicsInUse() MetricsReader
-	AddReaderTopicFatalError(topic string, code int) MetricsReader
-	AddReaderTopicProcessError(topic string) MetricsReader
-	AddReaderTopicReadEvents(topic string, num int) MetricsReader
-	AddReaderTopicCommitEvents(topic string, num int) MetricsReader
-	AddReaderTopicDecodeEvents(topic string, num int) MetricsReader
-	AddReaderTopicSkippedEvents(topic string, num int) MetricsReader
-	AddReaderTopicErrorEvents(topic string, num int) MetricsReader
-	AddReaderTopicHandlingTime(topic string, duration time.Duration) MetricsReader
+type Reader interface {
+	AddReaderTopicsInUse() Reader
+	RmReaderTopicsInUse() Reader
+	AddReaderTopicFatalError(topic string, code int) Reader
+	AddReaderTopicProcessError(topic string) Reader
+	AddReaderTopicReadEvents(topic string, num int) Reader
+	AddReaderTopicCommitEvents(topic string, num int) Reader
+	AddReaderTopicDecodeEvents(topic string, num int) Reader
+	AddReaderTopicSkippedEvents(topic string, num int) Reader
+	AddReaderTopicErrorEvents(topic string, num int) Reader
+	AddReaderTopicHandlingTime(topic string, duration time.Duration) Reader
 
-	AddGarbageRecords(num int) MetricsReader
+	AddGarbageRecords(num int) Reader
 }
 
 type mReader struct {
@@ -56,7 +56,7 @@ type mReader struct {
 	garbageRecords prometheus.Gauge
 }
 
-func NewCollectorMetricsReader() MetricsReader {
+func NewCollectorMetricsReader() Reader {
 	// new reader
 	readerTopicsInUse := prometheus.NewGauge(prometheus.GaugeOpts{
 		Subsystem: workerReader,
@@ -142,75 +142,85 @@ func NewCollectorMetricsReader() MetricsReader {
 }
 
 // new reader
-func (m *mReader) AddReaderTopicsInUse() MetricsReader {
+func (m *mReader) AddReaderTopicsInUse() Reader {
 	m.ReaderTopicsInUse.Inc()
+
 	return m
 }
 
-func (m *mReader) RmReaderTopicsInUse() MetricsReader {
+func (m *mReader) RmReaderTopicsInUse() Reader {
 	m.ReaderTopicsInUse.Dec()
+
 	return m
 }
 
-func (m *mReader) AddReaderTopicFatalError(topic string, code int) MetricsReader {
+func (m *mReader) AddReaderTopicFatalError(topic string, code int) Reader {
 	m.ReaderTopicFatalError.With(map[string]string{
 		labelTopic:     topic,
 		labelErrorCode: strconv.Itoa(code),
 	}).Inc()
+
 	return m
 }
 
-func (m *mReader) AddReaderTopicProcessError(topic string) MetricsReader {
+func (m *mReader) AddReaderTopicProcessError(topic string) Reader {
 	m.ReaderTopicProcessError.With(map[string]string{
 		labelTopic: topic,
 	}).Inc()
+
 	return m
 }
 
-func (m *mReader) AddReaderTopicReadEvents(topic string, num int) MetricsReader {
+func (m *mReader) AddReaderTopicReadEvents(topic string, num int) Reader {
 	m.ReaderTopicReadEvents.With(map[string]string{
 		labelTopic: topic,
 	}).Add(float64(num))
+
 	return m
 }
 
-func (m *mReader) AddReaderTopicCommitEvents(topic string, num int) MetricsReader {
+func (m *mReader) AddReaderTopicCommitEvents(topic string, num int) Reader {
 	m.ReaderTopicCommitEvents.With(map[string]string{
 		labelTopic: topic,
 	}).Add(float64(num))
+
 	return m
 }
 
-func (m *mReader) AddReaderTopicDecodeEvents(topic string, num int) MetricsReader {
+func (m *mReader) AddReaderTopicDecodeEvents(topic string, num int) Reader {
 	m.ReaderTopicDecodeEvents.With(map[string]string{
 		labelTopic: topic,
 	}).Add(float64(num))
+
 	return m
 }
 
-func (m *mReader) AddReaderTopicSkippedEvents(topic string, num int) MetricsReader {
+func (m *mReader) AddReaderTopicSkippedEvents(topic string, num int) Reader {
 	m.ReaderTopicSkippedEvents.With(map[string]string{
 		labelTopic: topic,
 	}).Add(float64(num))
+
 	return m
 }
 
-func (m *mReader) AddReaderTopicErrorEvents(topic string, num int) MetricsReader {
+func (m *mReader) AddReaderTopicErrorEvents(topic string, num int) Reader {
 	m.ReaderTopicErrorEvents.With(map[string]string{
 		labelTopic: topic,
 	}).Add(float64(num))
+
 	return m
 }
 
-func (m *mReader) AddReaderTopicHandlingTime(topic string, duration time.Duration) MetricsReader {
+func (m *mReader) AddReaderTopicHandlingTime(topic string, duration time.Duration) Reader {
 	m.ReaderHandlingTime.With(map[string]string{
 		labelTopic: topic,
 	}).Set(duration.Seconds())
+
 	return m
 }
 
 // new writer
-func (m *mReader) AddGarbageRecords(num int) MetricsReader {
+func (m *mReader) AddGarbageRecords(num int) Reader {
 	m.garbageRecords.Add(float64(num))
 
 	return m

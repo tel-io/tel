@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
 )
 
 type tKey struct{}
@@ -31,7 +30,7 @@ func FromCtx(ctx context.Context) *Telemetry {
 
 	v := NewNull()
 	v.Warn("use null Telemetry")
-	v.PutFields(zap.String("warn", "use null Telemetry"))
+	v.PutFields(String("warn", "use null Telemetry"))
 
 	return &v
 }
@@ -46,7 +45,7 @@ func UpdateTraceFields(ctx context.Context) {
 
 	if span.SpanContext().HasTraceID() {
 		FromCtx(ctx).Logger = FromCtx(ctx).Logger.With(
-			zap.String("traceID", span.SpanContext().TraceID().String()),
+			String("traceID", span.SpanContext().TraceID().String()),
 		)
 	}
 }

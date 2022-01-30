@@ -1,11 +1,25 @@
 package otelerr
 
 import (
+	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 )
 
-type Handler struct{}
+const (
+	component     = "component"
+	componentName = "otel"
+)
 
-func (h Handler) Handle(err error) {
-	zap.L().WithOptions(zap.AddCallerSkip(3)).Error("otel", zap.Error(err))
+type logger struct {
+	*zap.Logger
+}
+
+func New(in *zap.Logger) otel.ErrorHandler {
+	return &logger{Logger: in.
+		WithOptions(zap.AddCallerSkip(3)).
+		With(zap.String(component, componentName))}
+}
+
+func (h logger) Handle(err error) {
+	h.Logger.Error("otel", zap.Error(err))
 }

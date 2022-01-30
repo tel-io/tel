@@ -17,10 +17,9 @@ import (
 )
 
 var (
-	globalTelemetry Telemetry = NewNull()
+	globalTelemetry = NewNull()
+	GenServiceName  = defaultServiceFmt
 )
-
-var GenServiceName func(string, string) string = defaultServiceFmt
 
 type Telemetry struct {
 	*zap.Logger
@@ -86,7 +85,7 @@ func (t *Telemetry) close() {
 	}
 
 	if err := t.Logger.Sync(); err != nil {
-		t.Logger.Error("Telemetry logger sync at close", zap.Error(err))
+		t.Logger.Error("Telemetry logger sync at close", Error(err))
 	}
 }
 

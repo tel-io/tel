@@ -133,8 +133,10 @@ func oneShoot(t tel.Telemetry, commonLabels []attribute.KeyValue) {
 			requestCount.Add(ctx, 1, commonLabels...)
 			requestLatency.Measurement(ms)
 
-			x := []zap.Field{zap.String("fieldA", "a"),
-				zap.Int("fieldB", 100400), zap.Bool("fieldC", true)}
+			x := []zap.Field{tel.String("field A", "a"),
+				tel.Int("field B", 100400), tel.Bool("fieldC", true),
+				tel.Strings("Strings Array", []string{"StrA", "StrB"}),
+			}
 
 			switch rand.Int() % 5 {
 			case 0:
@@ -145,10 +147,10 @@ func oneShoot(t tel.Telemetry, commonLabels []attribute.KeyValue) {
 				tel.FromCtx(ctx).Debug("test info message", x...)
 			case 3:
 				tel.FromCtx(ctx).Error("show errorVerbose", append(x,
-					zap.Error(demo.E()))...)
+					tel.Error(demo.E()))...)
 			case 4:
 				tel.FromCtx(ctx).Error("show stack", append(x,
-					zap.String("additional", demo.StackTrace()))...)
+					tel.String("additional", demo.StackTrace()))...)
 			}
 
 			wg.Done()

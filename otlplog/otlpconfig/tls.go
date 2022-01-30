@@ -20,15 +20,18 @@ import (
 	"errors"
 )
 
+var ErrAppendCerificate = errors.New("failed to append certificate to the cert pool")
+
 // CreateTLSConfig creates a tls.Config from a raw certificate bytes
 // to verify a server certificate.
 func CreateTLSConfig(certBytes []byte) (*tls.Config, error) {
 	cp := x509.NewCertPool()
 	if ok := cp.AppendCertsFromPEM(certBytes); !ok {
-		return nil, errors.New("failed to append certificate to the cert pool")
+		return nil, ErrAppendCerificate
 	}
 
 	return &tls.Config{
-		RootCAs: cp,
+		RootCAs:    cp,
+		MinVersion: tls.VersionTLS13,
 	}, nil
 }

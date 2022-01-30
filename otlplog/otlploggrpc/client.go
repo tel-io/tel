@@ -79,7 +79,8 @@ func (c *client) Stop(ctx context.Context) error {
 // UploadLogs sends a batch of logs to the collector.
 func (c *client) UploadLogs(ctx context.Context, protoSpans *tracepb.ResourceLogs) error {
 	if !c.connection.Connected() {
-		return fmt.Errorf("traces exporter is disconnected from the server %s: %w", c.connection.SCfg.Endpoint, c.connection.LastConnectError())
+		return fmt.Errorf("traces exporter is disconnected from the server %s: %w",
+			c.connection.SCfg.Endpoint, c.connection.LastConnectError())
 	}
 
 	ctx, cancel := c.connection.ContextWithStop(ctx)
@@ -94,6 +95,7 @@ func (c *client) UploadLogs(ctx context.Context, protoSpans *tracepb.ResourceLog
 		if c.tracesClient == nil {
 			return errNoClient
 		}
+
 		return c.connection.DoRequest(ctx, func(ctx context.Context) error {
 			_, err := c.tracesClient.Export(ctx, &coltracepb.ExportLogsServiceRequest{
 				ResourceLogs: []*tracepb.ResourceLogs{protoSpans},
@@ -101,8 +103,10 @@ func (c *client) UploadLogs(ctx context.Context, protoSpans *tracepb.ResourceLog
 			return err
 		})
 	}()
+
 	if err != nil {
 		c.connection.SetStateDisconnected(err)
 	}
+
 	return err
 }

@@ -261,12 +261,14 @@ func (c *Connection) Shutdown(ctx context.Context) error {
 	}
 
 	c.mu.Lock()
-	cc := c.cc
-	c.cc = nil
-	c.mu.Unlock()
 
-	if cc != nil {
-		return cc.Close()
+	defer func() {
+		c.mu.Unlock()
+		c.cc = nil
+	}()
+
+	if c.cc != nil {
+		return c.cc.Close()
 	}
 
 	return nil
@@ -279,7 +281,7 @@ func (c *Connection) ContextWithStop(ctx context.Context) (context.Context, cont
 	go func(ctx context.Context, cancel context.CancelFunc) {
 		select {
 		case <-ctx.Done():
-			// Nothing to do, either cancelled or deadline
+			// Nothing to do, either canceled or deadline
 			// happened.
 		case <-c.stopCh:
 			cancel()

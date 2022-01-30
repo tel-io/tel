@@ -12,8 +12,6 @@ import (
 	"github.com/d7561985/tel/monitoring/metrics"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-
-	"go.uber.org/zap"
 )
 
 const (
@@ -62,7 +60,7 @@ func (m *monitor) AddMetricTracker(ctx context.Context, metrics ...metrics.Metri
 	for _, tracker := range metrics {
 		err := tracker.SetUp()
 		if err != nil {
-			FromCtx(ctx).Fatal("track metrics", zap.Error(err))
+			FromCtx(ctx).Fatal("track metrics", Error(err))
 			return m
 		}
 	}
@@ -80,7 +78,7 @@ func (m *monitor) AddHealthChecker(ctx context.Context, handlers ...HealthChecke
 	for _, c := range handlers {
 		if c.Handler == nil {
 			FromCtx(ctx).Fatal("add empty health handler",
-				zap.String("name", c.Name))
+				String("name", c.Name))
 		}
 
 		m.health.CompositeChecker.AddChecker(c.Name, c.Handler)
@@ -97,7 +95,7 @@ func (m *monitor) route(ctx context.Context) {
 	mux.Handle(HealthEndpoint, m.health)
 
 	if m.isDebug {
-		FromCtx(ctx).Info("monitor enable pprof endpoint", zap.String("path", PprofIndexEndpoint))
+		FromCtx(ctx).Info("monitor enable pprof endpoint", String("path", PprofIndexEndpoint))
 
 		mux.Handle(PprofIndexEndpoint+"/", http.HandlerFunc(pprof.Index))
 		mux.Handle(PprofIndexEndpoint+"/cmdline/", http.HandlerFunc(pprof.Cmdline))
@@ -121,10 +119,10 @@ func (m *monitor) Start(ctx context.Context) {
 
 	m.route(ctx)
 
-	FromCtx(ctx).Info("start monitor", zap.String("addr", m.server.Addr))
+	FromCtx(ctx).Info("start monitor", String("addr", m.server.Addr))
 
 	if err := m.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		FromCtx(ctx).Fatal("start monitor", zap.Error(err))
+		FromCtx(ctx).Fatal("start monitor", Error(err))
 	}
 }
 
@@ -141,6 +139,6 @@ func (m *monitor) GracefulStop(_ctx context.Context) {
 	defer cancel()
 
 	if err := m.server.Shutdown(ctx); err != nil {
-		FromCtx(ctx).Error("monitoring shutdown failed", zap.Error(err))
+		FromCtx(ctx).Error("monitoring shutdown failed", Error(err))
 	}
 }

@@ -69,10 +69,10 @@ func compressorToCompression(compressor string) otlpconfig.Compression {
 	switch compressor {
 	case "gzip":
 		return otlpconfig.GzipCompression
+	default:
+		otel.Handle(fmt.Errorf("invalid compression type: '%s', using no compression as default", compressor))
+		return otlpconfig.NoCompression
 	}
-
-	otel.Handle(fmt.Errorf("invalid compression type: '%s', using no compression as default", compressor))
-	return otlpconfig.NoCompression
 }
 
 // WithCompressor will set the compressor for the gRPC client to use when sending requests.

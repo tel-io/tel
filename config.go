@@ -26,8 +26,8 @@ const (
 const DisableLog = "none"
 
 type OtelConfig struct {
-	// OtelAddr addres where grpc open-telemetry exporter serve
-	Addr         string `env:"OTEL_EXPORTER_OTLP_ENDPOINT" envDefault:"0.0.0.0:4317"`
+	// OtelAddr address where grpc open-telemetry exporter serve
+	Addr         string `env:"OTEL_COLLECTOR_GRPC_ADDR" envDefault:"0.0.0.0:4317"`
 	WithInsecure bool   `env:"OTEL_EXPORTER_WITH_INSECURE" envDefault:"true"`
 }
 

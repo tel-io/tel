@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
 )
 
 // check whole context stack: WithContext, updateContext, FromCtx
@@ -29,7 +28,7 @@ func Test_telemetry_With(t *testing.T) {
 	t.Run("injection", func(t *testing.T) {
 		// create tele-copy
 		ctxInstance := FromCtx(ctx).Ctx()
-		FromCtx(ctxInstance).PutFields(zap.String("INJECTED STRING", "OK"))
+		FromCtx(ctxInstance).PutFields(String("INJECTED STRING", "OK"))
 		// print copy with injected fields
 		FromCtx(ctxInstance).Info("INSTANCE ")
 

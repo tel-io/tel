@@ -2,7 +2,7 @@
 // The most important approach: perform logs by itself
 //
 // DEPRECATED: use transport inside http.client
-package httpclient
+package http
 
 import (
 	"bytes"
@@ -13,7 +13,6 @@ import (
 	"net/url"
 
 	"github.com/d7561985/tel"
-	"go.uber.org/zap"
 )
 
 type (
@@ -37,58 +36,58 @@ func New(ca []byte) Interface {
 func (s *service) PostForm(_ctx context.Context, url string, data url.Values) (resp *http.Response, err error) {
 	op := "HTTP POST-FORM " + url
 
-	tel.FromCtx(_ctx).PutFields(zap.String("post-url", url), zap.String("post-fields", data.Encode()))
+	tel.FromCtx(_ctx).PutFields(tel.String("post-url", url), tel.String("post-fields", data.Encode()))
 
 	span, ctx := tel.StartSpanFromContext(_ctx, op)
 	defer span.End()
 
 	return s.prepare(ctx, op, func() (*http.Response, error) {
-		return s.c.PostForm(url, data)
+		return s.c.PostForm(url, data) //nolint: noctx
 	})
 }
 
 func (s *service) Get(_ctx context.Context, url string) (resp *http.Response, err error) {
 	op := "HTTP GET " + url
 
-	tel.FromCtx(_ctx).PutFields(zap.String("get-url", url))
+	tel.FromCtx(_ctx).PutFields(tel.String("get-url", url))
 
 	span, ctx := tel.StartSpanFromContext(_ctx, op)
 	defer span.End()
 
 	return s.prepare(ctx, op, func() (*http.Response, error) {
-		return s.c.Get(url)
+		return s.c.Get(url) //nolint: noctx
 	})
 }
 
 func (s *service) Post(_ctx context.Context, url, contentType string, body []byte) (resp *http.Response, err error) {
 	op := "HTTP POST " + url
 
-	tel.FromCtx(_ctx).PutFields(zap.String("get-url", url))
+	tel.FromCtx(_ctx).PutFields(tel.String("get-url", url))
 
 	span, ctx := tel.StartSpanFromContext(_ctx, op)
 	defer span.End()
 
 	return s.prepare(ctx, op, func() (*http.Response, error) {
-		return s.c.Post(url, contentType, bytes.NewReader(body))
+		return s.c.Post(url, contentType, bytes.NewReader(body)) //nolint: noctx
 	})
 }
 
 func (s *service) prepare(ctx context.Context, op string, cb fx) (*http.Response, error) {
 	resp, err := cb()
 	if err != nil {
-		tel.FromCtx(ctx).Error(op, zap.Error(err))
+		tel.FromCtx(ctx).Error(op, tel.Error(err))
 		return nil, err
 	}
 
 	body, errA := io.ReadAll(resp.Body)
 	if errA == nil {
-		tel.FromCtx(ctx).PutFields(zap.String("response", string(body)))
+		tel.FromCtx(ctx).PutFields(tel.String("response", string(body)))
 		resp.Body = ioutil.NopCloser(bytes.NewReader(body))
 	}
 
 	tel.FromCtx(ctx).Debug(op,
-		zap.String("component", "http-client"),
-		zap.String("status", http.StatusText(resp.StatusCode)),
+		tel.String("component", "http-client"),
+		tel.String("status", http.StatusText(resp.StatusCode)),
 	)
 
 	return resp, nil

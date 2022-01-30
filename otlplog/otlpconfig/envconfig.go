@@ -137,7 +137,9 @@ func (e *EnvOptionsReader) GetOptionsFromEnv() []GenericOption {
 }
 
 func isInsecureEndpoint(endpoint string) bool {
-	return strings.HasPrefix(strings.ToLower(endpoint), "http://") || strings.HasPrefix(strings.ToLower(endpoint), "unix://")
+	return strings.HasPrefix(
+		strings.ToLower(endpoint), "http://") ||
+		strings.HasPrefix(strings.ToLower(endpoint), "unix://")
 }
 
 func trimSchema(endpoint string) string {
@@ -163,9 +165,9 @@ func stringToCompression(value string) Compression {
 	switch value {
 	case "gzip":
 		return GzipCompression
+	default:
+		return NoCompression
 	}
-
-	return NoCompression
 }
 
 func stringToHeader(value string) map[string]string {

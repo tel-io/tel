@@ -75,6 +75,7 @@ func Spans(sdl []tracesdk.ReadOnlySpan) []*tracepb.ResourceSpans {
 				SchemaUrl:                   sd.Resource().SchemaURL(),
 			}
 			rsm[rKey] = rs
+
 			continue
 		}
 

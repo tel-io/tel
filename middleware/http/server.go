@@ -1,4 +1,4 @@
-package tel
+package http
 
 import (
 	"bytes"
@@ -9,19 +9,27 @@ import (
 	"strings"
 	"time"
 
+	"github.com/d7561985/tel"
 	"github.com/d7561985/tel/monitoring/metrics"
-	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
-// HttpServerMiddlewareAll represent all essential metrics
+type Server struct {
+	log *tel.Telemetry
+}
+
+func NewServer(t *tel.Telemetry) *Server {
+	return &Server{log: t}
+}
+
+// HTTPServerMiddlewareAll represent all essential metrics
 // Execution order:
 //  * opentracing injection via nethttp.Middleware
-//  * recovery + measure execution time + debug log via own HttpServerMiddleware
-//  * metrics via metrics.NewHttpMiddlewareWithOption
-func (t Telemetry) HttpServerMiddlewareAll(m metrics.HttpTracker) func(next http.Handler) http.Handler {
+//  * recovery + measure execution time + debug log via own HTTPServerMiddleware
+//  * metrics via metrics.NewHTTPMiddlewareWithOption
+func (s *Server) HTTPServerMiddlewareAll(m metrics.HTTPTracker) func(next http.Handler) http.Handler {
 	tr := func(next http.Handler) http.Handler {
 		return otelhttp.NewHandler(next, "HTTP",
 			otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
@@ -32,8 +40,8 @@ func (t Telemetry) HttpServerMiddlewareAll(m metrics.HttpTracker) func(next http
 			}))
 	}
 
-	mw := t.HttpServerMiddleware()
-	mtr := m.NewHttpMiddlewareWithOption()
+	mw := s.HTTPServerMiddleware()
+	mtr := m.NewHTTPMiddlewareWithOption()
 
 	return func(next http.Handler) http.Handler {
 		for _, cb := range []func(next http.Handler) http.Handler{tr, mw, mtr} {
@@ -44,23 +52,23 @@ func (t Telemetry) HttpServerMiddlewareAll(m metrics.HttpTracker) func(next http
 	}
 }
 
-// HttpServerMiddleware perform:
+// HTTPServerMiddleware perform:
 // * telemetry log injection
 // * measure execution time
 // * recovery
-func (t Telemetry) HttpServerMiddleware() func(next http.Handler) http.Handler {
+func (s *Server) HTTPServerMiddleware() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(rw http.ResponseWriter, req *http.Request) {
 			var err error
 
 			// inject log
 			// Warning! Don't use telemetry further, only via r.Context()
-			r := req.WithContext(t.WithContext(req.Context()))
+			r := req.WithContext(s.log.WithContext(req.Context()))
 			w := metrics.NewHTTPStatusResponseWriter(rw)
 			ctx := r.Context()
 
 			// set tracing identification to log
-			UpdateTraceFields(ctx)
+			tel.UpdateTraceFields(ctx)
 
 			var reqBody []byte
 			if r.Body != nil {
@@ -71,34 +79,34 @@ func (t Telemetry) HttpServerMiddleware() func(next http.Handler) http.Handler {
 			defer func(start time.Time) {
 				hasRecovery := recover()
 
-				l := FromCtx(ctx).With(
-					zap.Duration("duration", time.Since(start)),
-					zap.String("method", r.Method),
-					zap.String("user-agent", r.UserAgent()),
-					zap.Any("req_header", r.Header),
-					zap.String("ip", r.RemoteAddr),
-					zap.String("path", r.URL.RequestURI()),
-					zap.String("status_code", http.StatusText(w.Status)),
-					zap.String("request", string(reqBody)),
+				l := tel.FromCtx(ctx).With(
+					tel.Duration("duration", time.Since(start)),
+					tel.String("method", r.Method),
+					tel.String("user-agent", r.UserAgent()),
+					tel.Any("req_header", r.Header),
+					tel.String("ip", r.RemoteAddr),
+					tel.String("path", r.URL.RequestURI()),
+					tel.String("status_code", http.StatusText(w.Status)),
+					tel.String("request", string(reqBody)),
 				)
 
 				if w.Response != nil {
-					l = l.With(zap.String("response", string(w.Response)))
+					l = l.With(tel.String("response", string(w.Response)))
 				}
 
 				lvl := zapcore.DebugLevel
 				if err != nil {
 					lvl = zapcore.ErrorLevel
-					l = l.With(zap.Error(err))
+					l = l.With(tel.Error(err))
 				}
 
 				if hasRecovery != nil {
 					lvl = zapcore.ErrorLevel
-					l = l.With(zap.Error(fmt.Errorf("recovery info: %+v", hasRecovery)))
+					l = l.With(tel.Error(fmt.Errorf("recovery info: %+v", hasRecovery)))
 
 					// allow jaeger mw send error tag
 					w.WriteHeader(http.StatusInternalServerError)
-					if t.IsDebug() {
+					if s.log.IsDebug() {
 						debug.PrintStack()
 					}
 				}

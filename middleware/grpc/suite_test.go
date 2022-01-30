@@ -1,11 +1,11 @@
-package tel
+package grpc
 
 import (
 	"bytes"
 	"context"
 	"testing"
-	"time"
 
+	"github.com/d7561985/tel"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -13,21 +13,18 @@ type Suite struct {
 	suite.Suite
 
 	byf    *bytes.Buffer
-	tel    Telemetry
+	tel    tel.Telemetry
 	closer func()
 }
 
 func (s *Suite) TearDownSuite() {
-	<-time.After(time.Second * 35)
 	s.closer()
 }
 
 func (s *Suite) SetupSuite() {
-	cfg := DefaultDebugConfig()
-	s.tel, s.closer = New(context.Background(), cfg)
-
-	// test purposes
-	s.byf = SetLogOutput(context.WithValue(context.Background(), tKey{}, &s.tel))
+	cfg := tel.DefaultDebugConfig()
+	s.tel, s.closer = tel.New(context.Background(), cfg)
+	s.byf = tel.SetLogOutput(&s.tel)
 }
 
 func TestSuite(t *testing.T) {

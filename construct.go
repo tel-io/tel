@@ -8,8 +8,6 @@ import (
 
 	"github.com/d7561985/tel/otlplog/logskd"
 	"github.com/d7561985/tel/otlplog/otlploggrpc"
-	"github.com/d7561985/tel/pkg/grpcerr"
-	"github.com/d7561985/tel/pkg/otelerr"
 	"github.com/d7561985/tel/pkg/zlogfmt"
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	rt "go.opentelemetry.io/contrib/instrumentation/runtime"
@@ -28,7 +26,6 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"google.golang.org/grpc/grpclog"
 )
 
 const (
@@ -38,8 +35,8 @@ const (
 func CreateRes(ctx context.Context, l Config) *resource.Resource {
 	res, _ := resource.New(ctx,
 		resource.WithFromEnv(),
-		//resource.WithProcess(),
-		//resource.WithTelemetrySDK(),
+		// resource.WithProcess(),
+		// resource.WithTelemetrySDK(),
 		resource.WithHost(),
 		resource.WithAttributes(
 			// the service name used to display traces in backends
@@ -99,10 +96,10 @@ func newLogger(ctx context.Context, res *resource.Resource, l Config) (*zap.Logg
 	zap.ReplaceGlobals(pl)
 
 	// grpc error logger, we use it for debug connection to collector at least
-	grpclog.SetLoggerV2(new(grpcerr.Logger))
+	//grpclog.SetLoggerV2(grpcerr.New(pl))
 
 	// otel handler also intersect logs
-	otel.SetErrorHandler(new(otelerr.Handler))
+	//otel.SetErrorHandler(otelerr.New(pl))
 
 	return pl, func(ctx context.Context) {
 		handleErr(batcher.Shutdown(ctx), "batched shutdown")
@@ -190,14 +187,14 @@ func newMonitor(cfg Config) Monitor {
 }
 
 // SetLogOutput debug function for duplicate input log into bytes.Buffer
-func SetLogOutput(ctx context.Context) *bytes.Buffer {
+func SetLogOutput(log *Telemetry) *bytes.Buffer {
 	buf := bytes.NewBufferString("")
 
 	// create new core which will write to buf
 	x := zapcore.NewCore(
 		zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig()), zapcore.AddSync(buf), zapcore.DebugLevel)
 
-	FromCtx(ctx).Logger = FromCtx(ctx).Logger.WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+	log.Logger = log.Logger.WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
 		return zapcore.NewTee(core, x)
 	}))
 

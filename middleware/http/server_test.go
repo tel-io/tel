@@ -1,4 +1,4 @@
-package tel
+package http
 
 import (
 	"bytes"
@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/d7561985/tel"
 	"github.com/d7561985/tel/monitoring/metrics"
 	"github.com/stretchr/testify/assert"
 )
@@ -20,11 +21,13 @@ const testString = "Hello World"
 const postContent = "XXX"
 
 func TestTelemetry_HttpServerMiddlewareAll(t *testing.T) {
-	srv, closer := New(context.Background(), DefaultDebugConfig())
+	c := tel.DefaultDebugConfig()
+	c.LogLevel = "debug"
+	srv, closer := tel.New(context.Background(), c)
 	defer closer()
 
 	ctx := srv.Ctx()
-	buf := SetLogOutput(ctx)
+	buf := tel.SetLogOutput(tel.FromCtx(ctx))
 
 	// key value helps check if our middleware not damage already existent context with own values
 	type key struct{}
@@ -36,10 +39,10 @@ func TestTelemetry_HttpServerMiddlewareAll(t *testing.T) {
 		fmt.Println(request.Context().Value(key{}))
 	}))
 
-	m := metrics.NewHttpMetric(metrics.DefaultHTTPPathRetriever())
+	m := metrics.NewHTTPMetric(metrics.DefaultHTTPPathRetriever())
 	assert.NoError(t, m.SetUp())
 
-	handler = FromCtx(ctx).HttpServerMiddlewareAll(m)(handler)
+	handler = NewServer(tel.FromCtx(ctx)).HTTPServerMiddlewareAll(m)(handler)
 
 	// check context preservation already added fields
 	handler = func(next http.Handler) http.Handler {

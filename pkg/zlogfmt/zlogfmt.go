@@ -10,9 +10,9 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// ZapCore module transpile zap fields into logfmt format for Grafana Loki
+// Core is ZapCore module transpile zap fields into logfmt format for Grafana Loki
 // Using Otel Exstractor
-type core struct {
+type Core struct {
 	batch logskd.LogProcessor
 	buf   *ObjectEncoder
 }
@@ -24,11 +24,11 @@ const (
 	StacktraceKey = "stack"
 )
 
-var _ zapcore.Core = new(core)
+var _ zapcore.Core = new(Core)
 
 // NewCore create zap Core instance which transcede logfmt for Grafana Loki
-func NewCore(ex logskd.LogProcessor) *core {
-	c := &core{
+func NewCore(ex logskd.LogProcessor) *Core {
+	c := &Core{
 		batch: ex,
 		buf:   New(nil),
 	}
@@ -37,11 +37,11 @@ func NewCore(ex logskd.LogProcessor) *core {
 }
 
 // Enabled always returns true, because that we always protected from basic root
-// so, this should implemented only if we use that core as main
-func (c *core) Enabled(zapcore.Level) bool { return true }
+// so, this should implemented only if we use that Core as main
+func (c *Core) Enabled(zapcore.Level) bool { return true }
 
-func (c *core) With(fields []zapcore.Field) zapcore.Core {
-	clone := &core{
+func (c *Core) With(fields []zapcore.Field) zapcore.Core {
+	clone := &Core{
 		batch: c.batch,
 		buf:   c.buf.Clone(fields),
 	}
@@ -49,11 +49,11 @@ func (c *core) With(fields []zapcore.Field) zapcore.Core {
 	return clone
 }
 
-func (c *core) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
+func (c *Core) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
 	return ce.AddCore(ent, c)
 }
 
-func (c *core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
+func (c *Core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
 	buf, err := c.buf.EncodeEntry(entry, fields)
 	if err != nil {
 		return errors.WithStack(err)
@@ -69,7 +69,7 @@ func (c *core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
 	return nil
 }
 
-func (c *core) Sync() error {
+func (c *Core) Sync() error {
 	ctx, cancel := context.WithTimeout(context.Background(), trace.DefaultBatchTimeout)
 	defer cancel()
 

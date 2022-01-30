@@ -89,9 +89,8 @@ func (o *ObjectEncoder) resetReflectBuf() {
 	}
 }
 
-func (o *ObjectEncoder) AddArray(key string, marshaler zapcore.ArrayMarshaler) error {
-	//TODO implement me
-	panic("implement me")
+func (o *ObjectEncoder) AddArray(key string, arr zapcore.ArrayMarshaler) error {
+	return errors.WithStack(o.Encoder.EncodeKeyval(key, fmt.Sprintf("%v", arr)))
 }
 
 func (o *ObjectEncoder) AddObject(key string, marshaler zapcore.ObjectMarshaler) error {

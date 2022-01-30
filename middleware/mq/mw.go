@@ -1,4 +1,4 @@
-package kaf
+package mq
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"github.com/d7561985/tel/monitoring/metrics"
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/propagation"
-	"go.uber.org/zap"
 )
 
 var (
@@ -26,7 +25,7 @@ type (
 	}
 
 	mwConsumer struct {
-		metrics metrics.MetricsReader
+		metrics metrics.Reader
 	}
 
 	Message struct {
@@ -51,7 +50,7 @@ type (
 
 // NewConsumerMw which provide MW helper for:
 // recovery, debug logging, tracing solution, common metrics and ruration
-func NewConsumerMw(m metrics.MetricsReader) MiddleWare {
+func NewConsumerMw(m metrics.Reader) MiddleWare {
 	return &mwConsumer{metrics: m}
 }
 
@@ -78,28 +77,28 @@ func (s *mwConsumer) HandleMessage(next CallBack) CallBack {
 		var err error
 
 		// new ctx instance
-		span, ctx := StartSpanFromConsumerKafka(_ctx, fmt.Sprintf("KAFKA:CONSUMER/%s", e.Topic), e)
+		span, ctx := StartSpanFromConsumer(_ctx, fmt.Sprintf("KAFKA:CONSUMER/%s", e.Topic), e)
 		defer span.End()
 
 		defer func(start time.Time) {
 			rv := recover()
 			if rv != nil {
 				s.metrics.AddReaderTopicFatalError(e.Topic, 1)
-				tel.FromCtx(ctx).Error("kafka.consumer recover", zap.Error(fmt.Errorf("%v", rv)))
+				tel.FromCtx(ctx).Error("consumer recover", tel.Error(fmt.Errorf("%v", rv)))
 				return
 			}
 
 			s.metrics.AddReaderTopicHandlingTime(e.Topic, time.Since(start))
-			tel.FromCtx(ctx).PutFields(zap.Duration("duration", time.Since(start)))
+			tel.FromCtx(ctx).PutFields(tel.Duration("duration", time.Since(start)))
 
 			switch {
 			case errors.Is(err, ErrManualCommit):
 				s.metrics.AddReaderTopicSkippedEvents(e.Topic, 1)
 			case err == nil:
 				s.metrics.AddReaderTopicDecodeEvents(e.Topic, 1)
-				tel.FromCtx(ctx).Debug("kafka:consumer")
+				tel.FromCtx(ctx).Debug("consumer")
 			default:
-				tel.FromCtx(ctx).WithSpan(span).Warn("kafka.consumer process error", zap.Error(err))
+				tel.FromCtx(ctx).WithSpan(span).Warn("consumer process error", tel.Error(err))
 				s.metrics.AddReaderTopicProcessError(e.Topic)
 				s.metrics.AddReaderTopicErrorEvents(e.Topic, 1)
 			}
@@ -108,11 +107,11 @@ func (s *mwConsumer) HandleMessage(next CallBack) CallBack {
 		s.metrics.AddReaderTopicReadEvents(e.Topic, 1)
 
 		tel.FromCtx(ctx).PutFields(
-			zap.String("kafka.consumer.event", e.String()),
-			zap.String("kafka.consumer.topic", e.Topic),
-			zap.ByteString("kafka.consumer.key", e.Key),
-			zap.Binary("kafka.consumer.key.binary", e.Key),
-			zap.String("kafka.consumer.timestamp", e.Timestamp.Format(time.RFC3339)),
+			tel.String("consumer.event", e.String()),
+			tel.String("consumer.topic", e.Topic),
+			tel.ByteString("consumer.key", e.Key),
+			tel.Binary("consumer.key.binary", e.Key),
+			tel.String("consumer.timestamp", e.Timestamp.Format(time.RFC3339)),
 		)
 
 		// if usecase can't send information to client we should not commit that message and try to handdle it later

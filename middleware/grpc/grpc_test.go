@@ -1,11 +1,13 @@
-package tel
+package grpc
 
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"log"
 	"net"
 
+	"github.com/d7561985/tel"
 	"github.com/d7561985/tel/monitoring/metrics"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -38,7 +40,7 @@ func CreateMockServer(ctx context.Context, fx Fixture) (net.Listener, *grpc.Serv
 	}
 
 	s := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(FromCtx(ctx).GrpcUnaryServerInterceptor()),
+		grpc.ChainUnaryInterceptor(New(tel.FromCtx(ctx)).GrpcUnaryServerInterceptor()),
 	)
 
 	// Enable reflection
@@ -77,7 +79,7 @@ func (s *Suite) TestGrpcPanicMW() {
 
 	dial, err := grpc.Dial(l.Addr().String(),
 		grpc.WithInsecure(),
-		grpc.WithUnaryInterceptor(s.tel.GrpcUnaryClientInterceptorAll()))
+		grpc.WithUnaryInterceptor(New(&s.tel).GrpcUnaryClientInterceptorAll()))
 	s.NoError(err)
 
 	client := helloworld.NewGreeterClient(dial)
@@ -87,6 +89,8 @@ func (s *Suite) TestGrpcPanicMW() {
 	s.Equal(codes.Internal, fromError.Code())
 	s.Nil(res)
 
+	fmt.Println(">>>")
+	fmt.Println(">>>>>>>>", s.byf.String())
 	_ = s.tel.Logger.Sync()
 
 	for i := 0; i < 2; i++ {

@@ -54,14 +54,14 @@ func (a *AtrEncoder) EncodeEntry(entry zapcore.Entry, fields []zapcore.Field) ([
 	return []byte(body), n.attrs, nil
 }
 
-func (a AtrEncoder) AddArray(key string, marshaler zapcore.ArrayMarshaler) error {
-	//TODO implement me
-	panic("implement me")
+func (a *AtrEncoder) AddArray(key string, arr zapcore.ArrayMarshaler) error {
+	a.attrs = append(a.attrs, attribute.String(key, fmt.Sprintf("%v", arr)))
+	return nil
 }
 
-func (a AtrEncoder) AddObject(key string, marshaler zapcore.ObjectMarshaler) error {
-	//TODO implement me
-	panic("implement me")
+func (a *AtrEncoder) AddObject(key string, obj zapcore.ObjectMarshaler) error {
+	a.attrs = append(a.attrs, attribute.String(key, fmt.Sprintf("%v", obj)))
+	return nil
 }
 
 func (a *AtrEncoder) AddBinary(key string, value []byte) {
@@ -169,7 +169,7 @@ func (a *AtrEncoder) AddReflected(key string, value interface{}) error {
 }
 
 // OpenNamespace not used, for json flow only
-func (a AtrEncoder) OpenNamespace(key string) {}
+func (a *AtrEncoder) OpenNamespace(key string) {}
 
 func (a *AtrEncoder) resetReflectBuf() {
 	if a.reflectBuf == nil {
