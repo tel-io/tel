@@ -2,6 +2,8 @@ package pgx
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/d7561985/tel"
 	"github.com/jackc/pgx/v4"
@@ -15,28 +17,45 @@ func NewLogger() *Logger {
 	return &Logger{}
 }
 
-func (pl *Logger) Log(ctx context.Context, level pgx.LogLevel, msg string, data map[string]interface{}) {
-	logger := tel.FromCtx(ctx)
+const (
+	fSql  = "sql"
+	fArgs = "args"
+)
 
-	fields := make([]zapcore.Field, len(data))
-	i := 0
+func (pl *Logger) Log(ctx context.Context, level pgx.LogLevel, msg string, data map[string]interface{}) {
+	fields := make([]zapcore.Field, 0, len(data))
+
 	for k, v := range data {
-		fields[i] = zap.Any(k, v)
-		i++
+		switch k {
+		case fSql, fArgs:
+			continue
+		default:
+			fields = append(fields, zap.Any(k, v))
+		}
 	}
+
+	var zLvl zapcore.Level
 
 	switch level {
 	case pgx.LogLevelTrace:
-		logger.Debug(msg, append(fields, zap.Stringer("PGX_LOG_LEVEL", level))...)
+		zLvl = zapcore.DebugLevel
+		fields = append(fields, zap.Stringer("PGX_LOG_LEVEL", level))
 	case pgx.LogLevelDebug:
-		logger.Debug(msg, fields...)
+		zLvl = zapcore.DebugLevel
 	case pgx.LogLevelInfo:
-		logger.Info(msg, fields...)
+		zLvl = zapcore.InfoLevel
 	case pgx.LogLevelWarn:
-		logger.Warn(msg, fields...)
+		zLvl = zapcore.WarnLevel
 	case pgx.LogLevelError:
-		logger.Error(msg, fields...)
+		zLvl = zapcore.ErrorLevel
 	default:
-		logger.Error(msg, append(fields, zap.Stringer("PGX_LOG_LEVEL", level))...)
+		fields = append(fields, zap.Stringer("PGX_LOG_LEVEL", level))
 	}
+
+	if v, ok := data[fSql]; ok {
+		sql, _ := v.(string) // let's trust that its string ;)
+		msg = fmt.Sprintf("%s %s %v", msg, strings.TrimSpace(sql), data[fArgs])
+	}
+
+	tel.FromCtx(ctx).Check(zLvl, msg).Write(fields...)
 }

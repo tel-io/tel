@@ -48,6 +48,18 @@ func TestLogger(t *testing.T) {
 			map[string]interface{}{"PGX_LOG_LEVEL": true},
 			[]string{"PGX_LOG_LEVEL", "true"},
 		},
+		{
+			"check sql and args fields",
+			pgx.LogLevelInfo,
+			map[string]interface{}{fSql: "insert * from table where user = $1", fArgs: []interface{}{100500}},
+			[]string{"insert * from table where user = $", "[100500]"},
+		},
+		{
+			"check sql no args",
+			pgx.LogLevelInfo,
+			map[string]interface{}{fSql: "insert * from table where user = $1"},
+			[]string{"insert * from table where user = $"},
+		},
 	}
 
 	tt, cancel := tel.New(context.Background(), tel.DefaultDebugConfig())
