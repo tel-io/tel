@@ -1,4 +1,4 @@
-package logger
+package pgx
 
 import (
 	"bufio"
