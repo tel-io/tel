@@ -94,6 +94,16 @@ func (t Telemetry) IsDebug() bool {
 	return t.cfg.Debug
 }
 
+// LogLevel safe pars log level, in case of error return InfoLevel
+func (t Telemetry) LogLevel() zapcore.Level {
+	var lvl zapcore.Level
+	if err := lvl.Set(t.cfg.LogLevel); err != nil {
+		return zapcore.InfoLevel
+	}
+
+	return lvl
+}
+
 // WithContext put new copy of telemetry into context
 func (t Telemetry) WithContext(ctx context.Context) context.Context {
 	return WithContext(ctx, t)
