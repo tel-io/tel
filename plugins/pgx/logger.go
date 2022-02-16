@@ -67,7 +67,8 @@ func (pl *Logger) Log(ctx context.Context, level pgx.LogLevel, msg string, data 
 			sql = conv(sql, args)
 		}
 
-		msg = fmt.Sprintf("%s: %s", msg, strings.TrimSpace(sql))
+		sql = strings.Join(strings.Fields(sql), " ")
+		msg = fmt.Sprintf(`%s: "%s"`, msg, sql)
 	}
 
 	logger.Check(zLvl, msg).Write()
@@ -75,11 +76,10 @@ func (pl *Logger) Log(ctx context.Context, level pgx.LogLevel, msg string, data 
 
 func conv(sql string, args []interface{}) string {
 	for i, arg := range args {
-		sql = strings.Replace(
+		sql = strings.ReplaceAll(
 			sql,
 			fmt.Sprintf("$%d", i+1),
 			fmt.Sprintf("%v", arg),
-			-1,
 		)
 	}
 

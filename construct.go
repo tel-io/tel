@@ -119,7 +119,6 @@ func newOtlpMetic(ctx context.Context, res *resource.Resource, l Config) func(ct
 	metricExp, err := otlpmetric.New(ctx, metricClient)
 	handleErr(err, "Failed to create the collector metric exporter")
 
-	simple.NewWithInexpensiveDistribution()
 	pusher := controller.New(
 		processor.NewFactory(
 			//simple.NewWithExactDistribution(),
@@ -143,7 +142,7 @@ func newOtlpMetic(ctx context.Context, res *resource.Resource, l Config) func(ct
 
 	return func(cxt context.Context) {
 		// pushes any last exports to the receiver
-		if err := pusher.Stop(cxt); err != nil {
+		if err = pusher.Stop(cxt); err != nil {
 			otel.Handle(err)
 		}
 	}

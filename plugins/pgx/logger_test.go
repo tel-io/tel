@@ -60,6 +60,14 @@ func TestLogger(t *testing.T) {
 			map[string]interface{}{fSql: "insert * from table where user = $1"},
 			[]string{"insert * from table where user = $"},
 		},
+		{
+			"multi-line",
+			pgx.LogLevelInfo,
+			map[string]interface{}{fSql: `UPDATE tx SET revert = true WHERE
+						created_at < current_timestamp  AND  created_at > current_timestamp - interval '3' month AND
+						id = $1 AND "accountId" = $2 `},
+			[]string{"UPDATE tx SET revert = true WHERE created_at < current_timestamp AND created_at > current_timestamp - interval"},
+		},
 	}
 
 	tt, cancel := tel.New(context.Background(), tel.DefaultDebugConfig())
@@ -79,7 +87,6 @@ func TestLogger(t *testing.T) {
 			for _, val := range test.check {
 				assert.Contains(t, string(line), val)
 			}
-
 		})
 	}
 }

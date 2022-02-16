@@ -33,7 +33,7 @@ func (h *HealthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		FromCtx(r.Context()).Error("health", String("body", string(body)))
 	}
 
-	if _, err := w.Write(body); err != nil {
+	if _, err = w.Write(body); err != nil {
 		FromCtx(r.Context()).Error("health check encode failed", Error(err))
 	}
 }
