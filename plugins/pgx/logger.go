@@ -11,6 +11,8 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// Logger convert pgx logLevel to tel flow
+// Please be advised that pgx.Info level transpile to Debug level, as we believe that that's debug info ;)
 type Logger struct{}
 
 func NewLogger() *Logger {
@@ -23,14 +25,21 @@ const (
 )
 
 func (pl *Logger) Log(ctx context.Context, level pgx.LogLevel, msg string, data map[string]interface{}) {
-	fields := make([]zapcore.Field, 0, len(data))
+	defer func() {
+		if r := recover(); r != nil {
+			tel.FromCtx(ctx).Error("possible unsafe cast",
+				tel.String("component", "pgx-logger"), tel.Any("recovery", r))
+		}
+	}()
+
+	logger := tel.FromCtx(ctx).Logger
 
 	for k, v := range data {
 		switch k {
 		case fSql, fArgs:
 			continue
 		default:
-			fields = append(fields, zap.Any(k, v))
+			logger = logger.With(zap.Any(k, v))
 		}
 	}
 
@@ -39,23 +48,40 @@ func (pl *Logger) Log(ctx context.Context, level pgx.LogLevel, msg string, data 
 	switch level {
 	case pgx.LogLevelTrace:
 		zLvl = zapcore.DebugLevel
-		fields = append(fields, zap.Stringer("PGX_LOG_LEVEL", level))
-	case pgx.LogLevelDebug:
+		logger = logger.With(zap.Stringer("PGX_LOG_LEVEL", level))
+	case pgx.LogLevelDebug, pgx.LogLevelInfo:
 		zLvl = zapcore.DebugLevel
-	case pgx.LogLevelInfo:
-		zLvl = zapcore.InfoLevel
 	case pgx.LogLevelWarn:
 		zLvl = zapcore.WarnLevel
 	case pgx.LogLevelError:
 		zLvl = zapcore.ErrorLevel
 	default:
-		fields = append(fields, zap.Stringer("PGX_LOG_LEVEL", level))
+		logger = logger.With(zap.Stringer("PGX_LOG_LEVEL", level))
 	}
 
 	if v, ok := data[fSql]; ok {
 		sql, _ := v.(string) // let's trust that its string ;)
-		msg = fmt.Sprintf("%s %s %v", msg, strings.TrimSpace(sql), data[fArgs])
+
+		if a, okk := data[fArgs]; okk {
+			args, _ := a.([]interface{})
+			sql = conv(sql, args)
+		}
+
+		msg = fmt.Sprintf("%s: %s", msg, strings.TrimSpace(sql))
 	}
 
-	tel.FromCtx(ctx).Check(zLvl, msg).Write(fields...)
+	logger.Check(zLvl, msg).Write()
+}
+
+func conv(sql string, args []interface{}) string {
+	for i, arg := range args {
+		sql = strings.Replace(
+			sql,
+			fmt.Sprintf("$%d", i+1),
+			fmt.Sprintf("%v", arg),
+			-1,
+		)
+	}
+
+	return sql
 }

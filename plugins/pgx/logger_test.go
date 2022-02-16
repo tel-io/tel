@@ -52,7 +52,7 @@ func TestLogger(t *testing.T) {
 			"check sql and args fields",
 			pgx.LogLevelInfo,
 			map[string]interface{}{fSql: "insert * from table where user = $1", fArgs: []interface{}{100500}},
-			[]string{"insert * from table where user = $", "[100500]"},
+			[]string{"insert * from table where user = 100500"},
 		},
 		{
 			"check sql no args",
