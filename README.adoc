@@ -76,6 +76,7 @@ This optional variable, handled by open-telemetry SDK. Separator is semicolon. P
 == ToDo
 
 * [ ] Expose health check to specific metric
+* [ ] Duplicate trace messages for root - ztrace.New just add to chain tree
 
 == Usage
 

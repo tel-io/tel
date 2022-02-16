@@ -160,8 +160,12 @@ func (o *ObjectEncoder) AddString(key, value string) {
 	}
 
 	_ = o.EndRecord()
-	_ = o.EncodeKeyval(key, "")
-	_, _ = o.buf.WriteString(value)
+	_ = o.EncodeKeyval(key, value)
+	//  hack way to show multi-line in Loki
+	// there is big disadvantage - loki understand field until first space :(
+	//_ = o.EncodeKeyval(key, "")
+	//_, _ = o.buf.WriteString(fmt.Sprintf(`"%s"`, value))
+
 	_ = o.EndRecord()
 }
 

@@ -2,7 +2,6 @@ package pgx
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"testing"
 
@@ -70,8 +69,7 @@ func TestLogger(t *testing.T) {
 		},
 	}
 
-	tt, cancel := tel.New(context.Background(), tel.DefaultDebugConfig())
-	defer cancel()
+	tt := tel.NewNull()
 
 	buf := tel.SetLogOutput(&tt)
 	ctx := tt.Ctx()

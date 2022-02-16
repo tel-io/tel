@@ -68,10 +68,10 @@ func (pl *Logger) Log(ctx context.Context, level pgx.LogLevel, msg string, data 
 		}
 
 		sql = strings.Join(strings.Fields(sql), " ")
-		msg = fmt.Sprintf(`%s: "%s"`, msg, sql)
+		msg = fmt.Sprintf(`%s: %s`, msg, sql)
 	}
 
-	logger.Check(zLvl, msg).Write()
+	logger.Check(zLvl, msg).Write(tel.String("component", "pgx"))
 }
 
 func conv(sql string, args []interface{}) string {

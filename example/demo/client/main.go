@@ -136,6 +136,8 @@ func oneShoot(t tel.Telemetry, commonLabels []attribute.KeyValue) {
 			x := []zap.Field{tel.String("field A", "a"),
 				tel.Int("field B", 100400), tel.Bool("fieldC", true),
 				tel.Strings("Strings Array", []string{"StrA", "StrB"}),
+				tel.String("sql", `INSERT INTO table(A,B,C) VALUES
+					(1,2,3) RETURNING ID`),
 			}
 
 			switch rand.Int() % 5 {

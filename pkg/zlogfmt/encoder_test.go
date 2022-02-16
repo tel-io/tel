@@ -1,6 +1,7 @@
 package zlogfmt
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -22,12 +23,19 @@ func TestObjectEncoder(t *testing.T) {
 		{
 			"with_dump",
 			[]zap.Field{zap.Bool("bool", false), zap.String("d1", dumpExample)},
-			[]string{"bool=false", dumpExample},
+			[]string{"bool=false", "runtime/debug.Stack()"},
 		},
 		{
 			"key replaaser",
 			[]zap.Field{zap.Float64("float64 my favorite", 1.01), zap.Complex128("complex", 123)},
 			[]string{"float64_my_favorite=1.01", "complex=(123+0i)"},
+		},
+		{
+			"sql",
+			[]zap.Field{zap.String("sql", `Query: INSERT INTO balance("accountId", "balance", "depositAllSum")
+				VALUES (394121,0,0,0,0,0) 
+				ON CONFLICT ON CONSTRAINT balance_pkey DO UPDATE SET RETURNING "id"`)},
+			[]string{"ON CONFLICT ON CONSTRAINT balance_pkey"},
 		},
 	}
 
@@ -38,6 +46,7 @@ func TestObjectEncoder(t *testing.T) {
 			buf, err := e.EncodeEntry(zapcore.Entry{}, test.in)
 			assert.NoError(t, err)
 
+			fmt.Println(string(buf))
 			for _, value := range test.check {
 				assert.Contains(t, string(buf), value)
 			}
