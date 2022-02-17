@@ -76,11 +76,14 @@ func GetConfigFromEnv() Config {
 
 	var srv string
 	str(envServiceName, &srv)
+
 	if srv == "" {
 		str(envBackPortProject, &srv)
 	}
 
-	c.Service = srv
+	if srv != "" {
+		c.Service = srv
+	}
 
 	str(envNamespace, &c.Namespace)
 	str(envLogLevel, &c.LogLevel)
