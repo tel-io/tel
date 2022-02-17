@@ -121,9 +121,9 @@ func newOtlpMetic(ctx context.Context, res *resource.Resource, l Config) func(ct
 
 	pusher := controller.New(
 		processor.NewFactory(
-			//simple.NewWithExactDistribution(),
-			simple.NewWithInexpensiveDistribution(),
+			simple.NewWithHistogramDistribution(),
 			metricExp,
+			processor.WithMemory(true),
 		),
 		controller.WithExporter(metricExp),
 		controller.WithCollectPeriod(5*time.Second),
@@ -134,9 +134,11 @@ func newOtlpMetic(ctx context.Context, res *resource.Resource, l Config) func(ct
 	err = pusher.Start(ctx)
 	handleErr(err, "Failed to start metric pusher")
 
+	// runtime exported
 	err = rt.Start()
 	handleErr(err, "Failed to start runtime metric")
 
+	// host metrics exporter
 	err = host.Start()
 	handleErr(err, "Failed to start host metric")
 
