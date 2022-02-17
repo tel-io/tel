@@ -9,8 +9,10 @@ exporters:
   prometheus:
     endpoint: "0.0.0.0:8889"
     const_labels:
-      namespace: MY_NAMESPACE
-      license: LICENSE
+      license: LICENSE # com, ru, ua, by, uk ....
+      stage: dev # dev, stage, prod
+    resource_to_telemetry_conversion:
+      enabled: true
   logging:
   otlp:
     endpoint: tempo:4317

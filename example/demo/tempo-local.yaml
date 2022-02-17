@@ -25,10 +25,14 @@ ingester:
 
 compactor:
   compaction:
+    # Optional. Duration to keep blocks.  Default is 14 days (336h).
+    block_retention: 336h
+    # Optional. Duration to keep blocks that have been compacted elsewhere. Default is 1h.
+    compacted_block_retention: 1h
+    # Optional. Blocks in this time window will be compacted together. Default is 1h.
     compaction_window: 1h              # blocks in this time window will be compacted together
+    # Optional. Maximum size of a compacted block in bytes.  Default is 100 GB.
     max_block_bytes: 100_000_000       # maximum size of compacted blocks
-    block_retention: 1h
-    compacted_block_retention: 10m
 
 storage:
   trace:
