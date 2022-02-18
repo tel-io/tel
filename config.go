@@ -14,6 +14,7 @@ const (
 	envServiceName = "OTEL_SERVICE_NAME"
 
 	envNamespace = "NAMESPACE"
+	envVersion   = "VERSION"
 	envLogLevel  = "LOG_LEVEL"
 	envLogEncode = "LOG_ENCODE"
 
@@ -34,6 +35,7 @@ type OtelConfig struct {
 type Config struct {
 	Service   string `env:"OTEL_SERVICE_NAME"`
 	Namespace string `env:"NAMESPACE"`
+	Version   string `env:"VERSION"`
 	LogLevel  string `env:"LOG_LEVEL" envDefault:"info"`
 	// Valid values are "json", "console" or "none"
 	LogEncode string `env:"LOG_ENCODE" envDefault:"json"`
@@ -50,6 +52,7 @@ func DefaultConfig() Config {
 
 	return Config{
 		Service:     host,
+		Version:     "dev",
 		Namespace:   "default",
 		LogEncode:   "json",
 		LogLevel:    "info",
@@ -74,17 +77,13 @@ func DefaultDebugConfig() Config {
 func GetConfigFromEnv() Config {
 	c := DefaultConfig()
 
-	var srv string
-	str(envServiceName, &srv)
-
-	if srv == "" {
-		str(envBackPortProject, &srv)
+	if val, ok := os.LookupEnv(envServiceName); ok {
+		c.Service = val
+	} else {
+		str(envBackPortProject, &c.Service)
 	}
 
-	if srv != "" {
-		c.Service = srv
-	}
-
+	str(envVersion, &c.Version)
 	str(envNamespace, &c.Namespace)
 	str(envLogLevel, &c.LogLevel)
 	str(envLogEncode, &c.LogEncode)

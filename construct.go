@@ -3,7 +3,9 @@ package tel
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/d7561985/tel/otlplog/logskd"
@@ -32,6 +34,15 @@ const (
 	instrumentationName = "github.com/d7561985/tel"
 )
 
+// GenerateInstanceID how to generate instanceID
+// function open for changes
+var instanceGenerator = genInstanceID
+
+// SetInstanceIDGenerator set generator for instance name
+func SetInstanceIDGenerator(fn func(string) string) {
+	instanceGenerator = fn
+}
+
 func CreateRes(ctx context.Context, l Config) *resource.Resource {
 	res, _ := resource.New(ctx,
 		resource.WithFromEnv(),
@@ -45,11 +56,21 @@ func CreateRes(ctx context.Context, l Config) *resource.Resource {
 			// key: service.namespace
 			semconv.ServiceNamespaceKey.String(l.Namespace),
 			// key: service.version
-			semconv.ServiceVersionKey.String("v0.0.0"),
+			semconv.ServiceVersionKey.String(l.Version),
+			semconv.ServiceInstanceIDKey.String(instanceGenerator(l.Service)),
 		),
 	)
 
 	return res
+}
+
+func genInstanceID(srv string) string {
+	instSID := make([]byte, 4)
+	_, _ = rand.Read(instSID)
+	conv := hex.EncodeToString(instSID)
+
+	instance := fmt.Sprintf("%s-%s", srv, conv)
+	return instance
 }
 
 func newLogger(ctx context.Context, res *resource.Resource, l Config) (*zap.Logger, func(ctx context.Context)) {
