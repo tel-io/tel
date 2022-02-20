@@ -3,7 +3,7 @@ package mq
 import (
 	"context"
 
-	"github.com/d7561985/tel"
+	"github.com/d7561985/tel/v2"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"

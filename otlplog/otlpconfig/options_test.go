@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/d7561985/tel/otlplog/otlpconfig"
+	"github.com/d7561985/tel/v2/otlplog/otlpconfig"
 	"github.com/stretchr/testify/assert"
 )
 

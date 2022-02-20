@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/d7561985/tel"
+	"github.com/d7561985/tel/v2"
 )
 
 type (

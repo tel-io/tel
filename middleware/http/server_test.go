@@ -9,8 +9,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/d7561985/tel"
-	"github.com/d7561985/tel/monitoring/metrics"
+	"github.com/d7561985/tel/v2"
+	"github.com/d7561985/tel/v2/monitoring/metrics"
 	"github.com/stretchr/testify/assert"
 )
 

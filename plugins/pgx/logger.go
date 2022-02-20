@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/d7561985/tel"
+	"github.com/d7561985/tel/v2"
 	"github.com/jackc/pgx/v4"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

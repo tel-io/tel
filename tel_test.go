@@ -10,7 +10,7 @@ import (
 // check whole context stack: WithContext, updateContext, FromCtx
 func Test_telemetry_With(t *testing.T) {
 	ctx := NewNull().Ctx()
-	buf := SetLogOutput(ctx)
+	buf := SetLogOutput(FromCtx(ctx))
 
 	t.Run("note tele context", func(t *testing.T) {
 		assert.NotPanics(t, func() {

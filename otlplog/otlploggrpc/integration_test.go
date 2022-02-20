@@ -6,20 +6,21 @@ package otlploggrpc_test
 import (
 	"context"
 	"encoding/json"
-	"github.com/d7561985/tel/otlplog"
-	"github.com/d7561985/tel/otlplog/logskd"
-	"github.com/d7561985/tel/otlplog/otlploggrpc"
+	"math/rand"
+	"os"
+	"runtime/debug"
+	"testing"
+
 	"github.com/d7561985/tel/pkg/logtransform"
+	"github.com/d7561985/tel/v2/otlplog"
+	"github.com/d7561985/tel/v2/otlplog/logskd"
+	"github.com/d7561985/tel/v2/otlplog/otlploggrpc"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 	"go.opentelemetry.io/otel/trace"
-	"math/rand"
-	"os"
-	"runtime/debug"
-	"testing"
 )
 
 // TestNewClient development test

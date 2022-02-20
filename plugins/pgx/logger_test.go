@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/d7561985/tel"
+	"github.com/d7561985/tel/v2"
 	"github.com/jackc/pgx/v4"
 	"github.com/stretchr/testify/assert"
 )

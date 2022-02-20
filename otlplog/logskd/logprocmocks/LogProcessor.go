@@ -5,7 +5,7 @@ package logprocmocks
 import (
 	context "context"
 
-	logskd "github.com/d7561985/tel/otlplog/logskd"
+	logskd "github.com/d7561985/tel/v2/otlplog/logskd"
 	mock "github.com/stretchr/testify/mock"
 )
 

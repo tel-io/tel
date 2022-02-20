@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/d7561985/tel"
-	"github.com/d7561985/tel/example/demo/pkg/demo"
-	health "github.com/d7561985/tel/monitoring/heallth"
+	"github.com/d7561985/tel/v2"
+	"github.com/d7561985/tel/v2/example/demo/pkg/demo"
+	health "github.com/d7561985/tel/v2/monitoring/heallth"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/baggage"

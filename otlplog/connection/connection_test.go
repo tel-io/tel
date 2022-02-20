@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/d7561985/tel/otlplog/retry"
+	"github.com/d7561985/tel/v2/otlplog/retry"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"

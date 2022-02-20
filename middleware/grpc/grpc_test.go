@@ -7,8 +7,8 @@ import (
 	"log"
 	"net"
 
-	"github.com/d7561985/tel"
-	"github.com/d7561985/tel/monitoring/metrics"
+	"github.com/d7561985/tel/v2"
+	"github.com/d7561985/tel/v2/monitoring/metrics"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/examples/helloworld/helloworld"

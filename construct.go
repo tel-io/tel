@@ -8,9 +8,9 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/d7561985/tel/otlplog/logskd"
-	"github.com/d7561985/tel/otlplog/otlploggrpc"
-	"github.com/d7561985/tel/pkg/zlogfmt"
+	"github.com/d7561985/tel/v2/otlplog/logskd"
+	"github.com/d7561985/tel/v2/otlplog/otlploggrpc"
+	"github.com/d7561985/tel/v2/pkg/zlogfmt"
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	rt "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"

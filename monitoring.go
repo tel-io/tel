@@ -7,9 +7,9 @@ import (
 	"net/http/pprof"
 	"time"
 
-	"github.com/d7561985/tel/monitoring/checkers"
-	health "github.com/d7561985/tel/monitoring/heallth"
-	"github.com/d7561985/tel/monitoring/metrics"
+	"github.com/d7561985/tel/v2/monitoring/checkers"
+	health "github.com/d7561985/tel/v2/monitoring/heallth"
+	"github.com/d7561985/tel/v2/monitoring/metrics"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )

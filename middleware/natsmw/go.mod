@@ -2,13 +2,9 @@ module github.com/d7561985/tel/middleware/natsmw
 
 go 1.17
 
-replace (
-	github.com/d7561985/tel => ../../
-	github.com/d7561985/tel/propagators/natsprop => ../../propagators/natsprop
-)
 
 require (
-	github.com/d7561985/tel v2.0.0+incompatible
+	github.com/d7561985/tel/v2 v2.0.0
 	github.com/d7561985/tel/propagators/natsprop v2.0.0+incompatible
 	github.com/nats-io/nats.go v1.13.1-0.20220121202836-972a071d373d
 	github.com/pkg/errors v0.9.1
@@ -16,6 +12,11 @@ require (
 	go.opentelemetry.io/otel v1.4.1
 	go.opentelemetry.io/otel/trace v1.4.1
 	go.uber.org/zap v1.21.0
+)
+
+replace (
+	github.com/d7561985/tel/v2 => ../../
+	github.com/d7561985/tel/propagators/natsprop => ../../propagators/natsprop
 )
 
 require (

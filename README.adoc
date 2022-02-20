@@ -77,16 +77,16 @@ This optional variable, handled by open-telemetry SDK. Separator is semicolon. P
 Some plugins require external packages,  we don'ty like unnecessary increasing dependencies. Thus offer sub-modules which should be added separately
 
 === Middlewares
- github.com/d7561985/tel/middleware/natsmw
+ github.com/d7561985/tel/v2/middleware/natsmw
 
 ==== Propagators
-.github.com/d7561985/tel/propagators/natsprop
+.github.com/d7561985/tel/v2/propagators/natsprop
 Just helper which uses any TextMapPropagator (by default globally declared or via WithPropagators option).
 Suitable propagate traces (`propagation.TraceContext`) or baggage(`propagation.Baggage`).
 
 === Plugins
 ==== Logging
- github.com/d7561985/tel/plugins/pgx
+ github.com/d7561985/tel/v2/plugins/pgx
 
 == ToDo
 

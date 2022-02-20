@@ -6,8 +6,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/d7561985/tel/monitoring/metrics"
-	"github.com/d7561985/tel/pkg/ztrace"
+	"github.com/d7561985/tel/v2/monitoring/metrics"
+	"github.com/d7561985/tel/v2/pkg/ztrace"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"

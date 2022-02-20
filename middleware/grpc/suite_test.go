@@ -5,7 +5,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/d7561985/tel"
+	"github.com/d7561985/tel/v2"
 	"github.com/stretchr/testify/suite"
 )
 

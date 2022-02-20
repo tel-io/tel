@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/d7561985/tel"
-	"github.com/d7561985/tel/monitoring/metrics"
+	"github.com/d7561985/tel/v2"
+	"github.com/d7561985/tel/v2/monitoring/metrics"
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/propagation"
 )

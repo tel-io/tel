@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/d7561985/tel"
-	"github.com/d7561985/tel/monitoring/metrics"
+	"github.com/d7561985/tel/v2"
+	"github.com/d7561985/tel/v2/monitoring/metrics"
 	"go.uber.org/zap/zapcore"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"

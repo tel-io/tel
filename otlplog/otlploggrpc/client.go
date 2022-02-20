@@ -20,9 +20,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/d7561985/tel/otlplog"
-	"github.com/d7561985/tel/otlplog/connection"
-	"github.com/d7561985/tel/otlplog/otlpconfig"
+	"github.com/d7561985/tel/v2/otlplog"
+	"github.com/d7561985/tel/v2/otlplog/connection"
+	"github.com/d7561985/tel/v2/otlplog/otlpconfig"
 	"google.golang.org/grpc"
 
 	coltracepb "go.opentelemetry.io/proto/otlp/collector/logs/v1"

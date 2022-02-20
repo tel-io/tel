@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/d7561985/tel/otlplog/otlpconfig"
-	"github.com/d7561985/tel/otlplog/retry"
+	"github.com/d7561985/tel/v2/otlplog/otlpconfig"
+	"github.com/d7561985/tel/v2/otlplog/retry"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 

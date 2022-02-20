@@ -3,7 +3,7 @@ package zlogfmt
 import (
 	"context"
 
-	"github.com/d7561985/tel/otlplog/logskd"
+	"github.com/d7561985/tel/v2/otlplog/logskd"
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/trace"
