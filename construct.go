@@ -194,7 +194,11 @@ func newOtlpTrace(ctx context.Context, res *resource.Resource, l Config) func(ct
 	)
 
 	// set global propagator to tracecontext (the default is no-op).
-	otel.SetTextMapPropagator(propagation.TraceContext{})
+	otel.SetTextMapPropagator(
+		propagation.NewCompositeTextMapPropagator(
+			propagation.TraceContext{}, propagation.Baggage{},
+		))
+
 	otel.SetTracerProvider(tracerProvider)
 
 	return func(cxt context.Context) {
