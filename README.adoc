@@ -73,6 +73,16 @@ With insecure ...
 .OTEL_RESOURCE_ATTRIBUTES
 This optional variable, handled by open-telemetry SDK. Separator is semicolon. Put additional resources variables, very suitable!
 
+== Modules, Plugins and ect
+Some plugins require external packages,  we don'ty like unnecessary increasing dependencies. Thus offer sub-modules which should be added separately
+
+=== Middlewares
+ github.com/d7561985/tel/middleware/nats
+
+=== Plugins
+==== Logging
+ github.com/d7561985/tel/plugins/pgx
+
 == ToDo
 
 * [ ] Expose health check to specific metric

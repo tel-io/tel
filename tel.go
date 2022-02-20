@@ -32,7 +32,10 @@ type Telemetry struct {
 }
 
 func NewNull() Telemetry {
+	cfg := DefaultDebugConfig()
+
 	return Telemetry{
+		cfg:    &cfg,
 		Logger: zap.NewExample(),
 		trace:  trace.NewNoopTracerProvider().Tracer(instrumentationName),
 		meter:  metric.NewNoopMeterProvider().Meter(instrumentationName),
