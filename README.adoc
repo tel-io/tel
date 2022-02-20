@@ -80,7 +80,7 @@ Some plugins require external packages,  we don'ty like unnecessary increasing d
  github.com/d7561985/tel/middleware/natsmw
 
 ==== Propagators
-.github.com/d7561985/tel/propagators/natstrace
+.github.com/d7561985/tel/propagators/natsprop
 Just helper which uses any TextMapPropagator (by default globally declared or via WithPropagators option).
 Suitable propagate traces (`propagation.TraceContext`) or baggage(`propagation.Baggage`).
 
