@@ -5,7 +5,7 @@ go 1.17
 replace github.com/d7561985/tel => ../../
 
 require (
-	github.com/d7561985/tel v0.0.0-00010101000000-000000000000
+	github.com/d7561985/tel v1.0.7-0.20220220065525-ee45b4c3f9b0
 	github.com/nats-io/nats.go v1.13.1-0.20220121202836-972a071d373d
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
