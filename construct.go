@@ -3,31 +3,91 @@ package tel
 import (
 	"bytes"
 	"context"
-	"log"
+	"encoding/hex"
+	"fmt"
+	"math/rand"
 	"time"
 
-	"github.com/opentracing/opentracing-go"
-	"github.com/uber/jaeger-client-go"
-	jconf "github.com/uber/jaeger-client-go/config"
+	"github.com/d7561985/tel/otlplog/logskd"
+	"github.com/d7561985/tel/otlplog/otlploggrpc"
+	"github.com/d7561985/tel/pkg/zlogfmt"
+	"go.opentelemetry.io/contrib/instrumentation/host"
+	rt "go.opentelemetry.io/contrib/instrumentation/runtime"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/metric/global"
+	"go.opentelemetry.io/otel/propagation"
+	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
+	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
+	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-const flushTimeout = 5 * time.Second
+const (
+	instrumentationName = "github.com/d7561985/tel"
+)
 
-// debugJaeger helps investigate local problems, it's shouldn't be useful on any kind of stages
-const debugJaeger = false
+// GenerateInstanceID how to generate instanceID
+// function open for changes
+var instanceGenerator = genInstanceID
 
-func newLogger(l Config) *zap.Logger {
+// SetInstanceIDGenerator set generator for instance name
+func SetInstanceIDGenerator(fn func(string) string) {
+	instanceGenerator = fn
+}
+
+func CreateRes(ctx context.Context, l Config) *resource.Resource {
+	res, _ := resource.New(ctx,
+		resource.WithFromEnv(),
+		// resource.WithProcess(),
+		// resource.WithTelemetrySDK(),
+		resource.WithHost(),
+		resource.WithAttributes(
+			// the service name used to display traces in backends
+			// key: service.name
+			semconv.ServiceNameKey.String(l.Service),
+			// key: service.namespace
+			semconv.ServiceNamespaceKey.String(l.Namespace),
+			// key: service.version
+			semconv.ServiceVersionKey.String(l.Version),
+			semconv.ServiceInstanceIDKey.String(instanceGenerator(l.Service)),
+		),
+	)
+
+	return res
+}
+
+func genInstanceID(srv string) string {
+	instSID := make([]byte, 4)
+	_, _ = rand.Read(instSID)
+	conv := hex.EncodeToString(instSID)
+
+	instance := fmt.Sprintf("%s-%s", srv, conv)
+	return instance
+}
+
+func newLogger(ctx context.Context, res *resource.Resource, l Config) (*zap.Logger, func(ctx context.Context)) {
 	var lvl zapcore.Level
 
-	if err := lvl.Set(l.LogLevel); err != nil {
-		log.Fatalf("zap set log lever %q err: %s", l.LogLevel, err)
-	}
+	handleErr(lvl.Set(l.LogLevel), fmt.Sprintf("zap set log lever %q", l.LogLevel))
 
 	zapconfig := zap.NewProductionConfig()
 	zapconfig.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
 	zapconfig.Level = zap.NewAtomicLevelAt(lvl)
+	zapconfig.Encoding = l.LogEncode
+
+	if zapconfig.Encoding == DisableLog {
+		zapconfig.Encoding = "console"
+		zapconfig.OutputPaths = nil
+		zapconfig.ErrorOutputPaths = nil
+	}
 
 	pl, err := zapconfig.Build(
 		zap.WithCaller(true),
@@ -35,46 +95,117 @@ func newLogger(l Config) *zap.Logger {
 		zap.IncreaseLevel(lvl),
 	)
 
-	if err != nil {
-		log.Fatalf("zap build error: %s", err)
+	handleErr(err, "zap build")
+
+	// exporter part
+	// this initiation controversy SRP, but right now we just speed up our development
+	opts := []otlploggrpc.Option{otlploggrpc.WithEndpoint(l.OtelConfig.Addr)}
+	if l.WithInsecure {
+		opts = append(opts, otlploggrpc.WithInsecure())
 	}
 
-	pl = pl.With(zap.String("project", l.Project), zap.String("namespace", l.Namespace))
+	logExporter, err := otlploggrpc.New(ctx, res, opts...)
+	handleErr(err, "Failed to create the collector log exporter")
 
-	return pl
+	batcher := logskd.NewBatchLogProcessor(logExporter)
+	cc := zlogfmt.NewCore(batcher)
+
+	pl = pl.WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+		return zapcore.NewTee(core, cc)
+	}))
+
+	zap.ReplaceGlobals(pl)
+
+	// grpc error logger, we use it for debug connection to collector at least
+	//grpclog.SetLoggerV2(grpcerr.New(pl))
+
+	// otel handler also intersect logs
+	//otel.SetErrorHandler(otelerr.New(pl))
+
+	return pl, func(ctx context.Context) {
+		handleErr(batcher.Shutdown(ctx), "batched shutdown")
+	}
 }
 
-// @l used only for handling some error to our log system
-func newTracer(service string, l *zap.Logger) opentracing.Tracer {
-	cfg, err := jconf.FromEnv()
-	if err != nil {
-		log.Fatalf("trace config load: %s", err)
+func newOtlpMetic(ctx context.Context, res *resource.Resource, l Config) func(ctx context.Context) {
+	opts := []otlpmetricgrpc.Option{otlpmetricgrpc.WithEndpoint(l.OtelConfig.Addr)}
+	if l.OtelConfig.WithInsecure {
+		opts = append(opts, otlpmetricgrpc.WithInsecure())
 	}
 
-	cfg.ServiceName = service
+	metricClient := otlpmetricgrpc.NewClient(opts...,
+	//otlpmetricgrpc.WithDialOption(grpc.WithBlock()),
+	)
 
-	// Param is a value passed to the sampler.
-	// Valid values for Param field are:
-	// - for "const" sampler, 0 or 1 for always false/true respectively
-	// - for "probabilistic" sampler, a probability between 0 and 1
-	// - for "rateLimiting" sampler, the number of spans per second
-	// - for "remote" sampler, param is the same as for "probabilistic"
-	cfg.Sampler.Type = jaeger.SamplerTypeConst
-	cfg.Reporter.BufferFlushInterval = flushTimeout
-	cfg.Sampler.Param = 1 // all spans should be fired
+	metricExp, err := otlpmetric.New(ctx, metricClient)
+	handleErr(err, "Failed to create the collector metric exporter")
 
-	if debugJaeger {
-		cfg.Reporter.LogSpans = true // log output span events
+	pusher := controller.New(
+		processor.NewFactory(
+			simple.NewWithHistogramDistribution(),
+			metricExp,
+			processor.WithMemory(true),
+		),
+		controller.WithExporter(metricExp),
+		controller.WithCollectPeriod(5*time.Second),
+		controller.WithResource(res),
+	)
+	global.SetMeterProvider(pusher)
+
+	err = pusher.Start(ctx)
+	handleErr(err, "Failed to start metric pusher")
+
+	// runtime exported
+	err = rt.Start()
+	handleErr(err, "Failed to start runtime metric")
+
+	// host metrics exporter
+	err = host.Start()
+	handleErr(err, "Failed to start host metric")
+
+	return func(cxt context.Context) {
+		// pushes any last exports to the receiver
+		if err = pusher.Stop(cxt); err != nil {
+			otel.Handle(err)
+		}
+	}
+}
+
+// OtraceInit init exporter which should be properly closed
+//user otel.GetTracerProvider() to rieach trace
+func newOtlpTrace(ctx context.Context, res *resource.Resource, l Config) func(ctx context.Context) {
+	opts := []otlptracegrpc.Option{otlptracegrpc.WithEndpoint(l.OtelConfig.Addr)}
+	if l.OtelConfig.WithInsecure {
+		opts = append(opts, otlptracegrpc.WithInsecure())
 	}
 
-	tracer, _, err := cfg.NewTracer(jconf.Logger(&jl{l}))
-	if err != nil {
-		log.Fatalf("trace create: %s", err)
+	traceClient := otlptracegrpc.NewClient(opts...,
+	//otlptracegrpc.WithDialOption(grpc.WithBlock()),
+	)
+
+	traceExp, err := otlptrace.New(ctx, traceClient)
+	handleErr(err, "Failed to create the collector trace exporter")
+
+	bsp := sdktrace.NewBatchSpanProcessor(traceExp)
+	tracerProvider := sdktrace.NewTracerProvider(
+		sdktrace.WithSampler(sdktrace.AlwaysSample()),
+		sdktrace.WithResource(res),
+		sdktrace.WithSpanProcessor(bsp),
+	)
+
+	// set global propagator to tracecontext (the default is no-op).
+	otel.SetTextMapPropagator(
+		propagation.NewCompositeTextMapPropagator(
+			propagation.TraceContext{}, propagation.Baggage{},
+		))
+
+	otel.SetTracerProvider(tracerProvider)
+
+	return func(cxt context.Context) {
+		if err = traceExp.Shutdown(cxt); err != nil {
+			otel.Handle(err)
+		}
 	}
-
-	opentracing.InitGlobalTracer(tracer)
-
-	return tracer
 }
 
 func newMonitor(cfg Config) Monitor {
@@ -82,16 +213,22 @@ func newMonitor(cfg Config) Monitor {
 }
 
 // SetLogOutput debug function for duplicate input log into bytes.Buffer
-func SetLogOutput(ctx context.Context) *bytes.Buffer {
+func SetLogOutput(log *Telemetry) *bytes.Buffer {
 	buf := bytes.NewBufferString("")
 
 	// create new core which will write to buf
 	x := zapcore.NewCore(
 		zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig()), zapcore.AddSync(buf), zapcore.DebugLevel)
 
-	FromCtx(ctx).Logger = FromCtx(ctx).Logger.WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+	log.Logger = log.Logger.WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
 		return zapcore.NewTee(core, x)
 	}))
 
 	return buf
+}
+
+func handleErr(err error, message string) {
+	if err != nil {
+		zap.L().Fatal(message, zap.Error(err))
+	}
 }

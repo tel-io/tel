@@ -5,14 +5,13 @@ import (
 	"net/http"
 
 	health "github.com/d7561985/tel/monitoring/heallth"
-	"go.uber.org/zap"
 )
 
 type HealthHandler struct {
 	health.CompositeChecker
 }
 
-// NewHandler returns a new Handler
+// NewHealthHandler returns a new Handler
 func NewHealthHandler() *HealthHandler {
 	return &HealthHandler{}
 }
@@ -26,15 +25,15 @@ func (h *HealthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	body, err := json.Marshal(checker)
 	if err != nil {
-		FromCtx(r.Context()).Error("health check encode failed", zap.Error(err))
+		FromCtx(r.Context()).Error("health check encode failed", Error(err))
 	}
 
 	if checker.Is(health.Down) {
 		w.WriteHeader(http.StatusServiceUnavailable)
-		FromCtx(r.Context()).Error("health", zap.String("body", string(body)))
+		FromCtx(r.Context()).Error("health", String("body", string(body)))
 	}
 
-	if _, err := w.Write(body); err != nil {
-		FromCtx(r.Context()).Error("health check encode failed", zap.Error(err))
+	if _, err = w.Write(body); err != nil {
+		FromCtx(r.Context()).Error("health check encode failed", Error(err))
 	}
 }

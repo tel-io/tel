@@ -68,7 +68,7 @@ type dbMetrics struct {
 	maxLifetimeClosed  prometheus.Gauge
 }
 
-func newDbMetrics(db *sql.DB, registry prometheus.Registerer) *dbMetrics {
+func newDBMetrics(db *sql.DB, registry prometheus.Registerer) *dbMetrics {
 	labels := prometheus.Labels{
 		"driver": addDriverName(sqlDriverToDriverName(db.Driver())),
 	}
@@ -143,7 +143,7 @@ func (m *dbMetrics) updateFrom(dbStats sql.DBStats) {
 	m.inUse.Set(float64(dbStats.InUse))
 	m.idle.Set(float64(dbStats.Idle))
 	m.waitCount.Set(float64(dbStats.WaitCount))
-	m.waitDuration.Set(float64(dbStats.WaitDuration.Seconds()))
+	m.waitDuration.Set(dbStats.WaitDuration.Seconds())
 	m.maxIdleClosed.Set(float64(dbStats.MaxIdleClosed))
 	m.maxLifetimeClosed.Set(float64(dbStats.MaxLifetimeClosed))
 }

@@ -1,0 +1,91 @@
+receivers:
+  fluentforward:
+    endpoint: 0.0.0.0:24224
+  otlp:
+    protocols:
+      grpc:
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    const_labels:
+      license: LICENSE # com, ru, ua, by, uk ....
+      stage: dev # dev, stage, prod
+    resource_to_telemetry_conversion:
+      enabled: true
+  logging:
+  otlp:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+  loki:
+    format: body
+    endpoint: "http://loki:3100/loki/api/v1/push"
+    sending_queue:
+      # Enabled indicates whether to not enqueue batches before sending to the consumerSender.
+      enabled: false
+      # NumConsumers is the number of consumers from the queue.
+      num_consumers: 100
+      # QueueSize is the maximum number of batches allowed in queue at a given time.
+      queue_size: 10000
+    tenant_id: LICENSE_MY_NAMESPACE
+    # Labels defines how labels should be applied to log streams sent to Loki.
+    labels:
+      # ResourceAttributes are the resource attributes that are allowed to be added as labels on a log stream.
+      resource:
+        project: ""
+        namespace: ""
+        container_name: ""
+        source: ""
+        # todo: check if semconv translate dot to underscore!!!
+        # semconv not translate dots. right now we use hack, and all resources we cast to underscore
+        service_version: ""
+        service_namespace: ""
+        service_name: ""
+      # Attributes are the log record attributes that are allowed to be added as labels on a log stream.
+      attributes:
+        level: ""
+# flog required attibutes for container
+#        container_name: ""
+#        source: ""
+processors:
+  batch:
+    send_batch_size: 50
+    timeout: 5s
+  # Enabling the memory_limiter is strongly recommended for every pipeline.
+  # Configuration is based on the amount of memory allocated to the collector.
+  # The configuration below assumes 2GB of memory. In general, the ballast
+  # should be set to 1/3 of the collector's memory, the limit should be 90% of
+  # the collector's memory up to 2GB, and the spike should be 25% of the
+  # collector's memory up to 2GB. In addition, the "--mem-ballast-size-mib" CLI
+  # flag must be set to the same value as the "ballast_size_mib". For more
+  # information, see
+  # https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md
+  memory_limiter:
+    #ballast_size_mib: 683
+    check_interval: 2s
+    limit_mib: 1800
+    spike_limit_mib: 500
+
+extensions:
+  health_check:
+  pprof:
+    endpoint: :1888
+  zpages:
+    endpoint: :55679
+
+service:
+  extensions: [ pprof, zpages, health_check ]
+  pipelines:
+    traces:
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ logging, otlp ]
+    metrics:
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ logging, prometheus ]
+    logs:
+      receivers: [ fluentforward, otlp ]
+      processors: [ memory_limiter, batch ]
+      exporters: [ logging, loki ]

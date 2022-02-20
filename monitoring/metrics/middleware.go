@@ -14,13 +14,13 @@ var (
 )
 
 type (
-	HttpTracker interface {
+	HTTPTracker interface {
 		MetricTracker
 
 		SetPathRetriever(PathRetriever)
 
 		// server mw
-		NewHttpMiddlewareWithOption() func(next http.Handler) http.Handler
+		NewHTTPMiddlewareWithOption() func(next http.Handler) http.Handler
 
 		// client mw
 		Do(c httpClient, req *http.Request) (*http.Response, error)
@@ -29,7 +29,7 @@ type (
 	httpMetric struct {
 		pathRetriever PathRetriever
 
-		httpReqQps               *prometheus.CounterVec
+		httpReqQPS               *prometheus.CounterVec
 		httpReqDuration          *prometheus.SummaryVec
 		httpReqDurationHistogram *prometheus.HistogramVec
 	}
@@ -52,7 +52,7 @@ type (
 	}
 )
 
-func NewHttpMetric(pr PathRetriever) HttpTracker {
+func NewHTTPMetric(pr PathRetriever) HTTPTracker {
 	return &httpMetric{pathRetriever: pr}
 }
 
@@ -65,7 +65,7 @@ func (h *httpMetric) SetUp() error {
 	// because metric creates with prefix, which break possibility of moving all metrics with one dashboard
 	var namespace string
 
-	h.httpReqQps = prometheus.NewCounterVec(
+	h.httpReqQPS = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: namespace,
 			Name:      "http_request_total",
@@ -91,13 +91,13 @@ func (h *httpMetric) SetUp() error {
 		[]string{"method", "host", "url"},
 	)
 
-	prometheus.MustRegister(h.httpReqQps, h.httpReqDuration, h.httpReqDurationHistogram)
+	prometheus.MustRegister(h.httpReqQPS, h.httpReqDuration, h.httpReqDurationHistogram)
 	return nil
 }
 
 func DefaultHTTPPathRetriever() PathRetriever { return &defaultPathRetriever{} }
 
-// NewHttpMiddlewareWithOption handle crucial metrics for http server
+// NewHTTPMiddlewareWithOption handle crucial metrics for http server
 //
 // For preventing OOM and overwork we should use route paths for gathering user metrics
 // not like [/user/1 /user/2] but [/user/:ID]
@@ -109,7 +109,7 @@ func DefaultHTTPPathRetriever() PathRetriever { return &defaultPathRetriever{} }
 // if ctx := chi.RouteContext(r.Context()); ctx != nil {
 //		return ctx.RoutePattern()
 // }
-func (h *httpMetric) NewHttpMiddlewareWithOption() func(next http.Handler) http.Handler {
+func (h *httpMetric) NewHTTPMiddlewareWithOption() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			start := time.Now()
@@ -120,7 +120,7 @@ func (h *httpMetric) NewHttpMiddlewareWithOption() func(next http.Handler) http.
 			uri := h.pathRetriever.GetPath(req)
 			elapsed := time.Since(start).Seconds()
 
-			h.httpReqQps.WithLabelValues(fmt.Sprintf("%d", res.Status), req.Method, req.Host, uri).Inc()
+			h.httpReqQPS.WithLabelValues(fmt.Sprintf("%d", res.Status), req.Method, req.Host, uri).Inc()
 			h.httpReqDuration.WithLabelValues(req.Method, req.Host, uri).Observe(elapsed)
 			h.httpReqDurationHistogram.WithLabelValues(req.Method, req.Host, uri).Observe(elapsed)
 		})
@@ -142,7 +142,7 @@ func (h *httpMetric) Do(c httpClient, req *http.Request) (*http.Response, error)
 		code = res.StatusCode
 	}
 
-	h.httpReqQps.WithLabelValues(fmt.Sprintf("%d", code), req.Method, req.Host, req.URL.Path).Inc()
+	h.httpReqQPS.WithLabelValues(fmt.Sprintf("%d", code), req.Method, req.Host, req.URL.Path).Inc()
 
 	return res, err
 }

@@ -25,6 +25,7 @@ type U struct {
 	pause string
 }
 
+//nolint:deadcode
 func newU(t *testing.T) *U {
 	l, err := net.ListenPacket("udp", "0.0.0.0:0")
 	require.NoError(t, err)

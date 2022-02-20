@@ -31,12 +31,13 @@ type (
 
 func NewDatabaseTracker(db *sql.DB) MetricTracker {
 	return &databaseTracker{
-		metrics: newDbMetrics(db, prometheus.DefaultRegisterer),
+		metrics: newDBMetrics(db, prometheus.DefaultRegisterer),
 	}
 }
 
 func (dt *databaseTracker) SetUp() error {
 	go dt.metrics.Collect()
+
 	return nil
 }
 
@@ -46,6 +47,7 @@ func NewGrpcClientTracker() MetricTracker {
 
 func (*grpcClientsMetricTracker) SetUp() error {
 	grpc_prometheus.EnableClientHandlingTimeHistogram()
+
 	return nil
 }
 
@@ -62,6 +64,7 @@ func (g *grpcMetricTracker) SetUp() error {
 
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	grpc_prometheus.Register(g.server)
+
 	return nil
 }
 

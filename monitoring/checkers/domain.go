@@ -27,6 +27,7 @@ func (u DomainChecker) Check() health.Health {
 
 	check := health.NewHealth()
 
+	//nolint: noctx
 	resp, err := client.Head(u.URL)
 
 	if resp != nil {

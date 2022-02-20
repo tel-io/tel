@@ -27,6 +27,7 @@ func (c Checker) Check() health.Health {
 	if err != nil {
 		h.Set(health.Down)
 		h.AddInfo("error", err.Error())
+
 		return h
 	}
 
