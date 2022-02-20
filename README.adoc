@@ -77,7 +77,7 @@ This optional variable, handled by open-telemetry SDK. Separator is semicolon. P
 Some plugins require external packages,  we don'ty like unnecessary increasing dependencies. Thus offer sub-modules which should be added separately
 
 === Middlewares
- github.com/d7561985/tel/middleware/nats
+ github.com/d7561985/tel/middleware/natsmw
 
 ==== Propagators
 .github.com/d7561985/tel/propagators/natstrace

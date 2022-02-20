@@ -1,4 +1,4 @@
-module github.com/d7561985/tel/propagators/natstrace
+module github.com/d7561985/tel/propagators/natsprop
 
 go 1.17
 

@@ -1,4 +1,4 @@
-package nats
+package natsmw
 
 import (
 	"context"
@@ -7,7 +7,10 @@ import (
 	"time"
 
 	"github.com/d7561985/tel"
+	"github.com/d7561985/tel/propagators/natsprop"
 	"github.com/nats-io/nats.go"
+	"go.opentelemetry.io/otel/baggage"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -31,17 +34,16 @@ func New(tele tel.Telemetry, reply bool) *MiddleWare {
 func (n *MiddleWare) Handler(next PostFn) func(*nats.Msg) {
 	return func(msg *nats.Msg) {
 		cxt := n.tele.Copy().Ctx()
-		opr := fmt.Sprintf("consumer.%s.%s", msg.Sub.Queue, msg.Sub.Subject)
+		opr := fmt.Sprintf("NATS:CLIENT/%s/%s", msg.Sub.Queue, msg.Sub.Subject)
+
+		extract, bg, spanContext := natsprop.Extract(cxt, msg)
+		cxt = trace.ContextWithRemoteSpanContext(cxt, spanContext)
+		cxt = baggage.ContextWithBaggage(cxt, bg)
 
 		span, ctx := tel.StartSpanFromContext(cxt, opr)
 		defer span.End()
 
-		tel.FromCtx(ctx).PutFields(
-			zap.String("nats.subject", msg.Sub.Subject),
-			zap.String("nats.queue", msg.Sub.Queue),
-			zap.String("nats.reply", msg.Reply),
-		)
-
+		tel.FromCtx(ctx).PutAttr(extract...)
 		tel.UpdateTraceFields(ctx)
 
 		var (
@@ -88,14 +90,13 @@ func (n *MiddleWare) Handler(next PostFn) func(*nats.Msg) {
 		}(time.Now())
 
 		resp, err = next(ctx, msg.Sub.Subject, msg.Data)
-		if err != nil {
+		if err != nil || !n.reply || msg.Reply == "" {
 			return
 		}
 
-		if !n.reply || msg.Reply == "" {
-			return
-		}
+		resMsg := &nats.Msg{Data: resp}
+		natsprop.Inject(ctx, resMsg)
 
-		err = msg.Respond(resp)
+		err = msg.RespondMsg(resMsg)
 	}
 }

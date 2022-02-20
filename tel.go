@@ -9,6 +9,7 @@ import (
 	"github.com/d7561985/tel/monitoring/metrics"
 	"github.com/d7561985/tel/pkg/ztrace"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
@@ -43,6 +44,7 @@ func NewNull() Telemetry {
 	}
 }
 
+// New create full featured telemetry instance and register it as global
 func New(ctx context.Context, cfg Config) (Telemetry, func()) {
 	// required as it use for generate uid
 	rand.Seed(time.Now().Unix())
@@ -66,6 +68,8 @@ func New(ctx context.Context, cfg Config) (Telemetry, func()) {
 		mon:   newMonitor(cfg),
 		meter: global.Meter(srvName+"_meter", metric.WithInstrumentationVersion("hello")),
 	}
+
+	SetGlobal(out)
 
 	return out, func() {
 		ccx, cancel := context.WithTimeout(context.Background(), time.Minute)
@@ -153,6 +157,15 @@ func (t *Telemetry) StartMonitor() {
 // Because reference it also affect context and this approach is covered in Test_telemetry_With
 func (t *Telemetry) PutFields(fields ...zap.Field) *Telemetry {
 	t.Logger = t.Logger.With(fields...)
+	return t
+}
+
+// PutAttr opentelemetry attr
+func (t *Telemetry) PutAttr(attr ...attribute.KeyValue) *Telemetry {
+	for _, value := range attr {
+		t.Logger = t.Logger.With(String(string(value.Key), value.Value.Emit()))
+	}
+
 	return t
 }
 
