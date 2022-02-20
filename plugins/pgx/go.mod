@@ -1,22 +1,21 @@
-module github.com/d7561985/tel/plugins/pgx
+module github.com/d7561985/tel/plugins/pgx/v2
 
 go 1.17
 
 require (
-	github.com/d7561985/tel/v2 v2.0.0
+	github.com/d7561985/tel/v2 v2.0.2
 	github.com/jackc/pgx/v4 v4.15.0
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.21.0
 )
 
-replace github.com/d7561985/tel => ../../
+replace github.com/d7561985/tel/v2 => ../../
 
 require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.2 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
-	github.com/d7561985/tel v0.0.0-00010101000000-000000000000 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/go-logr/logr v1.2.2 // indirect
