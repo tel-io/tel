@@ -6,8 +6,8 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/d7561985/tel/propagators/natsprop"
 	"github.com/d7561985/tel/v2"
+	"github.com/d7561985/tel/v2/propagators/natsprop"
 	"github.com/nats-io/nats.go"
 	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/trace"

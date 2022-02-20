@@ -11,16 +11,17 @@ import (
 	"runtime/debug"
 	"testing"
 
-	"github.com/d7561985/tel/pkg/logtransform"
 	"github.com/d7561985/tel/v2/otlplog"
 	"github.com/d7561985/tel/v2/otlplog/logskd"
 	"github.com/d7561985/tel/v2/otlplog/otlploggrpc"
+	"github.com/d7561985/tel/v2/pkg/logtransform"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap/zapcore"
 )
 
 // TestNewClient development test
@@ -89,8 +90,8 @@ func sendLog(ctx context.Context, span trace.Span, q otlplog.Client) error {
 		),
 	)
 
-	lg := logskd.NewLog("entry.LoggerName", out,
-		attribute.String("level", data["level"].(string)))
+	msg := zapcore.Entry{Message: "entry.LoggerName"}
+	lg := logskd.NewLog(msg, out, attribute.String("level", data["level"].(string)))
 	lg.SetSpan(span)
 
 	xxx := logtransform.Trans(res, []logskd.Log{lg})

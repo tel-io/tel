@@ -1,11 +1,10 @@
-module github.com/d7561985/tel/middleware/natsmw
+module github.com/d7561985/tel/v2/middleware/natsmw
 
 go 1.17
 
-
 require (
-	github.com/d7561985/tel/v2 v2.0.0
-	github.com/d7561985/tel/propagators/natsprop v2.0.0+incompatible
+	github.com/d7561985/tel/v2 v2.0.1
+	github.com/d7561985/tel/v2/propagators/natsprop v2.0.0+incompatible
 	github.com/nats-io/nats.go v1.13.1-0.20220121202836-972a071d373d
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
@@ -16,7 +15,7 @@ require (
 
 replace (
 	github.com/d7561985/tel/v2 => ../../
-	github.com/d7561985/tel/propagators/natsprop => ../../propagators/natsprop
+	github.com/d7561985/tel/v2/propagators/natsprop => ../../propagators/natsprop
 )
 
 require (

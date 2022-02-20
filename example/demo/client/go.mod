@@ -5,7 +5,7 @@ go 1.17
 replace github.com/d7561985/tel => ../../..
 
 require (
-	github.com/d7561985/tel/v2 v2.0.0
+	github.com/d7561985/tel/v2 v2.0.1
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.28.0
 	go.opentelemetry.io/otel v1.4.1
 	go.opentelemetry.io/otel/metric v0.26.0
