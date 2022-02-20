@@ -1,7 +1,7 @@
 package checkers
 
 import (
-	health "github.com/d7561985/tel/monitoring/heallth"
+	health "github.com/d7561985/tel/v2/monitoring/heallth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 )

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/d7561985/tel/pkg/logtransform"
 	"github.com/d7561985/tel/v2/otlplog/logskd"
+	"github.com/d7561985/tel/v2/pkg/logtransform"
 	"go.opentelemetry.io/otel/sdk/resource"
 )
 
