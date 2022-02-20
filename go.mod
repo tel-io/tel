@@ -1,4 +1,4 @@
-module github.com/d7561985/tel
+module github.com/d7561985/tel/v2
 
 go 1.17
 
