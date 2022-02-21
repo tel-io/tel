@@ -17,7 +17,7 @@ func Example_handler() {
 	}
 
 	tele := tel.NewNull()
-	mw := New(tele, false)
+	mw := New(tele, WithReply(true))
 
 	conn, _ := nats.Connect("example.com")
 	_, _ = conn.QueueSubscribe("sub", "queue", mw.Handler(cb))
@@ -35,8 +35,6 @@ func Test_mw(t *testing.T) {
 	cfg.LogLevel = "debug"
 
 	tele := tel.NewNull()
-	//tele, closeer := tel.New(context.Background(), cfg)
-	//defer closeer()
 
 	tests := []struct {
 		name string
@@ -81,11 +79,25 @@ func Test_mw(t *testing.T) {
 					}},
 			},
 		},
+		{
+			name: "reply",
+			args: args{
+				next: func(ctx context.Context, _ string, data []byte) ([]byte, error) {
+					return []byte("OK"), nil
+				},
+				msg: &nats.Msg{
+					Reply: "XXX",
+					Data:  []byte(`{"user": "1"}`),
+					Sub: &nats.Subscription{
+						Queue: "queue#1", Subject: "subject#1",
+					}},
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cb := New(tele, false).Handler(tt.args.next)
+			cb := New(tele, WithReply(true)).Handler(tt.args.next)
 
 			assert.NotPanics(t, func() {
 				cb(tt.args.msg)

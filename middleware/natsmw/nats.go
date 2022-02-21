@@ -21,13 +21,13 @@ type PostFn func(ctx context.Context, sub string, data []byte) ([]byte, error)
 
 // MiddleWare helper
 type MiddleWare struct {
-	tele  tel.Telemetry
-	reply bool
+	tele tel.Telemetry
+	*config
 }
 
 // New nats middleware
-func New(tele tel.Telemetry, reply bool) *MiddleWare {
-	return &MiddleWare{tele: tele, reply: reply}
+func New(tele tel.Telemetry, opts ...Option) *MiddleWare {
+	return &MiddleWare{tele: tele, config: newConfig(opts)}
 }
 
 // Handler is entry point perform recovery, debug logging and perform tracing
@@ -90,13 +90,10 @@ func (n *MiddleWare) Handler(next PostFn) func(*nats.Msg) {
 		}(time.Now())
 
 		resp, err = next(ctx, msg.Sub.Subject, msg.Data)
-		if err != nil || !n.reply || msg.Reply == "" {
+		if err != nil || n.config.postHook == nil {
 			return
 		}
 
-		resMsg := &nats.Msg{Data: resp}
-		natsprop.Inject(ctx, resMsg)
-
-		err = msg.RespondMsg(resMsg)
+		err = n.config.postHook(ctx, msg, resp)
 	}
 }
