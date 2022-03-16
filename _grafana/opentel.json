@@ -22,7 +22,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 1,
-  "iteration": 1645174714760,
+  "iteration": 1645614901242,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -74,7 +74,7 @@
               }
             ]
           },
-          "unit": "s"
+          "unit": "ms"
         },
         "overrides": [
           {
@@ -196,6 +196,33 @@
                 "value": "time"
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "__name__"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              },
+              {
+                "id": "custom.minWidth"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "service_instance_id"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "instance id"
+              }
+            ]
           }
         ]
       },
@@ -218,8 +245,8 @@
         "showHeader": true,
         "sortBy": [
           {
-            "desc": false,
-            "displayName": "{host_name=\"DHZVS205-ND\", instance=\"otel-collector:8889\", job=\"otel-collector\", license=\"LICENSE\", service_name=\"billing\", service_namespace=\"pinup\", service_version=\"v0.0.0\", stage=\"dev\"}"
+            "desc": true,
+            "displayName": "__name__"
           }
         ]
       },
@@ -233,7 +260,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": false,
-          "expr": "runtime_uptime{service_namespace=\"$NS\",stage=\"$stage\"} /1000",
+          "expr": "runtime_uptime{service_namespace=\"$NS\",stage=\"$stage\"}",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -324,7 +351,7 @@
           "format": "time_series",
           "instant": true,
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "{{service_instance_id}}",
           "refId": "A"
         }
       ],
@@ -419,7 +446,7 @@
           "expr": "runtime_go_mem_heap_sys{service_namespace=\"$NS\", service_name=\"$service\",license=\"$license\",stage=\"$stage\"}",
           "format": "time_series",
           "interval": "",
-          "legendFormat": "virtual address space",
+          "legendFormat": "virtual address space {{service_instance_id}}",
           "refId": "A"
         },
         {
@@ -433,7 +460,7 @@
           "hide": false,
           "instant": false,
           "interval": "",
-          "legendFormat": "allocated heap object",
+          "legendFormat": "allocated heap object  {{service_instance_id}} ",
           "refId": "B"
         },
         {
@@ -447,7 +474,7 @@
           "hide": false,
           "instant": false,
           "interval": "",
-          "legendFormat": "in-use spans",
+          "legendFormat": "in-use spans {{service_instance_id}}",
           "refId": "D"
         },
         {
@@ -556,7 +583,7 @@
           "hide": false,
           "instant": false,
           "interval": "",
-          "legendFormat": "{{state}}",
+          "legendFormat": "{{state}} {{service_instance_id}}",
           "refId": "A"
         },
         {
@@ -570,7 +597,7 @@
           "hide": true,
           "instant": false,
           "interval": "",
-          "legendFormat": "{{state}}",
+          "legendFormat": "{{state}} {{service_instance_id}}",
           "refId": "B"
         }
       ],
@@ -662,11 +689,11 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": false,
-          "expr": "rate(process_cpu_time{service_namespace=\"$NS\", service_name=\"$service\",license=\"$license\",stage=\"$stage\"}[$__interval])",
+          "expr": "rate(process_cpu_time{service_namespace=\"$NS\", service_name=\"$service\",license=\"$license\",stage=\"$stage\"}[ $__interval])",
           "format": "time_series",
           "instant": false,
           "interval": "",
-          "legendFormat": "{{state}}",
+          "legendFormat": "{{state}} {{service_instance_id}}",
           "refId": "A"
         },
         {
@@ -696,7 +723,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "fixedColor": "green",
+            "mode": "fixed"
           },
           "mappings": [],
           "thresholds": {
@@ -732,7 +760,7 @@
       "id": 15,
       "options": {
         "colorMode": "value",
-        "graphMode": "area",
+        "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
@@ -742,7 +770,8 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "text": {},
+        "textMode": "value"
       },
       "pluginVersion": "8.3.3",
       "targets": [
@@ -770,23 +799,60 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "fixedColor": "green",
+            "mode": "continuous-GrYlRd"
+          },
+          "custom": {
+            "axisGridShow": true,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
-            "mode": "percentage",
+            "mode": "absolute",
             "steps": [
               {
                 "color": "green",
                 "value": null
               },
               {
-                "color": "red",
+                "color": "#6ED0E0",
                 "value": 100
+              },
+              {
+                "color": "#EAB839",
+                "value": 200
+              },
+              {
+                "color": "red",
+                "value": 1000
               }
             ]
-          },
-          "unit": "percentunit"
+          }
         },
         "overrides": []
       },
@@ -796,18 +862,16 @@
         "x": 12,
         "y": 8
       },
-      "id": 9,
+      "id": 20,
       "options": {
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
         },
-        "showThresholdLabels": true,
-        "showThresholdMarkers": true
+        "tooltip": {
+          "mode": "single"
+        }
       },
       "pluginVersion": "8.3.3",
       "targets": [
@@ -817,14 +881,16 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "system_memory_utilization{service_namespace=\"$NS\", service_name=\"$service\",license=\"$license\",stage=\"$stage\"}",
+          "expr": "runtime_go_goroutines{service_namespace=\"$NS\", stage=\"$stage\", service_name=\"$service\"}",
+          "instant": false,
           "interval": "",
-          "legendFormat": "{{state}}",
+          "intervalFactor": 1,
+          "legendFormat": "",
           "refId": "A"
         }
       ],
-      "title": "System Memory Utilization",
-      "type": "gauge"
+      "title": "Runtime Go Routines",
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -912,12 +978,78 @@
           "exemplar": true,
           "expr": "rate(runtime_go_gc_pause_total_ns{service_namespace=\"$NS\", service_name=\"$service\",license=\"$license\",stage=\"$stage\"}[$__interval])",
           "interval": "",
-          "legendFormat": "quantile",
+          "legendFormat": "quantile {{service_instance_id}}",
           "refId": "A"
         }
       ],
       "title": "Runtime GC Pause",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 4,
+        "x": 12,
+        "y": 16
+      },
+      "id": 9,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "8.3.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "exemplar": true,
+          "expr": "system_memory_utilization{service_namespace=\"$NS\", service_name=\"$service\",license=\"$license\",stage=\"$stage\", state=\"used\"}",
+          "interval": "",
+          "legendFormat": "{{ service_instance_id}} :: {{state}} ",
+          "refId": "A"
+        }
+      ],
+      "title": "System Memory Utilization",
+      "type": "gauge"
     },
     {
       "datasource": {
@@ -983,7 +1115,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 24
       },
       "id": 5,
       "options": {
@@ -1037,7 +1169,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 32
       },
       "id": 2,
       "panels": [],
@@ -1213,6 +1345,6 @@
   "timezone": "",
   "title": "opentracing",
   "uid": "G3uMSPtnk",
-  "version": 41,
+  "version": 8,
   "weekStart": ""
 }
