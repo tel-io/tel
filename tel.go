@@ -20,6 +20,8 @@ var (
 )
 
 type Telemetry struct {
+	Monitor
+
 	*zap.Logger
 
 	trace trace.Tracer
@@ -32,23 +34,25 @@ func NewNull() Telemetry {
 	cfg := DefaultDebugConfig()
 
 	return Telemetry{
-		cfg:    &cfg,
-		Logger: zap.NewExample(),
-		trace:  trace.NewNoopTracerProvider().Tracer(instrumentationName),
-		meter:  metric.NewNoopMeterProvider().Meter(instrumentationName),
+		cfg:     &cfg,
+		Monitor: createNilMonitor(),
+		Logger:  zap.NewExample(),
+		trace:   trace.NewNoopTracerProvider().Tracer(instrumentationName),
+		meter:   metric.NewNoopMeterProvider().Meter(instrumentationName),
 	}
 }
 
 // NewSimple create simple logger without OTEL propagation
-func NewSimple(ctx context.Context, cfg Config) Telemetry {
+func NewSimple(cfg Config) Telemetry {
 	// required as it use for generate uid
 	rand.Seed(time.Now().Unix())
 
 	out := Telemetry{
-		cfg:    &cfg,
-		Logger: newLogger(cfg),
-		trace:  trace.NewNoopTracerProvider().Tracer(instrumentationName),
-		meter:  metric.NewNoopMeterProvider().Meter(instrumentationName),
+		cfg:     &cfg,
+		Monitor: createMonitor(cfg.MonitorAddr, cfg.Debug),
+		Logger:  newLogger(cfg),
+		trace:   trace.NewNoopTracerProvider().Tracer(instrumentationName),
+		meter:   metric.NewNoopMeterProvider().Meter(instrumentationName),
 	}
 
 	SetGlobal(out)
@@ -58,12 +62,16 @@ func NewSimple(ctx context.Context, cfg Config) Telemetry {
 
 // New create telemetry instance
 func New(ctx context.Context, cfg Config, options ...Option) (Telemetry, func()) {
-	out := NewSimple(ctx, cfg)
+	out := NewSimple(cfg)
 
 	if cfg.OtelConfig.Enable {
 		res := CreateRes(ctx, cfg)
 		// we're afraid that someone double this or miss something - that's why none exported options
 		options = append(options, withOteLog(res), withOteTrace(res), withOteMetric(res))
+	}
+
+	if cfg.MonitorConfig.Enable {
+		options = append(options, withMonitor())
 	}
 
 	var closers []func(context.Context)

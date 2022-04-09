@@ -52,11 +52,11 @@ func (o *oLog) apply(ctx context.Context, t *Telemetry) func(context.Context) {
 	batcher := logskd.NewBatchLogProcessor(logExporter)
 	cc := zlogfmt.NewCore(batcher)
 
-	pl := zap.L().WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+	t.Logger = zap.L().WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
 		return zapcore.NewTee(core, cc)
 	}))
 
-	zap.ReplaceGlobals(pl)
+	zap.ReplaceGlobals(t.Logger)
 
 	// grpc error logger, we use it for debug connection to collector at least
 	//grpclog.SetLoggerV2(grpcerr.New(pl))
@@ -67,8 +67,8 @@ func (o *oLog) apply(ctx context.Context, t *Telemetry) func(context.Context) {
 	return func(cxt context.Context) {
 		_ = cc.Sync()
 
-		handleErr(batcher.Shutdown(ctx), "batched shutdown")
-		t.Info("OTEL log batch controller have been shutdown")
+		handleErr(batcher.Shutdown(cxt), "batched shutdown")
+		t.Info("OTEL log batch controller has been shutdown")
 	}
 }
 
@@ -111,9 +111,9 @@ func (o *oTrace) apply(ctx context.Context, t *Telemetry) func(context.Context) 
 
 	t.trace = otel.Tracer(GenServiceName(t.cfg.Namespace, t.cfg.Service) + "_tracer")
 
-	return func(ctx context.Context) {
-		handleErr(traceExp.Shutdown(ctx), "trace exporter shutdown")
-		t.Info("OTEL trace exporter have been shutdown")
+	return func(cxt context.Context) {
+		handleErr(traceExp.Shutdown(cxt), "trace exporter shutdown")
+		t.Info("OTEL trace exporter has been shutdown")
 	}
 }
 
@@ -165,9 +165,27 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 	srvName := GenServiceName(t.cfg.Namespace, t.cfg.Service)
 	t.meter = global.Meter(srvName+"_meter", metric.WithInstrumentationVersion("hello"))
 
-	return func(ctx context.Context) {
+	return func(cxt context.Context) {
 		// pushes any last exports to the receiver
-		handleErr(pusher.Stop(ctx), "trace exporter shutdown")
-		t.Info("OTEL trace exporter have been shutdown")
+		handleErr(pusher.Stop(cxt), "trace exporter shutdown")
+		t.Info("OTEL trace exporter has been shutdown")
+	}
+}
+
+type oMonitor struct{}
+
+// withMonitor enable monitor system which represent health check with some additional options
+// use tel.AddHealthChecker to add health handlers
+func withMonitor() Option {
+	return &oMonitor{}
+}
+
+func (o *oMonitor) apply(ctx context.Context, t *Telemetry) func(context.Context) {
+	m := t.Monitor.(*monitor)
+	go m.Start(t.Ctx())
+
+	return func(cxt context.Context) {
+		m.GracefulStop(cxt)
+		t.Info("monitor has been shutdown")
 	}
 }

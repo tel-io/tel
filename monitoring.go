@@ -2,27 +2,19 @@ package tel
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/http/pprof"
 	"time"
 
 	"github.com/d7561985/tel/v2/monitoring/checkers"
 	health "github.com/d7561985/tel/v2/monitoring/heallth"
-	"github.com/d7561985/tel/v2/monitoring/metrics"
 	"github.com/pkg/errors"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const (
-	MonitorEndpoint     = "/metrics"
 	HealthEndpoint      = "/health"
 	PprofIndexEndpoint  = "/debug/pprof"
 	EchoShutdownTimeout = 5 * time.Second
-)
-
-var (
-	ErrEmptyHandler = fmt.Errorf("unable to add nil health to monitoring")
 )
 
 type (
@@ -32,45 +24,26 @@ type (
 	}
 
 	Monitor interface {
-		AddMetricTracker(ctx context.Context, metrics ...metrics.MetricTracker) Monitor
-		AddHealthChecker(ctx context.Context, handlers ...HealthChecker) Monitor
-
-		Start(ctx context.Context)
-		GracefulStop(ctx context.Context)
+		AddHealthChecker(ctx context.Context, handlers ...HealthChecker)
 	}
 
 	monitor struct {
 		server *http.Server
 		health *HealthHandler
 
-		useMetrics bool
-		isDebug    bool
+		isDebug bool
 	}
 )
 
-func createMonitor(addr string, isDebug bool) Monitor {
+func createMonitor(addr string, isDebug bool) *monitor {
 	return &monitor{isDebug: isDebug, server: &http.Server{Addr: addr}, health: NewHealthHandler()}
 }
 
 func createNilMonitor() Monitor {
-	return &monitor{}
+	return &monitor{health: NewHealthHandler()}
 }
 
-func (m *monitor) AddMetricTracker(ctx context.Context, metrics ...metrics.MetricTracker) Monitor {
-	for _, tracker := range metrics {
-		err := tracker.SetUp()
-		if err != nil {
-			FromCtx(ctx).Fatal("track metrics", Error(err))
-			return m
-		}
-	}
-
-	m.useMetrics = true
-
-	return m
-}
-
-func (m *monitor) AddHealthChecker(ctx context.Context, handlers ...HealthChecker) Monitor {
+func (m *monitor) AddHealthChecker(ctx context.Context, handlers ...HealthChecker) {
 	if len(handlers) == 0 {
 		FromCtx(ctx).Warn("health checker is empty")
 	}
@@ -83,15 +56,10 @@ func (m *monitor) AddHealthChecker(ctx context.Context, handlers ...HealthChecke
 
 		m.health.CompositeChecker.AddChecker(c.Name, c.Handler)
 	}
-
-	return m
 }
 
 func (m *monitor) route(ctx context.Context) {
-	pHandler := promhttp.Handler()
-
 	mux := http.NewServeMux()
-	mux.Handle(MonitorEndpoint, pHandler)
 	mux.Handle(HealthEndpoint, m.health)
 
 	if m.isDebug {

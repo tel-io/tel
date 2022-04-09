@@ -5,4 +5,4 @@
 * Allow disable OTEL prapagation `OTEL_ENABLE`
 * `NewSimple` constructor without OTEL
 * Implement options more gracefully OTEL initialization
-* Monitor temporary remove. We should create more clear concept of that
+* Monitor uses options flow for setup and add as composition to Telemetry for `AddHealthChecker` health attach
