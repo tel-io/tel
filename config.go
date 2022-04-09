@@ -18,15 +18,17 @@ const (
 	envLogLevel  = "LOG_LEVEL"
 	envLogEncode = "LOG_ENCODE"
 
-	envDebug     = "DEBUG"
-	envMon       = "MONITOR_ADDR"
-	evnOtel      = "OTEL_COLLECTOR_GRPC_ADDR"
-	envOtelInsec = "OTEL_EXPORTER_WITH_INSECURE"
+	envDebug      = "DEBUG"
+	envMon        = "MONITOR_ADDR"
+	envOtelEnable = "OTEL_ENABLE"
+	evnOtel       = "OTEL_COLLECTOR_GRPC_ADDR"
+	envOtelInsec  = "OTEL_EXPORTER_WITH_INSECURE"
 )
 
 const DisableLog = "none"
 
 type OtelConfig struct {
+	Enable bool `env:"OTEL_ENABLE" envDefault:"true"`
 	// OtelAddr address where grpc open-telemetry exporter serve
 	Addr         string `env:"OTEL_COLLECTOR_GRPC_ADDR" envDefault:"0.0.0.0:4317"`
 	WithInsecure bool   `env:"OTEL_EXPORTER_WITH_INSECURE" envDefault:"true"`
@@ -60,6 +62,7 @@ func DefaultConfig() Config {
 		OtelConfig: OtelConfig{
 			Addr:         "127.0.0.1:4317",
 			WithInsecure: true,
+			Enable:       true,
 		},
 	}
 }
@@ -99,6 +102,7 @@ func GetConfigFromEnv() Config {
 	bl(envOtelInsec, &c.OtelConfig.WithInsecure)
 
 	bl(envDebug, &c.Debug)
+	bl(envOtelEnable, &c.Enable)
 
 	return c
 }

@@ -6,12 +6,9 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/d7561985/tel/v2/monitoring/metrics"
 	"github.com/d7561985/tel/v2/pkg/ztrace"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -26,7 +23,6 @@ type Telemetry struct {
 	*zap.Logger
 
 	trace trace.Tracer
-	mon   Monitor // mon obsolete
 	meter metric.Meter
 
 	cfg *Config
@@ -40,36 +36,40 @@ func NewNull() Telemetry {
 		Logger: zap.NewExample(),
 		trace:  trace.NewNoopTracerProvider().Tracer(instrumentationName),
 		meter:  metric.NewNoopMeterProvider().Meter(instrumentationName),
-		mon:    createNilMonitor(),
 	}
 }
 
-// New create full featured telemetry instance and register it as global
-func New(ctx context.Context, cfg Config) (Telemetry, func()) {
+// NewSimple create simple logger without OTEL propagation
+func NewSimple(ctx context.Context, cfg Config) Telemetry {
 	// required as it use for generate uid
 	rand.Seed(time.Now().Unix())
 
-	res := CreateRes(ctx, cfg)
-	srvName := GenServiceName(cfg.Namespace, cfg.Service)
-
-	// init OTEL
-	logger, closer := newLogger(ctx, res, cfg)
-	closers := []func(context.Context){closer}
-	closers = append(closers,
-		newOtlpTrace(ctx, res, cfg),
-		newOtlpMetic(ctx, res, cfg),
-	)
-
 	out := Telemetry{
 		cfg:    &cfg,
-		Logger: logger,
-
-		trace: otel.Tracer(srvName + "_tracer"),
-		mon:   newMonitor(cfg),
-		meter: global.Meter(srvName+"_meter", metric.WithInstrumentationVersion("hello")),
+		Logger: newLogger(cfg),
+		trace:  trace.NewNoopTracerProvider().Tracer(instrumentationName),
+		meter:  metric.NewNoopMeterProvider().Meter(instrumentationName),
 	}
 
 	SetGlobal(out)
+
+	return out
+}
+
+// New create telemetry instance
+func New(ctx context.Context, cfg Config, options ...Option) (Telemetry, func()) {
+	out := NewSimple(ctx, cfg)
+
+	if cfg.OtelConfig.Enable {
+		res := CreateRes(ctx, cfg)
+		// we're afraid that someone double this or miss something - that's why none exported options
+		options = append(options, withOteLog(res), withOteTrace(res), withOteMetric(res))
+	}
+
+	var closers []func(context.Context)
+	for _, fn := range options {
+		closers = append(closers, fn.apply(ctx, &out))
+	}
 
 	return out, func() {
 		ccx, cancel := context.WithTimeout(context.Background(), time.Minute)
@@ -78,21 +78,6 @@ func New(ctx context.Context, cfg Config) (Telemetry, func()) {
 		for _, cb := range closers {
 			cb(ccx)
 		}
-
-		out.close()
-	}
-}
-
-// Close properly Telemetry instance
-func (t *Telemetry) close() {
-	t.Info("Tel close begins")
-
-	if t.mon != nil {
-		t.mon.GracefulStop(t.Ctx())
-	}
-
-	if err := t.Logger.Sync(); err != nil {
-		t.Logger.Error("Telemetry logger sync at close", Error(err))
 	}
 }
 
@@ -135,21 +120,8 @@ func (t Telemetry) T() trace.Tracer {
 	return t.trace
 }
 
-// M returns monitoring instance
-func (t Telemetry) M() Monitor {
-	return t.mon
-}
-
 func (t Telemetry) MM() metric.Meter {
 	return t.meter
-}
-
-// StartMonitor is blocking operation
-func (t *Telemetry) StartMonitor() {
-	ctx := t.Ctx()
-
-	t.mon.AddMetricTracker(ctx, metrics.NewGrpcClientTracker())
-	t.mon.Start(ctx)
 }
 
 // PutFields update current logger instance with new fields,
