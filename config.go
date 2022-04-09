@@ -18,18 +18,26 @@ const (
 	envLogLevel  = "LOG_LEVEL"
 	envLogEncode = "LOG_ENCODE"
 
-	envDebug     = "DEBUG"
-	envMon       = "MONITOR_ADDR"
-	evnOtel      = "OTEL_COLLECTOR_GRPC_ADDR"
-	envOtelInsec = "OTEL_EXPORTER_WITH_INSECURE"
+	envDebug      = "DEBUG"
+	envMonEnable  = "MONITOR_ENABLE"
+	envMon        = "MONITOR_ADDR"
+	envOtelEnable = "OTEL_ENABLE"
+	evnOtel       = "OTEL_COLLECTOR_GRPC_ADDR"
+	envOtelInsec  = "OTEL_EXPORTER_WITH_INSECURE"
 )
 
 const DisableLog = "none"
 
 type OtelConfig struct {
+	Enable bool `env:"OTEL_ENABLE" envDefault:"true"`
 	// OtelAddr address where grpc open-telemetry exporter serve
 	Addr         string `env:"OTEL_COLLECTOR_GRPC_ADDR" envDefault:"0.0.0.0:4317"`
 	WithInsecure bool   `env:"OTEL_EXPORTER_WITH_INSECURE" envDefault:"true"`
+}
+
+type MonitorConfig struct {
+	Enable      bool   `env:"MONITOR_ENABLE" envDefault:"true"`
+	MonitorAddr string `env:"MONITOR_ADDR" envDefault:"0.0.0.0:8011"`
 }
 
 type Config struct {
@@ -41,8 +49,7 @@ type Config struct {
 	LogEncode string `env:"LOG_ENCODE" envDefault:"json"`
 	Debug     bool   `env:"DEBUG" envDefault:"false"`
 
-	MonitorAddr string `env:"MONITOR_ADDR" envDefault:"0.0.0.0:8011"`
-
+	MonitorConfig
 	OtelConfig
 }
 
@@ -51,15 +58,19 @@ func DefaultConfig() Config {
 	host = strings.ToLower(strings.ReplaceAll(host, "-", "_"))
 
 	return Config{
-		Service:     host,
-		Version:     "dev",
-		Namespace:   "default",
-		LogEncode:   "json",
-		LogLevel:    "info",
-		MonitorAddr: "0.0.0.0:8011",
+		Service:   host,
+		Version:   "dev",
+		Namespace: "default",
+		LogEncode: "json",
+		LogLevel:  "info",
+		MonitorConfig: MonitorConfig{
+			Enable:      true,
+			MonitorAddr: "0.0.0.0:8011",
+		},
 		OtelConfig: OtelConfig{
 			Addr:         "127.0.0.1:4317",
 			WithInsecure: true,
+			Enable:       true,
 		},
 	}
 }
@@ -99,6 +110,8 @@ func GetConfigFromEnv() Config {
 	bl(envOtelInsec, &c.OtelConfig.WithInsecure)
 
 	bl(envDebug, &c.Debug)
+	bl(envOtelEnable, &c.OtelConfig.Enable)
+	bl(envMonEnable, &c.MonitorConfig.Enable)
 
 	return c
 }

@@ -65,10 +65,16 @@ sentry dns
 
 `type`: string
 
+.MONITOR_ENABLE
+default: `true`
+
 .MONITOR_ADDR
 address where `health`, `prometheus` would be listen
 
 NOTE: address logic represented in net.Listen description
+
+.OTEL_ENABLE
+default: `true`
 
 .OTEL_COLLECTOR_GRPC_ADDR
 Address to otel collector server via GRPC protocol

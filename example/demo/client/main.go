@@ -59,12 +59,7 @@ func main() {
 	teleCtx := tel.WithContext(ccx, t)
 	ctx := baggage.ContextWithBaggage(teleCtx, bag)
 
-	go t.M().
-		AddHealthChecker(ctx, tel.HealthChecker{Handler: health.NewCompositeChecker()}).
-		//AddMetricTracker().
-		Start(ctx)
-
-	defer t.M().GracefulStop(context.Background())
+	t.AddHealthChecker(ctx, tel.HealthChecker{Handler: health.NewCompositeChecker()})
 
 	go func() {
 		cn := make(chan os.Signal, 1)

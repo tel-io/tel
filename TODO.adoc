@@ -1,0 +1,3 @@
+= ToDo
+* move metrics to OTEL from all middlewares
+* integrate monitor with OTEL Metric
