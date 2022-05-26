@@ -1,4 +1,4 @@
-module github.com/d7561985/tel/demo/client/v2
+module github.com/d7561985/tel/example/demo/client/v2
 
 go 1.17
 
