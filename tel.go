@@ -9,6 +9,7 @@ import (
 	"github.com/d7561985/tel/v2/pkg/ztrace"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/nonrecording"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -38,7 +39,7 @@ func NewNull() Telemetry {
 		Monitor: createNilMonitor(),
 		Logger:  zap.NewExample(),
 		trace:   trace.NewNoopTracerProvider().Tracer(instrumentationName),
-		meter:   metric.NewNoopMeterProvider().Meter(instrumentationName),
+		meter:   nonrecording.NewNoopMeterProvider().Meter(instrumentationName),
 	}
 }
 
@@ -52,7 +53,7 @@ func NewSimple(cfg Config) Telemetry {
 		Monitor: createMonitor(cfg.MonitorAddr, cfg.Debug),
 		Logger:  newLogger(cfg),
 		trace:   trace.NewNoopTracerProvider().Tracer(instrumentationName),
-		meter:   metric.NewNoopMeterProvider().Meter(instrumentationName),
+		meter:   nonrecording.NewNoopMeterProvider().Meter(instrumentationName),
 	}
 
 	SetGlobal(out)

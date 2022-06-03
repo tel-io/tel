@@ -70,7 +70,7 @@ func (c *Core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
 }
 
 func (c *Core) Sync() error {
-	ctx, cancel := context.WithTimeout(context.Background(), trace.DefaultBatchTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), trace.DefaultScheduleDelay)
 	defer cancel()
 
 	return errors.WithStack(c.batch.ForceFlush(ctx))

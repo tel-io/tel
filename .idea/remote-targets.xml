@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteTargetsManager">
+    <targets>
+      <target name="PRODUCT_MGA_DEV" type="ssh/sftp" uuid="21b16272-1edc-4366-8004-f89accf08603">
+        <config>
+          <option name="projectRootOnTarget" value="/home/dharupa/tel" />
+          <option name="serverName" value="dharupa@80.94.82.51:17771 agent" />
+          <option name="useRsync" value="true" />
+        </config>
+        <ContributedStateBase type="GoLanguageRuntime">
+          <config />
+        </ContributedStateBase>
+      </target>
+      <target name="AFFILIATE_DEV" type="ssh/sftp" uuid="0723293d-27f8-4268-873d-83a698dd112a">
+        <config>
+          <option name="projectRootOnTarget" value="/home/dharupa/tel" />
+          <option name="serverName" value="AFFILIATE_DEV" />
+          <option name="useRsync" value="true" />
+        </config>
+        <ContributedStateBase type="GoLanguageRuntime">
+          <config />
+        </ContributedStateBase>
+      </target>
+      <target name="CRM_DEV" type="ssh/sftp" uuid="f5512934-f969-4431-80a4-c9805addd2ae">
+        <config>
+          <option name="projectRootOnTarget" value="/home/dharupa/tel" />
+          <option name="serverName" value="CRM_DEV" />
+          <option name="useRsync" value="true" />
+        </config>
+        <ContributedStateBase type="GoLanguageRuntime">
+          <config />
+        </ContributedStateBase>
+      </target>
+      <target name="PRODUCT_PROD" type="ssh/sftp" uuid="b91eee55-7ba0-41bb-9b84-a66608ed5b1b">
+        <config>
+          <option name="projectRootOnTarget" value="/home/dharupa/tel" />
+          <option name="serverName" value="PRODUCT_PROD" />
+          <option name="useRsync" value="true" />
+        </config>
+        <ContributedStateBase type="GoLanguageRuntime">
+          <config />
+        </ContributedStateBase>
+      </target>
+      <target name="MT_DEV" type="ssh/sftp" uuid="08f848ce-2f7f-49a6-b1ce-0c1c797d2fd5">
+        <config>
+          <option name="projectRootOnTarget" value="/home/dharupa/tel" />
+          <option name="serverName" value="MT_DEV" />
+          <option name="useRsync" value="true" />
+        </config>
+        <ContributedStateBase type="GoLanguageRuntime">
+          <config />
+        </ContributedStateBase>
+      </target>
+    </targets>
+  </component>
+</project>

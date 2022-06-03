@@ -14,31 +14,41 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/baggage"
-	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/instrument"
+	"go.opentelemetry.io/otel/metric/instrument/syncfloat64"
+	"go.opentelemetry.io/otel/metric/instrument/syncint64"
 	"go.uber.org/zap"
 )
 
 type Service struct {
-	requestLatency metric.Float64Histogram
-	requestCount   metric.Int64Counter
+	requestLatency syncfloat64.Histogram
+	requestCount   syncint64.Counter
 
 	// TODO: Use baggage when supported to extract labels from baggage.
 	commonLabels []attribute.KeyValue
 }
 
-func New(t tel.Telemetry) *Service {
-	return &Service{
-		requestLatency: metric.Must(t.MM()).
-			NewFloat64Histogram(
-				"demo_client/request_latency",
-				metric.WithDescription("The latency of requests processed"),
-			),
-		requestCount: metric.Must(t.MM()).
-			NewInt64Counter(
-				"demo_client/request_counts",
-				metric.WithDescription("The number of requests processed"),
-			),
+const (
+	ServerLatency = "demo_client.request_latency"
+	ServerCounter = "demo_client.request_counts"
+)
 
+func New(t tel.Telemetry) *Service {
+	requestLatency, err := t.MM().SyncFloat64().Histogram(ServerLatency,
+		instrument.WithDescription("The latency of requests processed"))
+	if err != nil {
+		t.Fatal("metric load error", tel.Error(err))
+	}
+
+	requestCount, err := t.MM().SyncInt64().Counter(ServerCounter,
+		instrument.WithDescription("The number of requests processed"))
+	if err != nil {
+		t.Fatal("metric load error", tel.Error(err))
+	}
+
+	return &Service{
+		requestLatency: requestLatency,
+		requestCount:   requestCount,
 		commonLabels: []attribute.KeyValue{
 			attribute.String("userID", "e64916d9-bfd0-4f79-8ee3-847f2d034d20"),
 			//attribute.String("namespace", cfg.Namespace),
@@ -115,7 +125,7 @@ func (s *Service) oneShoot(t tel.Telemetry) error {
 
 		go func(ctx context.Context) {
 			s.requestCount.Add(ctx, 1, s.commonLabels...)
-			s.requestLatency.Measurement(ms)
+			s.requestLatency.Record(ctx, ms, s.commonLabels...)
 
 			x := []zap.Field{tel.String("field A", "a"),
 				tel.Int("field B", 100400), tel.Bool("fieldC", true),

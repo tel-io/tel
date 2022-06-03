@@ -19,7 +19,7 @@ func Trans(res *resource.Resource, in []logskd.Log) *tracepb.ResourceLogs {
 			TimeUnixNano:   log.Time(),
 			SeverityNumber: log.Severity(),
 			SeverityText:   log.Severity().String(),
-			Name:           log.Name(),
+			//Name:           log.Name(),
 			Body: &v1.AnyValue{Value: &v1.AnyValue_StringValue{
 				StringValue: log.Body(),
 			}},
@@ -58,8 +58,9 @@ func Trans(res *resource.Resource, in []logskd.Log) *tracepb.ResourceLogs {
 		// SchemaUrl should set here version for semver which we fill resources
 		SchemaUrl: semconv.SchemaURL,
 		Resource:  r,
+		ScopeLogs: []*tracepb.ScopeLogs{{LogRecords: ss}},
 		InstrumentationLibraryLogs: []*tracepb.InstrumentationLibraryLogs{{
-			Logs: ss,
+			LogRecords: ss,
 		}},
 	}
 }
