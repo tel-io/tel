@@ -9,7 +9,7 @@ import (
 	"github.com/d7561985/tel/v2/pkg/ztrace"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/metric/nonrecording"
+	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -26,7 +26,6 @@ type Telemetry struct {
 	*zap.Logger
 
 	trace trace.Tracer
-	meter metric.Meter
 
 	cfg *Config
 }
@@ -39,7 +38,6 @@ func NewNull() Telemetry {
 		Monitor: createNilMonitor(),
 		Logger:  zap.NewExample(),
 		trace:   trace.NewNoopTracerProvider().Tracer(instrumentationName),
-		meter:   nonrecording.NewNoopMeterProvider().Meter(instrumentationName),
 	}
 }
 
@@ -53,7 +51,6 @@ func NewSimple(cfg Config) Telemetry {
 		Monitor: createMonitor(cfg.MonitorAddr, cfg.Debug),
 		Logger:  newLogger(cfg),
 		trace:   trace.NewNoopTracerProvider().Tracer(instrumentationName),
-		meter:   nonrecording.NewNoopMeterProvider().Meter(instrumentationName),
 	}
 
 	SetGlobal(out)
@@ -129,8 +126,9 @@ func (t Telemetry) T() trace.Tracer {
 	return t.trace
 }
 
-func (t Telemetry) MM() metric.Meter {
-	return t.meter
+// Meter create new metric instance which should be treated as new
+func (t Telemetry) Meter(ins string, opts ...metric.MeterOption) metric.Meter {
+	return global.Meter(ins, opts...)
 }
 
 // PutFields update current logger instance with new fields,

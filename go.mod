@@ -4,14 +4,12 @@ go 1.17
 
 require (
 	github.com/google/go-cmp v0.5.7
-	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/kr/text v0.2.0 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
 	github.com/stretchr/testify v1.7.1
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.27.0
 	go.opentelemetry.io/contrib/instrumentation/host v0.32.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.32.0
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.32.0
@@ -27,8 +25,7 @@ require (
 	go.opentelemetry.io/proto/otlp v0.16.0
 	go.uber.org/zap v1.18.1
 	google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1
-	google.golang.org/grpc v1.46.0
-	google.golang.org/grpc/examples v0.0.0-20210728180238-61c704607b40
+	google.golang.org/grpc v1.47.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 )
@@ -37,6 +34,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/go-logfmt/logfmt v0.5.1
 	github.com/joho/godotenv v1.4.0
+	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v0.30.0
 )
 
 require (

@@ -18,7 +18,7 @@ type Suite struct {
 }
 
 func (s *Suite) TearDownSuite() {
-	s.closer()
+	//	s.closer()
 }
 
 func (s *Suite) SetupSuite() {

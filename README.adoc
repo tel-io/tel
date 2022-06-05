@@ -116,21 +116,27 @@ import(
 ...
 ----
 
-==== github.com/d7561985/tel/middleware/natsmw/v2
+==== grpc
+[source,bash]
+----
+go get -v github.com/d7561985/tel/middleware/grpc/v2@latest
+----
+
+==== NATS
 
 [source,bash]
 ----
 go get -v github.com/d7561985/tel/middleware/natsmw/v2@latest
 ----
 
-==== github.com/d7561985/tel/middleware/chi/v2
+==== chi
 
 [source,bash]
 ----
 go get -v github.com/d7561985/tel/middleware/chi/v2@latest
 ----
 
-==== github.com/d7561985/tel/middleware/echo/v2
+==== echo
 
 [source,bash]
 ----

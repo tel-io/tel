@@ -34,13 +34,15 @@ const (
 )
 
 func New(t tel.Telemetry) *Service {
-	requestLatency, err := t.MM().SyncFloat64().Histogram(ServerLatency,
+	m := t.Meter("github.com/d7561985/tel/example/demo/client/v2")
+
+	requestLatency, err := m.SyncFloat64().Histogram(ServerLatency,
 		instrument.WithDescription("The latency of requests processed"))
 	if err != nil {
 		t.Fatal("metric load error", tel.Error(err))
 	}
 
-	requestCount, err := t.MM().SyncInt64().Counter(ServerCounter,
+	requestCount, err := m.SyncInt64().Counter(ServerCounter,
 		instrument.WithDescription("The number of requests processed"))
 	if err != nil {
 		t.Fatal("metric load error", tel.Error(err))

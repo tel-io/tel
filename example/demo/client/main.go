@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/d7561985/tel/example/demo/client/v2/pkg/grpctest"
 	"github.com/d7561985/tel/example/demo/client/v2/pkg/service"
 	"github.com/d7561985/tel/v2"
 	health "github.com/d7561985/tel/v2/monitoring/heallth"
@@ -35,6 +36,17 @@ func main() {
 	t.AddHealthChecker(ctx, tel.HealthChecker{Handler: health.NewCompositeChecker()})
 
 	t.Info("collector", tel.String("addr", cfg.Addr))
+
+	go grpctest.Start()
+
+	go func() {
+		select {
+		case <-ccx.Done():
+			return
+		default:
+			grpctest.Client()
+		}
+	}()
 
 	srv := service.New(t)
 	if err := srv.Start(ctx); err != nil {

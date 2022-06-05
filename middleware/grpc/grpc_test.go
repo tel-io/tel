@@ -40,7 +40,8 @@ func CreateMockServer(ctx context.Context, fx Fixture) (net.Listener, *grpc.Serv
 	}
 
 	s := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(New(tel.FromCtx(ctx)).GrpcUnaryServerInterceptor()),
+		grpc.ChainUnaryInterceptor(
+			GrpcUnaryServerInterceptor(WithTel(tel.FromCtx(ctx)))),
 	)
 
 	// Enable reflection
@@ -79,7 +80,9 @@ func (s *Suite) TestGrpcPanicMW() {
 
 	dial, err := grpc.Dial(l.Addr().String(),
 		grpc.WithInsecure(),
-		grpc.WithUnaryInterceptor(New(&s.tel).GrpcUnaryClientInterceptorAll()))
+		grpc.WithUnaryInterceptor(
+			UnaryClientInterceptorAll(WithTel(&s.tel)),
+		))
 	s.NoError(err)
 
 	client := helloworld.NewGreeterClient(dial)

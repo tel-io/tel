@@ -14,7 +14,6 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/propagation"
 	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
@@ -138,6 +137,8 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 	metricExp, err := otlpmetric.New(ctx, metricClient)
 	handleErr(err, "Failed to create the collector metric exporter")
 
+	//exporter, _ := stdout.New(stdout.WithPrettyPrint())
+
 	pusher := controller.New(
 		processor.NewFactory(
 			simple.NewWithHistogramDistribution(),
@@ -161,9 +162,6 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 	// host metrics exporter
 	err = host.Start()
 	handleErr(err, "Failed to start host metric")
-
-	srvName := GenServiceName(t.cfg.Namespace, t.cfg.Service)
-	t.meter = global.Meter(srvName+"_meter", metric.WithInstrumentationVersion("hello"))
 
 	return func(cxt context.Context) {
 		// pushes any last exports to the receiver
