@@ -34,7 +34,6 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/go-logfmt/logfmt v0.5.1
 	github.com/joho/godotenv v1.4.0
-	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v0.30.0
 )
 
 require (

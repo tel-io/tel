@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/d7561985/tel/example/demo/client/v2/pkg/grpctest"
@@ -40,11 +41,22 @@ func main() {
 	go grpctest.Start()
 
 	go func() {
-		select {
-		case <-ccx.Done():
-			return
-		default:
-			grpctest.Client()
+		for {
+			select {
+			case <-ccx.Done():
+				return
+			default:
+				wg := sync.WaitGroup{}
+
+				for i := 0; i < 100; i++ {
+					wg.Add(1)
+					go func() {
+						grpctest.Client()
+						wg.Done()
+					}()
+				}
+				wg.Wait()
+			}
 		}
 	}()
 

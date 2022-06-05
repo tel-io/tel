@@ -77,6 +77,8 @@ func New(ctx context.Context, cfg Config, options ...Option) (Telemetry, func())
 		closers = append(closers, fn.apply(ctx, &out))
 	}
 
+	SetGlobal(out)
+
 	return out, func() {
 		ccx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel()

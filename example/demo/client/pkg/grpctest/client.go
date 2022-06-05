@@ -58,8 +58,6 @@ func Client() {
 	if err := callSayHelloBidiStream(c); err != nil {
 		log.Fatal(err)
 	}
-
-	time.Sleep(10 * time.Millisecond)
 }
 
 func callSayHello(c api.HelloServiceClient) error {
@@ -70,11 +68,11 @@ func callSayHello(c api.HelloServiceClient) error {
 	)
 
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
-	response, err := c.SayHello(ctx, &api.HelloRequest{Greeting: "World"})
+	_, err := c.SayHello(ctx, &api.HelloRequest{Greeting: "World"})
 	if err != nil {
 		return fmt.Errorf("calling SayHello: %w", err)
 	}
-	log.Printf("Response from server: %s", response.Reply)
+	//log.Printf("Response from server: %s", response.Reply)
 	return nil
 }
 
@@ -101,12 +99,12 @@ func callSayHelloClientStream(c api.HelloServiceClient) error {
 		}
 	}
 
-	response, err := stream.CloseAndRecv()
+	_, err = stream.CloseAndRecv()
 	if err != nil {
 		return fmt.Errorf("closing SayHelloClientStream: %w", err)
 	}
 
-	log.Printf("Response from server: %s", response.Reply)
+	//log.Printf("Response from server: %s", response.Reply)
 	return nil
 }
 
@@ -124,14 +122,14 @@ func callSayHelloServerStream(c api.HelloServiceClient) error {
 	}
 
 	for {
-		response, err := stream.Recv()
+		_, err := stream.Recv()
 		if err == io.EOF {
 			break
 		} else if err != nil {
 			return fmt.Errorf("receiving from SayHelloServerStream: %w", err)
 		}
 
-		log.Printf("Response from server: %s", response.Reply)
+		//log.Printf("Response from server: %s", response.Reply)
 		time.Sleep(50 * time.Millisecond)
 	}
 	return nil
@@ -176,7 +174,7 @@ func callSayHelloBidiStream(c api.HelloServiceClient) error {
 
 	go func() {
 		for {
-			response, err := stream.Recv()
+			_, err := stream.Recv()
 			if err == io.EOF {
 				break
 			} else if err != nil {
@@ -184,7 +182,7 @@ func callSayHelloBidiStream(c api.HelloServiceClient) error {
 				log.Fatalf("Error when receiving from SayHelloBidiStream: %s", err)
 			}
 
-			log.Printf("Response from server: %s", response.Reply)
+			//log.Printf("Response from server: %s", response.Reply)
 			time.Sleep(50 * time.Millisecond)
 		}
 

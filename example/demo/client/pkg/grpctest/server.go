@@ -34,7 +34,7 @@ type server struct {
 
 // SayHello implements api.HelloServiceServer.
 func (s *server) SayHello(ctx context.Context, in *api.HelloRequest) (*api.HelloResponse, error) {
-	log.Printf("Received: %v\n", in.GetGreeting())
+	//log.Printf("Received: %v\n", in.GetGreeting())
 	s.workHard(ctx)
 	time.Sleep(50 * time.Millisecond)
 
@@ -50,7 +50,7 @@ func (s *server) workHard(ctx context.Context) {
 }
 
 func (s *server) SayHelloServerStream(in *api.HelloRequest, out api.HelloService_SayHelloServerStreamServer) error {
-	log.Printf("Received: %v\n", in.GetGreeting())
+	//log.Printf("Received: %v\n", in.GetGreeting())
 
 	for i := 0; i < 5; i++ {
 		err := out.Send(&api.HelloResponse{Reply: "Hello " + in.Greeting})
@@ -68,7 +68,7 @@ func (s *server) SayHelloClientStream(stream api.HelloService_SayHelloClientStre
 	i := 0
 
 	for {
-		in, err := stream.Recv()
+		_, err := stream.Recv()
 
 		if err == io.EOF {
 			break
@@ -77,7 +77,7 @@ func (s *server) SayHelloClientStream(stream api.HelloService_SayHelloClientStre
 			return err
 		}
 
-		log.Printf("Received: %v\n", in.GetGreeting())
+		//log.Printf("Received: %v\n", in.GetGreeting())
 		i++
 	}
 
@@ -99,7 +99,7 @@ func (s *server) SayHelloBidiStream(stream api.HelloService_SayHelloBidiStreamSe
 
 		time.Sleep(50 * time.Millisecond)
 
-		log.Printf("Received: %v\n", in.GetGreeting())
+		//log.Printf("Received: %v\n", in.GetGreeting())
 		err = stream.Send(&api.HelloResponse{Reply: "Hello " + in.Greeting})
 
 		if err != nil {
