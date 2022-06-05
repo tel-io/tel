@@ -3,8 +3,7 @@ module github.com/d7561985/tel/example/demo/client/v2
 go 1.17
 
 require (
-	github.com/d7561985/tel/v2 v2.0.3
-	github.com/d7561985/tel/v2/middleware/grpc/v2 v2.0.0-20220605104719-e495766143f9
+	github.com/d7561985/tel/v2 v2.0.4-0.20220603122539-108e0f4542d2
 	github.com/joho/godotenv v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/tel-io/otelgrpc v1.0.1
@@ -20,6 +19,7 @@ require (
 
 require (
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
+	github.com/d7561985/tel/middleware/grpc/v2 v2.0.0-20220605110721-fdd8ffe182c2 // indirect
 	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
@@ -56,5 +56,5 @@ require (
 
 replace (
 	github.com/d7561985/tel/v2 => ../../..
-	github.com/d7561985/tel/v2/middleware/grpc/v2 => ../../../middleware/grpc
+	github.com/d7561985/tel/middleware/grpc/v2 => ../../../middleware/grpc
 )
