@@ -5,7 +5,7 @@ go 1.17
 replace github.com/d7561985/tel/v2 => ../../
 
 require (
-	github.com/d7561985/tel/v2 v2.0.3
+	github.com/d7561985/tel/v2 v2.0.4-0.20220603122539-108e0f4542d2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/stretchr/testify v1.7.1
 	github.com/tel-io/otelgrpc v1.0.1
