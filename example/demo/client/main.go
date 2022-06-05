@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/d7561985/tel/example/demo/client/v2/pkg/grpctest"
 	"github.com/d7561985/tel/example/demo/client/v2/pkg/service"
@@ -41,6 +42,8 @@ func main() {
 	go grpctest.Start()
 
 	go func() {
+		<-time.After(time.Second)
+
 		for {
 			select {
 			case <-ccx.Done():

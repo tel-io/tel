@@ -2,14 +2,13 @@ package grpctest
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"log"
-	"math/rand"
 	"time"
 
 	grpcx "github.com/d7561985/tel/middleware/grpc/v2"
+	"github.com/d7561985/tel/v2"
 	"github.com/tel-io/otelgrpc"
 	"github.com/tel-io/otelgrpc/example/api"
 	otracer "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -21,12 +20,8 @@ import (
 )
 
 func Client() {
-	var x = make([]byte, 20)
-	rand.Read(x)
-
 	otmetr := otelgrpc.NewClientMetrics(otelgrpc.WithServerHandledHistogram(true),
 		otelgrpc.WithConstLabels(
-			attribute.String("userID", hex.EncodeToString(x)),
 			attribute.String("xxx", "example"),
 			attribute.String("yyy", "client"),
 		),
@@ -44,30 +39,27 @@ func Client() {
 	}
 	defer func() { _ = conn.Close() }()
 
+	ctx := tel.Global().WithContext(context.Background())
+
 	c := api.NewHelloServiceClient(conn)
 
-	if err := callSayHello(c); err != nil {
-		log.Fatal(err)
+	for i := 0; i < 5; i++ {
+		_ = callSayHello(ctx, c)
 	}
-	if err := callSayHelloClientStream(c); err != nil {
-		log.Fatal(err)
-	}
-	if err := callSayHelloServerStream(c); err != nil {
-		log.Fatal(err)
-	}
-	if err := callSayHelloBidiStream(c); err != nil {
-		log.Fatal(err)
-	}
+
+	_ = callSayHelloClientStream(ctx, c)
+	_ = callSayHelloServerStream(ctx, c)
+	_ = callSayHelloBidiStream(ctx, c)
 }
 
-func callSayHello(c api.HelloServiceClient) error {
+func callSayHello(ccx context.Context, c api.HelloServiceClient) error {
 	md := metadata.Pairs(
 		"timestamp", time.Now().Format(time.StampNano),
 		"client-id", "web-api-client-us-east-1",
 		"user-id", "some-test-user-id",
 	)
 
-	ctx := metadata.NewOutgoingContext(context.Background(), md)
+	ctx := metadata.NewOutgoingContext(ccx, md)
 	_, err := c.SayHello(ctx, &api.HelloRequest{Greeting: "World"})
 	if err != nil {
 		return fmt.Errorf("calling SayHello: %w", err)
@@ -76,14 +68,14 @@ func callSayHello(c api.HelloServiceClient) error {
 	return nil
 }
 
-func callSayHelloClientStream(c api.HelloServiceClient) error {
+func callSayHelloClientStream(ccx context.Context, c api.HelloServiceClient) error {
 	md := metadata.Pairs(
 		"timestamp", time.Now().Format(time.StampNano),
 		"client-id", "web-api-client-us-east-1",
 		"user-id", "some-test-user-id",
 	)
 
-	ctx := metadata.NewOutgoingContext(context.Background(), md)
+	ctx := metadata.NewOutgoingContext(ccx, md)
 	stream, err := c.SayHelloClientStream(ctx)
 	if err != nil {
 		return fmt.Errorf("opening SayHelloClientStream: %w", err)
@@ -108,14 +100,14 @@ func callSayHelloClientStream(c api.HelloServiceClient) error {
 	return nil
 }
 
-func callSayHelloServerStream(c api.HelloServiceClient) error {
+func callSayHelloServerStream(ccx context.Context, c api.HelloServiceClient) error {
 	md := metadata.Pairs(
 		"timestamp", time.Now().Format(time.StampNano),
 		"client-id", "web-api-client-us-east-1",
 		"user-id", "some-test-user-id",
 	)
 
-	ctx := metadata.NewOutgoingContext(context.Background(), md)
+	ctx := metadata.NewOutgoingContext(ccx, md)
 	stream, err := c.SayHelloServerStream(ctx, &api.HelloRequest{Greeting: "World"})
 	if err != nil {
 		return fmt.Errorf("opening SayHelloServerStream: %w", err)
@@ -135,14 +127,14 @@ func callSayHelloServerStream(c api.HelloServiceClient) error {
 	return nil
 }
 
-func callSayHelloBidiStream(c api.HelloServiceClient) error {
+func callSayHelloBidiStream(ccx context.Context, c api.HelloServiceClient) error {
 	md := metadata.Pairs(
 		"timestamp", time.Now().Format(time.StampNano),
 		"client-id", "web-api-client-us-east-1",
 		"user-id", "some-test-user-id",
 	)
 
-	ctx := metadata.NewOutgoingContext(context.Background(), md)
+	ctx := metadata.NewOutgoingContext(ccx, md)
 	stream, err := c.SayHelloBidiStream(ctx)
 	if err != nil {
 		return fmt.Errorf("opening SayHelloBidiStream: %w", err)

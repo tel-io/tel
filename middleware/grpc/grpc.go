@@ -82,7 +82,7 @@ func UnaryClientInterceptor(o ...Option) grpc.UnaryClientInterceptor {
 // UnaryServerInterceptorAll setup recovery, metrics, tracing and debug option according goal of our framework
 // Execution order:otracer
 //  * opentracing injection via otgrpc.OpenTracingServerInterceptor
-//  * ctx new instance, recovery, measure execution time + debug log via own GrpcUnaryServerInterceptor
+//  * ctx new instance, recovery, measure execution time + debug log via own UnaryServerInterceptor
 //  * metrics via metrics.UnaryServerInterceptor
 func UnaryServerInterceptorAll(o ...Option) grpc.UnaryServerInterceptor {
 	c := newConfig(o...)
@@ -90,19 +90,19 @@ func UnaryServerInterceptorAll(o ...Option) grpc.UnaryServerInterceptor {
 
 	return grpc_middleware.ChainUnaryServer(
 		otracer.UnaryServerInterceptor(),
-		GrpcUnaryServerInterceptor(o...),
+		UnaryServerInterceptor(o...),
 		otmetr.UnaryServerInterceptor(),
 	)
 }
 
-// GrpcUnaryServerInterceptor the most important create new telepresence instance + fill trace ids
+// UnaryServerInterceptor the most important create new telepresence instance + fill trace ids
 //  implements:
 //  * new telepresence instance
 //  * fill trace ids
 //  * recovery
 //  * detail log during errors (+ in recovery also)
 //  * measure execution time
-func GrpcUnaryServerInterceptor(o ...Option) grpc.UnaryServerInterceptor {
+func UnaryServerInterceptor(o ...Option) grpc.UnaryServerInterceptor {
 	c := newConfig(o...)
 
 	return func(root context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (

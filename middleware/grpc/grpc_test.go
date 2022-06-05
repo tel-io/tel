@@ -41,7 +41,7 @@ func CreateMockServer(ctx context.Context, fx Fixture) (net.Listener, *grpc.Serv
 
 	s := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			GrpcUnaryServerInterceptor(WithTel(tel.FromCtx(ctx)))),
+			UnaryServerInterceptor(WithTel(tel.FromCtx(ctx)))),
 	)
 
 	// Enable reflection

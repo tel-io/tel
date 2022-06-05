@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net"
 	"time"
 
@@ -16,6 +17,8 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type S struct {
@@ -35,18 +38,27 @@ type server struct {
 // SayHello implements api.HelloServiceServer.
 func (s *server) SayHello(ctx context.Context, in *api.HelloRequest) (*api.HelloResponse, error) {
 	//log.Printf("Received: %v\n", in.GetGreeting())
-	s.workHard(ctx)
-	time.Sleep(50 * time.Millisecond)
+	if err := s.workHard(ctx, rand.Int63n(10) == 0); err != nil {
+		return nil, status.Error(codes.Code(rand.Int63n(int64(codes.Unauthenticated))), err.Error())
+	}
 
 	return &api.HelloResponse{Reply: "Hello " + in.Greeting}, nil
 }
 
-func (s *server) workHard(ctx context.Context) {
+func (s *server) workHard(ctx context.Context, isErr bool) error {
 	_, span := tracer.Start(ctx, "workHard",
 		trace.WithAttributes(attribute.String("extra.key", "extra.value")))
 	defer span.End()
 
 	time.Sleep(50 * time.Millisecond)
+
+	if isErr {
+		err := fmt.Errorf("some error")
+		span.RecordError(err)
+		return err
+	}
+
+	return nil
 }
 
 func (s *server) SayHelloServerStream(in *api.HelloRequest, out api.HelloService_SayHelloServerStreamServer) error {

@@ -3,7 +3,7 @@ module github.com/d7561985/tel/example/demo/client/v2
 go 1.17
 
 require (
-	github.com/d7561985/tel/v2 v2.0.4-0.20220603122539-108e0f4542d2
+	github.com/d7561985/tel/v2 v2.0.4-0.20220605165118-f847a2ed145f
 	github.com/joho/godotenv v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/tel-io/otelgrpc v1.0.2-0.20220605174232-2f9b4153a0a4
