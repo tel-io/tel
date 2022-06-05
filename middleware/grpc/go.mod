@@ -1,4 +1,4 @@
-module github.com/d7561985/tel/middleware/grpc/v2
+module github.com/d7561985/tel/v2/middleware/grpc/v2
 
 go 1.17
 

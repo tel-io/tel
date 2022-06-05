@@ -8,7 +8,7 @@ import (
 	"net"
 	"time"
 
-	grpcx "github.com/d7561985/tel/middleware/grpc/v2"
+	grpcx "github.com/d7561985/tel/v2/middleware/grpc/v2"
 	"github.com/tel-io/otelgrpc"
 	"github.com/tel-io/otelgrpc/example/api"
 	otracer "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"

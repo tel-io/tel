@@ -3,8 +3,8 @@ module github.com/d7561985/tel/example/demo/client/v2
 go 1.17
 
 require (
-	github.com/d7561985/tel/middleware/grpc/v2 v2.0.0-00010101000000-000000000000
 	github.com/d7561985/tel/v2 v2.0.3
+	github.com/d7561985/tel/v2/middleware/grpc/v2 v2.0.0-20220605104719-e495766143f9
 	github.com/joho/godotenv v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/tel-io/otelgrpc v1.0.1
@@ -41,7 +41,6 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v0.30.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.7.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.7.0 // indirect
-	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v0.30.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.7.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v0.30.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.16.0 // indirect
@@ -56,6 +55,6 @@ require (
 )
 
 replace (
-	github.com/d7561985/tel/middleware/grpc/v2 => ../../../middleware/grpc
 	github.com/d7561985/tel/v2 => ../../..
+	github.com/d7561985/tel/v2/middleware/grpc/v2 => ../../../middleware/grpc
 )
