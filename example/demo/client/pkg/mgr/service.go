@@ -1,44 +1,60 @@
-package service
+package mgr
 
 import (
 	"context"
 	"math/rand"
-	"net/http"
-	"os"
 	"sync"
 	"time"
 
 	"github.com/d7561985/tel/v2"
-	"github.com/d7561985/tel/v2/example/demo/pkg/demo"
 	"github.com/pkg/errors"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/baggage"
-	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/instrument"
+	"go.opentelemetry.io/otel/metric/instrument/syncfloat64"
+	"go.opentelemetry.io/otel/metric/instrument/syncint64"
 	"go.uber.org/zap"
 )
 
+const (
+	ServerLatency = "demo_client.request_latency"
+	ServerCounter = "demo_client.request_counts"
+)
+
+type hClient interface {
+	Get(ctx context.Context, path string) (err error)
+}
+
 type Service struct {
-	requestLatency metric.Float64Histogram
-	requestCount   metric.Int64Counter
+	requestLatency syncfloat64.Histogram
+	requestCount   syncint64.Counter
 
 	// TODO: Use baggage when supported to extract labels from baggage.
 	commonLabels []attribute.KeyValue
+
+	hClient hClient
 }
 
-func New(t tel.Telemetry) *Service {
-	return &Service{
-		requestLatency: metric.Must(t.MM()).
-			NewFloat64Histogram(
-				"demo_client/request_latency",
-				metric.WithDescription("The latency of requests processed"),
-			),
-		requestCount: metric.Must(t.MM()).
-			NewInt64Counter(
-				"demo_client/request_counts",
-				metric.WithDescription("The number of requests processed"),
-			),
+func New(t tel.Telemetry, clt hClient) *Service {
+	m := t.Meter("github.com/d7561985/tel/example/demo/client/v2")
 
+	requestLatency, err := m.SyncFloat64().Histogram(ServerLatency,
+		instrument.WithDescription("The latency of requests processed"))
+	if err != nil {
+		t.Fatal("metric load error", tel.Error(err))
+	}
+
+	requestCount, err := m.SyncInt64().Counter(ServerCounter,
+		instrument.WithDescription("The number of requests processed"))
+	if err != nil {
+		t.Fatal("metric load error", tel.Error(err))
+	}
+
+	return &Service{
+		hClient: clt,
+
+		requestLatency: requestLatency,
+		requestCount:   requestCount,
 		commonLabels: []attribute.KeyValue{
 			attribute.String("userID", "e64916d9-bfd0-4f79-8ee3-847f2d034d20"),
 			//attribute.String("namespace", cfg.Namespace),
@@ -92,11 +108,10 @@ func (s *Service) oneShoot(t tel.Telemetry) error {
 
 	<-time.After(time.Second)
 	start := time.Now()
-	if err := makeRequest(cxt); err != nil {
+
+	if err := s.hClient.Get(cxt, "/hello"); err != nil {
 		return errors.WithStack(err)
 	}
-
-	ms := float64(time.Now().Sub(start).Microseconds())
 
 	//none-batch approach
 	//requestLatency.Record(ctx, ms, commonLabels...)
@@ -114,8 +129,10 @@ func (s *Service) oneShoot(t tel.Telemetry) error {
 		wg.Add(1)
 
 		go func(ctx context.Context) {
+			ms := float64(time.Now().Sub(start).Microseconds())
+
 			s.requestCount.Add(ctx, 1, s.commonLabels...)
-			s.requestLatency.Measurement(ms)
+			s.requestLatency.Record(ctx, ms, s.commonLabels...)
 
 			x := []zap.Field{tel.String("field A", "a"),
 				tel.Int("field B", 100400), tel.Bool("fieldC", true),
@@ -133,10 +150,10 @@ func (s *Service) oneShoot(t tel.Telemetry) error {
 				tel.FromCtx(ctx).Debug("test info message", x...)
 			case 3:
 				tel.FromCtx(ctx).Error("show errorVerbose", append(x,
-					tel.Error(demo.E()))...)
+					tel.Error(E()))...)
 			case 4:
 				tel.FromCtx(ctx).Error("show stack", append(x,
-					tel.String("additional", demo.StackTrace()))...)
+					tel.String("additional", StackTrace()))...)
 			}
 
 			wg.Done()
@@ -144,34 +161,6 @@ func (s *Service) oneShoot(t tel.Telemetry) error {
 	}
 
 	wg.Wait()
-
-	return nil
-}
-
-func makeRequest(ctx context.Context) error {
-	demoServerAddr, ok := os.LookupEnv("DEMO_SERVER_ENDPOINT")
-	if !ok {
-		demoServerAddr = "https://example.com"
-	}
-
-	// Trace an HTTP client by wrapping the transport
-	client := http.Client{
-		Transport: otelhttp.NewTransport(http.DefaultTransport),
-	}
-
-	// Make sure we pass the context to the request to avoid broken traces.
-	req, err := http.NewRequestWithContext(ctx, "GET", demoServerAddr, nil)
-	if err != nil {
-		return errors.WithMessagef(err, "failed to http request")
-	}
-
-	// All requests made with this client will create spans.
-	res, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-
-	res.Body.Close()
 
 	return nil
 }

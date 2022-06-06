@@ -36,8 +36,8 @@ type batchProcessor struct {
 // If the exporter is nil, the span processor will preform no action.
 func NewBatchLogProcessor(exporter Exporter, options ...trace.BatchSpanProcessorOption) LogProcessor {
 	o := trace.BatchSpanProcessorOptions{
-		BatchTimeout:       trace.DefaultBatchTimeout,
-		ExportTimeout:      trace.DefaultExportTimeout,
+		BatchTimeout:       trace.DefaultScheduleDelay * time.Millisecond,
+		ExportTimeout:      trace.DefaultExportTimeout * time.Millisecond,
 		MaxQueueSize:       trace.DefaultMaxQueueSize,
 		MaxExportBatchSize: trace.DefaultMaxExportBatchSize,
 	}

@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"runtime/debug"
-	"strings"
 	"time"
 
 	"github.com/d7561985/tel/v2"
@@ -16,35 +15,22 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
-type Server struct {
-	log *tel.Telemetry
-}
-
-func NewServer(t *tel.Telemetry) *Server {
-	return &Server{log: t}
-}
-
-// HTTPServerMiddlewareAll represent all essential metrics
+// ServerMiddlewareAll represent all essential metrics
 // Execution order:
 //  * opentracing injection via nethttp.Middleware
-//  * recovery + measure execution time + debug log via own HTTPServerMiddleware
+//  * recovery + measure execution time + debug log via own ServerMiddleware
 //  * metrics via metrics.NewHTTPMiddlewareWithOption
-func (s *Server) HTTPServerMiddlewareAll(m metrics.HTTPTracker) func(next http.Handler) http.Handler {
+func ServerMiddlewareAll(opts ...Option) func(next http.Handler) http.Handler {
+	s := newConfig(opts...)
+
 	tr := func(next http.Handler) http.Handler {
-		return otelhttp.NewHandler(next, "HTTP",
-			otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
-				return operation + r.Method + r.URL.Path
-			}),
-			otelhttp.WithFilter(func(r *http.Request) bool {
-				return !(r.Method == http.MethodGet && strings.HasPrefix(r.URL.RequestURI(), "/health"))
-			}))
+		return otelhttp.NewHandler(next, s.operation, s.otelOpts...)
 	}
 
-	mw := s.HTTPServerMiddleware()
-	mtr := m.NewHTTPMiddlewareWithOption()
+	mw := ServerMiddleware(opts...)
 
 	return func(next http.Handler) http.Handler {
-		for _, cb := range []func(next http.Handler) http.Handler{tr, mw, mtr} {
+		for _, cb := range []func(next http.Handler) http.Handler{tr, mw} {
 			next = cb(next)
 		}
 
@@ -52,11 +38,13 @@ func (s *Server) HTTPServerMiddlewareAll(m metrics.HTTPTracker) func(next http.H
 	}
 }
 
-// HTTPServerMiddleware perform:
+// ServerMiddleware perform:
 // * telemetry log injection
 // * measure execution time
 // * recovery
-func (s *Server) HTTPServerMiddleware() func(next http.Handler) http.Handler {
+func ServerMiddleware(opts ...Option) func(next http.Handler) http.Handler {
+	s := newConfig(opts...)
+
 	return func(next http.Handler) http.Handler {
 		fn := func(rw http.ResponseWriter, req *http.Request) {
 			var err error

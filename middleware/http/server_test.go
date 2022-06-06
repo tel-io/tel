@@ -42,7 +42,7 @@ func TestTelemetry_HttpServerMiddlewareAll(t *testing.T) {
 	m := metrics.NewHTTPMetric(metrics.DefaultHTTPPathRetriever())
 	assert.NoError(t, m.SetUp())
 
-	handler = NewServer(tel.FromCtx(ctx)).HTTPServerMiddlewareAll(m)(handler)
+	handler = ServerMiddlewareAll(WithHttpTracker(m))(handler)
 
 	// check context preservation already added fields
 	handler = func(next http.Handler) http.Handler {
