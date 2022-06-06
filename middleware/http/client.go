@@ -20,13 +20,14 @@ func NewClient(ca []byte) *http.Client {
 }
 
 // UpdateClient inject tracer
-func UpdateClient(c *http.Client) *http.Client {
-	c.Transport = otelhttp.NewTransport(c.Transport)
+func UpdateClient(c *http.Client, opts ...Option) *http.Client {
+	s := newConfig(opts...)
+	c.Transport = otelhttp.NewTransport(c.Transport, s.otelOpts...)
 
 	return c
 }
 
-func httpClient(ca []byte) *http.Client {
+func httpClient(ca []byte, opts ...Option) *http.Client {
 	pool := x509.NewCertPool()
 	pool.AppendCertsFromPEM(ca)
 
@@ -45,5 +46,5 @@ func httpClient(ca []byte) *http.Client {
 			TLSClientConfig:       ssl,
 			MaxIdleConns:          100,
 		},
-	})
+	}, opts...)
 }

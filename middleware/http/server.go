@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"runtime/debug"
-	"strings"
 	"time"
 
 	"github.com/d7561985/tel/v2"
@@ -25,16 +24,10 @@ func ServerMiddlewareAll(opts ...Option) func(next http.Handler) http.Handler {
 	s := newConfig(opts...)
 
 	tr := func(next http.Handler) http.Handler {
-		return otelhttp.NewHandler(next, "HTTP",
-			otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
-				return operation + r.Method + r.URL.Path
-			}),
-			otelhttp.WithFilter(func(r *http.Request) bool {
-				return !(r.Method == http.MethodGet && strings.HasPrefix(r.URL.RequestURI(), "/health"))
-			}))
+		return otelhttp.NewHandler(next, s.operation, s.otelOpts...)
 	}
 
-	mw := ServerMiddleware()
+	mw := ServerMiddleware(opts...)
 	mtr := s.hTracker.NewHTTPMiddlewareWithOption()
 
 	return func(next http.Handler) http.Handler {
