@@ -10,6 +10,7 @@ import (
 	"time"
 
 	grpcx "github.com/d7561985/tel/middleware/grpc/v2"
+	"github.com/pkg/errors"
 	"github.com/tel-io/otelgrpc"
 	"github.com/tel-io/otelgrpc/example/api"
 	otracer "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -23,10 +24,6 @@ import (
 
 type S struct {
 }
-
-const (
-	port = ":7777"
-)
 
 var tracer = otel.Tracer("grpc-example")
 
@@ -122,10 +119,10 @@ func (s *server) SayHelloBidiStream(stream api.HelloService_SayHelloBidiStreamSe
 	return nil
 }
 
-func Start() {
-	lis, err := net.Listen("tcp", port)
+func Start() (addr string, err error) {
+	lis, err := net.Listen("tcp", ":")
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		return "", errors.WithMessagef(err, "failed to listen: %v", err)
 	}
 
 	otmetr := otelgrpc.NewServerMetrics(
@@ -145,7 +142,12 @@ func Start() {
 	)
 
 	api.RegisterHelloServiceServer(s, &server{})
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
+
+	go func() {
+		if err := s.Serve(lis); err != nil {
+			log.Fatalf("failed to serve: %v", err)
+		}
+	}()
+
+	return lis.Addr().String(), nil
 }

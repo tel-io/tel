@@ -4,12 +4,11 @@ import (
 	"context"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
-	"time"
 
 	"github.com/d7561985/tel/example/demo/client/v2/pkg/grpctest"
-	"github.com/d7561985/tel/example/demo/client/v2/pkg/service"
+	"github.com/d7561985/tel/example/demo/client/v2/pkg/httptest"
+	"github.com/d7561985/tel/example/demo/client/v2/pkg/mgr"
 	"github.com/d7561985/tel/v2"
 	health "github.com/d7561985/tel/v2/monitoring/heallth"
 	_ "github.com/joho/godotenv/autoload"
@@ -39,31 +38,34 @@ func main() {
 
 	t.Info("collector", tel.String("addr", cfg.Addr))
 
-	go grpctest.Start()
+	//---
+	// init all possible
+	//---
+	//
+	// http client -> grpc client
 
-	go func() {
-		<-time.After(time.Second)
+	// grpc server
+	gSrv, err := grpctest.Start()
+	if err != nil {
+		t.Fatal("grpc server", tel.Error(err))
+	}
 
-		for {
-			select {
-			case <-ccx.Done():
-				return
-			default:
-				wg := sync.WaitGroup{}
+	// grpc client
+	gClient, err := grpctest.NewClient(gSrv)
 
-				for i := 0; i < 100; i++ {
-					wg.Add(1)
-					go func() {
-						grpctest.Client()
-						wg.Done()
-					}()
-				}
-				wg.Wait()
-			}
-		}
-	}()
+	// http server
+	hAddr, err := httptest.New(gClient).Start()
+	if err != nil {
+		t.Fatal("http server", tel.Error(err))
+	}
 
-	srv := service.New(t)
+	// http client
+	hClt, err := httptest.NewClient("http://" + hAddr)
+	if err != nil {
+		t.Fatal("http client", tel.Error(err))
+	}
+
+	srv := mgr.New(t, hClt)
 	if err := srv.Start(ctx); err != nil {
 		t.Error("service", tel.Error(err))
 		return

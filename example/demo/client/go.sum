@@ -68,8 +68,6 @@ github.com/cncf/xds/go v0.0.0-20210922020428-25de7278fc84/go.mod h1:eXthEFrGJvWH
 github.com/cncf/xds/go v0.0.0-20211001041855-01bcc9b48dfe/go.mod h1:eXthEFrGJvWHgFFCl3hGmgk+/aYT6PnTQLykKQRLhEs=
 github.com/cncf/xds/go v0.0.0-20211011173535-cb28da3451f1/go.mod h1:eXthEFrGJvWHgFFCl3hGmgk+/aYT6PnTQLykKQRLhEs=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
-github.com/d7561985/tel/middleware/grpc/v2 v2.0.0-20220605110721-fdd8ffe182c2 h1:oSdJpCV3hHptthUNxuvtUfaihBHD5OH5AmTjkuRTfWA=
-github.com/d7561985/tel/middleware/grpc/v2 v2.0.0-20220605110721-fdd8ffe182c2/go.mod h1:KJsdoJTrEdnz9At3MlIn0hZkWI0dAY1k3I5yQ2LGOmE=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -250,12 +248,9 @@ github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.1 h1:5TQK59W5E3v0r2duFAb7P95B6hEeOyEnHRa8MjYSMTY=
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
-github.com/tel-io/otelgrpc v1.0.1 h1:FdyVaBola4XO6X7rxE4U8S9hB1LjNRjZ69WfWC7hfY0=
 github.com/tel-io/otelgrpc v1.0.1/go.mod h1:6W2izuFWAGPNGQeS87RiDirxitpi38GlzEuf6c/jHEM=
 github.com/tel-io/otelgrpc v1.0.2-0.20220605174232-2f9b4153a0a4 h1:XZN2qiDK/42LWMXsQcMd1bhAfl1DMjJ7m6culLdFZPA=
 github.com/tel-io/otelgrpc v1.0.2-0.20220605174232-2f9b4153a0a4/go.mod h1:6W2izuFWAGPNGQeS87RiDirxitpi38GlzEuf6c/jHEM=
-github.com/tel-io/otelgrpc/example v0.0.0-20220604181349-c24867b6ea0e h1:HcUcmti4QmLLTDz7P6uTbccQiFXTYw1Ww6+R4//D+sk=
-github.com/tel-io/otelgrpc/example v0.0.0-20220604181349-c24867b6ea0e/go.mod h1:T8aLMDDUiXO4YUVvMcxat9xYv9MygZCAZ+rxWMka7eA=
 github.com/tel-io/otelgrpc/example v0.0.0-20220605174232-2f9b4153a0a4 h1:hu/LUVIjBHyOaROkxQwMpI1gB72m79Z5Nw7WP4+HR4o=
 github.com/tel-io/otelgrpc/example v0.0.0-20220605174232-2f9b4153a0a4/go.mod h1:T8aLMDDUiXO4YUVvMcxat9xYv9MygZCAZ+rxWMka7eA=
 github.com/tklauser/go-sysconf v0.3.10 h1:IJ1AZGZRWbY8T5Vfk04D9WOA5WSejdflXxP03OUqALw=
