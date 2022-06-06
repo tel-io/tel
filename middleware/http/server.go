@@ -28,10 +28,9 @@ func ServerMiddlewareAll(opts ...Option) func(next http.Handler) http.Handler {
 	}
 
 	mw := ServerMiddleware(opts...)
-	mtr := s.hTracker.NewHTTPMiddlewareWithOption()
 
 	return func(next http.Handler) http.Handler {
-		for _, cb := range []func(next http.Handler) http.Handler{tr, mw, mtr} {
+		for _, cb := range []func(next http.Handler) http.Handler{tr, mw} {
 			next = cb(next)
 		}
 
