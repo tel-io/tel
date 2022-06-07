@@ -17,6 +17,8 @@ import (
 )
 
 const (
+	threads = 20
+
 	ServerLatency = "demo_client.request_latency"
 	ServerCounter = "demo_client.request_counts"
 )
@@ -64,8 +66,6 @@ func New(t tel.Telemetry, clt hClient) *Service {
 }
 
 func (s *Service) Start(ctx context.Context) error {
-	t := tel.FromCtx(ctx)
-
 	// fill ctx with extra data
 	method, err := baggage.NewMember("namespace", "TEST")
 	if err != nil {
@@ -84,22 +84,31 @@ func (s *Service) Start(ctx context.Context) error {
 
 	ctx = baggage.ContextWithBaggage(ctx, bag)
 
-A:
+	// threads
+	for t := 0; t < threads; t++ {
+		go s.run(ctx)
+	}
+
+	<-ctx.Done()
+
+	return nil
+}
+
+func (s *Service) run(ctx context.Context) {
+	t := tel.FromCtx(ctx)
 	for {
 		select {
 		case <-ctx.Done():
-			break A
+			return
 		default:
 		}
 
-		if err = s.oneShoot(t.Copy()); err != nil {
-			return errors.WithStack(err)
+		if err := s.oneShoot(t.Copy()); err != nil {
+			t.Fatal("shot", tel.Error(err))
 		}
 
 		<-time.After(time.Second)
 	}
-
-	return nil
 }
 
 func (s *Service) oneShoot(t tel.Telemetry) error {
