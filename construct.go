@@ -34,9 +34,9 @@ func CreateRes(ctx context.Context, l Config) *resource.Resource {
 		// resource.WithTelemetrySDK(),
 		resource.WithHost(),
 		resource.WithAttributes(
-			// the service name used to display traces in backends
+			// the service name used to display traces in backends + tempo UI by this field perform service selection
 			// key: service.name
-			//semconv.ServiceNameKey.String(l.Service), // till Loki would be support dot as key
+			semconv.ServiceNameKey.String(l.Service),
 			// we use tempo->loki reference in Grafana, but loki not support dots as it's in ServiceNameKey
 			// key: service_name
 			attribute.Key("service_name").String(l.Service),
