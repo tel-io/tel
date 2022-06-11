@@ -2092,6 +2092,22 @@
   "templating": {
     "list": [
       {
+        "datasource": "Prometheus",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": false,
+        "label": "datasource",
+        "multi": false,
+        "name": "DS_PROMETHEUS",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
         "current": {
           "selected": true,
           "text": "K8S-Stage",

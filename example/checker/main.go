@@ -13,7 +13,7 @@ import (
 	"github.com/d7561985/tel/v2/pkg/logtransform"
 	_ "github.com/joho/godotenv/autoload"
 	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"go.uber.org/zap/zapcore"
 )
 

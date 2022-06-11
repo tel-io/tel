@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"math/rand"
 
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -35,7 +36,10 @@ func CreateRes(ctx context.Context, l Config) *resource.Resource {
 		resource.WithAttributes(
 			// the service name used to display traces in backends
 			// key: service.name
-			semconv.ServiceNameKey.String(l.Service),
+			//semconv.ServiceNameKey.String(l.Service), // till Loki would be support dot as key
+			// we use tempo->loki reference in Grafana, but loki not support dots as it's in ServiceNameKey
+			// key: service_name
+			attribute.Key("service_name").String(l.Service),
 			// key: service.namespace
 			semconv.ServiceNamespaceKey.String(l.Namespace),
 			// key: service.version

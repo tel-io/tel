@@ -22,6 +22,61 @@ Keep in mind that collector has plugin version https://github.com/open-telemetry
 
 For instance, you can use `opentelemetry-collector-contrib` as `tel` receiver and route logging data to `Grafana Loki`, trace data to `Grafana Tempo` and metric data to `Prometheus + Grafana ;)`
 
+=== Grafana references feature
+==== loki to tempo
+`tel` approach to put `traceID` field with actual trace ID. All our middlewares should do that or developer should do it by himself
+
+Just call `UpdateTraceFields` before write some logs
+[source,go]
+----
+tel.UpdateTraceFields(ctx)
+----
+
+understood grafana should setup `derivedFields` for Loki data source
+[source,json]
+----
+  - name: Loki
+    type: loki
+    url: http://loki:3100
+    uid: loki
+    jsonData:
+      derivedFields:
+        - datasourceUid: tempo
+          matcherRegex: "traceID=(\\w+)"
+          name: trace
+          url: '$${__value.raw}'
+----
+
+==== tempo to loki
+We match `tempo` with `loki` by `service_name` label. All logs should contain traceID by any key form and `service_name`.
+In grafana tempo datasource should be configured with `tracesToLogs`
+==== prometheus to loki
+[source,json]
+----
+  - name: Tempo
+    type: tempo
+    access: proxy
+    orgId: 1
+    url: http://tempo:3200
+    basicAuth: false
+    isDefault: false
+    version: 1
+    editable: false
+    apiVersion: 1
+    uid: tempo
+    jsonData:
+      nodeGraph:
+        enabled: true
+      tracesToLogs:
+        datasourceUid: loki
+        filterBySpanID: false
+        filterByTraceID: true
+        mapTagNamesEnabled: false
+        tags:
+          - service_name
+----
+
+
 == Install
 
 [source,bash]

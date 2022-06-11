@@ -6,7 +6,7 @@ import (
 	"github.com/d7561985/tel/v2/otlplog/logskd"
 	"github.com/d7561985/tel/v2/pkg/tracetransform"
 	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	v1 "go.opentelemetry.io/proto/otlp/common/v1"
 	tracepb "go.opentelemetry.io/proto/otlp/logs/v1"
 )
