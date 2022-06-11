@@ -26,7 +26,7 @@ For instance, you can use `opentelemetry-collector-contrib` as `tel` receiver an
 
 [source,bash]
 ----
-go get github.com/d7561985/tel/plugins/pgx/v2@latest
+go get github.com/d7561985/tel/v2@latest
 ----
 
 == Features

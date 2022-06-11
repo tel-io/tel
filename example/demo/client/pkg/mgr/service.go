@@ -115,7 +115,6 @@ func (s *Service) oneShoot(t tel.Telemetry) error {
 	span, cxt := t.StartSpan("ExecuteRequest")
 	defer span.End()
 
-	<-time.After(time.Second)
 	start := time.Now()
 
 	if err := s.hClient.Get(cxt, "/hello"); err != nil {
