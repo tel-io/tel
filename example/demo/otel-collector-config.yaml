@@ -33,14 +33,12 @@ exporters:
     # Labels defines how labels should be applied to log streams sent to Loki.
     labels:
       # ResourceAttributes are the resource attributes that are allowed to be added as labels on a log stream.
+      #  Label names must match ^[a-zA-Z_][a-zA-Z0-9_]*$
       resource:
         project: ""
-        container_name: ""
-        source: ""
         # todo: check if semconv translate dot to underscore!!!
         # semconv not translate dots. right now we use hack, and all resources we cast to underscore
-        service_version: ""
-        service_name: ""
+        service: ""
       # Attributes are the log record attributes that are allowed to be added as labels on a log stream.
       attributes:
         level: ""

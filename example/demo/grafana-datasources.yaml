@@ -36,7 +36,7 @@ datasources:
         filterByTraceID: true
         mapTagNamesEnabled: false
         tags:
-          - service_name # Important: semconv service.name but we use hack for support loki as it now support dots
+          - service # Important: semconv service.name but we use hack for support loki as it now support dots
   - name: Loki
     type: loki
     url: http://loki:3100

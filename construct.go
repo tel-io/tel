@@ -38,8 +38,9 @@ func CreateRes(ctx context.Context, l Config) *resource.Resource {
 			// key: service.name
 			semconv.ServiceNameKey.String(l.Service),
 			// we use tempo->loki reference in Grafana, but loki not support dots as it's in ServiceNameKey
-			// key: service_name
-			attribute.Key("service_name").String(l.Service),
+			// in addition, we can't use service_name as it conflict with transformation to prometheus
+			// key: service
+			attribute.Key("service").String(l.Service),
 			// key: service.namespace
 			semconv.ServiceNamespaceKey.String(l.Namespace),
 			// key: service.version
