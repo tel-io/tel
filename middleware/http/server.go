@@ -10,6 +10,7 @@ import (
 
 	"github.com/d7561985/tel/v2"
 	"github.com/d7561985/tel/v2/monitoring/metrics"
+	"go.opentelemetry.io/otel/attribute"
 	"go.uber.org/zap/zapcore"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -30,7 +31,7 @@ func ServerMiddlewareAll(opts ...Option) func(next http.Handler) http.Handler {
 	mw := ServerMiddleware(opts...)
 
 	return func(next http.Handler) http.Handler {
-		for _, cb := range []func(next http.Handler) http.Handler{tr, mw} {
+		for _, cb := range []func(next http.Handler) http.Handler{mw, tr} {
 			next = cb(next)
 		}
 
@@ -66,6 +67,14 @@ func ServerMiddleware(opts ...Option) func(next http.Handler) http.Handler {
 
 			defer func(start time.Time) {
 				hasRecovery := recover()
+
+				// inject additional metrics fields: otelhttp.NewHandler
+				if lableler, ok := otelhttp.LabelerFromContext(ctx); ok {
+					lableler.Add(attribute.String("method", r.Method))
+					lableler.Add(attribute.String("url", r.URL.RequestURI()))
+					lableler.Add(attribute.String("status", http.StatusText(w.Status)))
+					lableler.Add(attribute.Int("code", w.Status))
+				}
 
 				l := tel.FromCtx(ctx).With(
 					tel.Duration("duration", time.Since(start)),

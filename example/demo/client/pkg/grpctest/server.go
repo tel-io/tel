@@ -61,7 +61,8 @@ func (s *server) workHard(ctx context.Context, isErr bool) error {
 func (s *server) SayHelloServerStream(in *api.HelloRequest, out api.HelloService_SayHelloServerStreamServer) error {
 	//log.Printf("Received: %v\n", in.GetGreeting())
 
-	for i := 0; i < 5; i++ {
+	val := int(rand.Int63n(5) + 1)
+	for i := 0; i < val; i++ {
 		err := out.Send(&api.HelloResponse{Reply: "Hello " + in.Greeting})
 		if err != nil {
 			return err

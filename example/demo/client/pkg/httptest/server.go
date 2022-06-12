@@ -3,6 +3,7 @@ package httptest
 import (
 	"context"
 	"io"
+	"math/rand"
 	"net"
 	"net/http"
 
@@ -33,10 +34,14 @@ func New(c *grpctest.Client) *Server {
 
 func (s *Server) Start() (url string, err error) {
 	m := mw.ServerMiddlewareAll()
-	mHandler := m(http.HandlerFunc(s.helloHttp))
+
+	mx := http.NewServeMux()
+	mx.Handle("/hello", m(http.HandlerFunc(s.helloHttp)))
+	mx.Handle("/crash", m(http.HandlerFunc(s.crashHttp)))
+	mx.Handle("/error", m(http.HandlerFunc(s.errorHttp)))
 
 	srv := &http.Server{}
-	srv.Handler = mHandler
+	srv.Handler = mx
 
 	l, err := net.Listen("tcp", "127.0.0.1:")
 	if err != nil {
@@ -53,8 +58,7 @@ func (s *Server) Start() (url string, err error) {
 }
 
 func (s *Server) helloHttp(w http.ResponseWriter, req *http.Request) {
-	ctx := req.Context()
-	span := trace.SpanFromContext(ctx)
+	span, ctx := tel.StartSpanFromContext(req.Context(), "helloHttp")
 	defer span.End()
 
 	bag := baggage.FromContext(ctx)
@@ -63,4 +67,23 @@ func (s *Server) helloHttp(w http.ResponseWriter, req *http.Request) {
 	s.client.Do(ctx)
 
 	_, _ = io.WriteString(w, "Hello, world!\n")
+}
+
+func (s *Server) crashHttp(w http.ResponseWriter, req *http.Request) {
+	span, _ := tel.StartSpanFromContext(req.Context(), "crashHttp")
+	defer span.End()
+
+	w.WriteHeader(http.StatusInternalServerError)
+	panic("some crash happened")
+}
+
+func (s *Server) errorHttp(w http.ResponseWriter, req *http.Request) {
+	span, _ := tel.StartSpanFromContext(req.Context(), "errorHttp")
+	defer span.End()
+
+	errCode := int(rand.Int63n(11)) + 500
+	if errCode == 509 {
+		errCode = http.StatusOK
+	}
+	w.WriteHeader(errCode)
 }

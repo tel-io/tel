@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	threads = 20
+	threads = 40
 
 	ServerLatency = "demo_client.request_latency"
 	ServerCounter = "demo_client.request_counts"
@@ -117,7 +117,17 @@ func (s *Service) oneShoot(t tel.Telemetry) error {
 
 	start := time.Now()
 
-	if err := s.hClient.Get(cxt, "/hello"); err != nil {
+	var path string
+	switch rand.Int63n(10) {
+	case 1, 2, 3:
+		path = "/error"
+	case 0:
+		path = "/crash"
+	default:
+		path = "/hello"
+	}
+
+	if err := s.hClient.Get(cxt, path); err != nil {
 		return errors.WithStack(err)
 	}
 
