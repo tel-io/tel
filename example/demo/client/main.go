@@ -36,7 +36,7 @@ func main() {
 	ctx := tel.WithContext(ccx, t)
 	t.AddHealthChecker(ctx, tel.HealthChecker{Handler: health.NewCompositeChecker()})
 
-	t.Info("collector", tel.String("addr", cfg.Addr))
+	t.Info("client", tel.String("collector", cfg.Addr))
 
 	//---
 	// init all possible
@@ -58,6 +58,8 @@ func main() {
 	if err != nil {
 		t.Fatal("http server", tel.Error(err))
 	}
+
+	t.Info("http server", tel.String("addr", hAddr))
 
 	// http client
 	hClt, err := httptest.NewClient("http://" + hAddr)

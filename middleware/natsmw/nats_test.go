@@ -17,9 +17,10 @@ func Example_handler() {
 	}
 
 	tele := tel.NewNull()
-	mw := New(tele, WithReply(true))
+	mw := New(WithReply(true), WithTel(tele))
 
 	conn, _ := nats.Connect("example.com")
+
 	_, _ = conn.QueueSubscribe("sub", "queue", mw.Handler(cb))
 	_, _ = conn.QueueSubscribe("sub2", "queue", mw.Handler(cb))
 }
@@ -97,7 +98,7 @@ func Test_mw(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cb := New(tele, WithReply(true)).Handler(tt.args.next)
+			cb := New(WithTel(tele), WithReply(true)).Handler(tt.args.next)
 
 			assert.NotPanics(t, func() {
 				cb(tt.args.msg)

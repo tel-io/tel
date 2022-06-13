@@ -4,8 +4,10 @@ import (
 	"context"
 
 	"github.com/d7561985/tel/propagators/natsprop/v2"
+	"github.com/d7561985/tel/v2"
 	"github.com/nats-io/nats.go"
 	"github.com/pkg/errors"
+	"go.opentelemetry.io/otel/metric"
 )
 
 // Option allows configuration of the httptrace Extract()
@@ -24,11 +26,21 @@ type PostHook func(ctx context.Context, msg *nats.Msg, data []byte) error
 
 type config struct {
 	postHook PostHook
+	tele     tel.Telemetry
+	meter    metric.Meter
 }
 
 func newConfig(opts []Option) *config {
-	c := &config{}
+	c := &config{
+		tele: tel.Global(),
+	}
+
 	c.apply(opts)
+
+	c.meter = c.tele.Meter(
+		instrumentationName,
+		metric.WithInstrumentationVersion(SemVersion()),
+	)
 
 	return c
 }
@@ -64,5 +76,12 @@ func WithReply(inject bool) Option {
 func WithPostHook(cb PostHook) Option {
 	return optionFunc(func(c *config) {
 		c.postHook = cb
+	})
+}
+
+// WithTel in some cases we should put another version
+func WithTel(t tel.Telemetry) Option {
+	return optionFunc(func(c *config) {
+		c.tele = t
 	})
 }
