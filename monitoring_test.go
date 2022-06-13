@@ -16,20 +16,16 @@ func Test_monitor_Start(t *testing.T) {
 
 	ctx := srv.Ctx()
 
-	m := createMonitor(":8080", true).(*monitor)
+	m := createMonitor(":8080", true)
 	m.route(ctx)
 
 	s := httptest.NewServer(m.server.Handler)
 
-	for _, ep := range []string{HealthEndpoint, PprofIndexEndpoint, MonitorEndpoint} {
-		r, err := s.Client().Get(s.URL + HealthEndpoint)
+	for _, ep := range []string{HealthEndpoint, PprofIndexEndpoint} {
+		r, err := s.Client().Get(s.URL + ep)
 		assert.NoError(t, err)
 
-		b, err := ioutil.ReadAll(r.Body)
+		_, err = ioutil.ReadAll(r.Body)
 		assert.NoError(t, err)
-
-		if ep == MonitorEndpoint {
-			assert.Contains(t, string(b), "UP")
-		}
 	}
 }

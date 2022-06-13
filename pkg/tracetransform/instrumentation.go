@@ -19,6 +19,7 @@ import (
 	commonpb "go.opentelemetry.io/proto/otlp/common/v1"
 )
 
+//nolint: staticcheck
 func InstrumentationLibrary(il instrumentation.Library) *commonpb.InstrumentationLibrary {
 	if il == (instrumentation.Library{}) {
 		return nil

@@ -102,7 +102,7 @@ func (t Telemetry) LogLevel() zapcore.Level {
 
 	var lvl zapcore.Level
 	if err := lvl.Set(t.cfg.LogLevel); err != nil {
-
+		return zapcore.InfoLevel
 	}
 
 	return lvl

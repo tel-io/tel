@@ -59,6 +59,7 @@ func Trans(res *resource.Resource, in []logskd.Log) *tracepb.ResourceLogs {
 		SchemaUrl: semconv.SchemaURL,
 		Resource:  r,
 		ScopeLogs: []*tracepb.ScopeLogs{{LogRecords: ss}},
+		//nolint: staticcheck
 		InstrumentationLibraryLogs: []*tracepb.InstrumentationLibraryLogs{{
 			LogRecords: ss,
 		}},

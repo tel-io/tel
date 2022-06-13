@@ -47,7 +47,9 @@ func main() {
 		tel.Global().Fatal("start client", tel.Error(err))
 	}
 
-	defer client.Stop(ctx)
+	defer func() {
+		_ = client.Stop(ctx)
+	}()
 
 	res, _ := resource.New(ctx, resource.WithAttributes(
 		// the service name used to display traces in backends

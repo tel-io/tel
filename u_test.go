@@ -25,7 +25,7 @@ type U struct {
 	pause string
 }
 
-//nolint:deadcode
+//nolint:deadcode,unused
 func newU(t *testing.T) *U {
 	l, err := net.ListenPacket("udp", "0.0.0.0:0")
 	require.NoError(t, err)
@@ -56,6 +56,7 @@ func (u *U) Resume() error {
 }
 
 // readMessages graylog message packed with gzip
+//nolint: unused
 func (u *U) readMessages(t *testing.T, n int) bytes.Buffer {
 	var inBound bytes.Buffer
 

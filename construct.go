@@ -89,10 +89,6 @@ func newLogger(l Config) *zap.Logger {
 	return pl
 }
 
-func newMonitor(cfg Config) Monitor {
-	return createMonitor(cfg.MonitorAddr, cfg.Debug)
-}
-
 // SetLogOutput debug function for duplicate input log into bytes.Buffer
 func SetLogOutput(log *Telemetry) *bytes.Buffer {
 	buf := bytes.NewBufferString("")
