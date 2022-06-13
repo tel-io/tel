@@ -72,7 +72,7 @@
   "gnetId": 9186,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1655059160788,
+  "iteration": 1655061731076,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -1780,11 +1780,12 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(http_server_duration_count{service=\"$service\", namespace=\"$NS\"}[$interval])) by (status)",
+          "expr": "(sum(increase(http_server_duration_sum{service=\"$service\", namespace=\"$NS\"}[$interval])) by (url)\n/ sum(increase(http_server_duration_count{service=\"$service\", namespace=\"$NS\"}[$interval])) by (url)) >= 0",
           "format": "time_series",
+          "instant": false,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{code}}",
+          "legendFormat": "{{url}}",
           "refId": "A"
         }
       ],
@@ -2118,7 +2119,7 @@
               }
             ]
           },
-          "unit": "s"
+          "unit": "ms"
         },
         "overrides": []
       },
@@ -2363,7 +2364,7 @@
       "type": "timeseries"
     }
   ],
-  "refresh": "5s",
+  "refresh": "",
   "schemaVersion": 35,
   "style": "dark",
   "tags": [],
@@ -2394,14 +2395,14 @@
           "type": "prometheus",
           "uid": "${DS_PROMETHEUS}"
         },
-        "definition": "label_values(runtime_uptime{namespace=\"$NS\"}, service_name)",
+        "definition": "label_values(http_server_duration_count{namespace=\"$NS\"}, service)",
         "hide": 0,
         "includeAll": false,
         "multi": false,
         "name": "service",
         "options": [],
         "query": {
-          "query": "label_values(runtime_uptime{namespace=\"$NS\"}, service_name)",
+          "query": "label_values(http_server_duration_count{namespace=\"$NS\"}, service)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -2644,7 +2645,7 @@
   },
   "timezone": "",
   "title": "HTTP",
-  "uid": "2ZEuxSoC7z",
+  "uid": "2ZEuxSoC7zw",
   "version": 1,
   "weekStart": ""
 }

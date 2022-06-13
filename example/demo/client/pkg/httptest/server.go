@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/d7561985/tel/example/demo/client/v2/pkg/grpctest"
 	"github.com/d7561985/tel/v2"
@@ -72,6 +73,8 @@ func (s *Server) helloHttp(w http.ResponseWriter, req *http.Request) {
 func (s *Server) crashHttp(w http.ResponseWriter, req *http.Request) {
 	span, _ := tel.StartSpanFromContext(req.Context(), "crashHttp")
 	defer span.End()
+
+	time.Sleep(time.Second)
 
 	w.WriteHeader(http.StatusInternalServerError)
 	panic("some crash happened")
