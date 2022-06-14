@@ -71,7 +71,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1654523590295,
+  "iteration": 1655206803094,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -305,7 +305,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "runtime_uptime{namespace=\"$NS\",stage=\"$stage\"}",
+          "expr": "runtime_uptime{namespace=\"$NS\",deployment_environment=\"$stage\"}",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -388,7 +388,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "min_over_time(runtime_uptime{namespace=\"$NS\", stage=\"$stage\", service_name=\"$service\"}[15s]) /1000",
+          "expr": "min_over_time(runtime_uptime{namespace=\"$NS\", deployment_environment=\"$stage\", service_name=\"$service\"}[15s]) /1000",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -481,7 +481,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "process_runtime_go_mem_heap_sys{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",stage=\"$stage\"}",
+          "expr": "process_runtime_go_mem_heap_sys{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",deployment_environment=\"$stage\"}",
           "format": "time_series",
           "interval": "",
           "legendFormat": "virtual address space {{service_instance_id}}",
@@ -493,7 +493,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "process_runtime_go_mem_heap_alloc{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",stage=\"$stage\"}",
+          "expr": "process_runtime_go_mem_heap_alloc{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",deployment_environment=\"$stage\"}",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -507,7 +507,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "process_runtime_go_mem_heap_inuse{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",stage=\"$stage\"}",
+          "expr": "process_runtime_go_mem_heap_inuse{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",deployment_environment=\"$stage\"}",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -521,7 +521,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "process_runtime_go_mem_heap_idle{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",stage=\"$stage\"}",
+          "expr": "process_runtime_go_mem_heap_idle{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",deployment_environment=\"$stage\"}",
           "format": "time_series",
           "hide": true,
           "interval": "",
@@ -613,7 +613,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "system_memory_usage{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",stage=\"$stage\"} / 1024 / 1024",
+          "expr": "system_memory_usage{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",deployment_environment=\"$stage\"} / 1024 / 1024",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -627,7 +627,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "system_memory_utilization{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",stage=\"$stage\"} / 1024 / 1024",
+          "expr": "system_memory_utilization{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",deployment_environment=\"$stage\"} / 1024 / 1024",
           "format": "time_series",
           "hide": true,
           "instant": false,
@@ -721,7 +721,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "rate(process_cpu_time{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",stage=\"$stage\"}[ $__interval])",
+          "expr": "rate(process_cpu_time{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",deployment_environment=\"$stage\"}[ $__interval])",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -734,7 +734,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "sum(rate(system_cpu_time{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",stage=\"$stage\"}[$__interval]))",
+          "expr": "sum(rate(system_cpu_time{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",deployment_environment=\"$stage\"}[$__interval]))",
           "format": "time_series",
           "hide": true,
           "instant": false,
@@ -809,7 +809,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "process_runtime_go_goroutines{namespace=\"$NS\", stage=\"$stage\", service_name=\"$service\"}",
+          "expr": "process_runtime_go_goroutines{namespace=\"$NS\", deployment_environment=\"$stage\", service_name=\"$service\"}",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -906,7 +906,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "process_runtime_go_goroutines{namespace=\"$NS\", stage=\"$stage\", service_name=\"$service\"}",
+          "expr": "process_runtime_go_goroutines{namespace=\"$NS\", deployment_environment=\"$stage\", service_name=\"$service\"}",
           "instant": false,
           "interval": "",
           "intervalFactor": 1,
@@ -998,7 +998,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "rate(process_runtime_go_gc_pause_total_ns{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",stage=\"$stage\"}[$__interval])",
+          "expr": "rate(process_runtime_go_gc_pause_total_ns{namespace=\"$NS\", service_name=\"$service\",license=\"$license\",deployment_environment=\"$stage\"}[$__interval])",
           "interval": "",
           "legendFormat": "quantile {{service_instance_id}}",
           "refId": "A"
@@ -1154,7 +1154,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(system_network_io{ namespace=\"$NS\", service_name=\"$service\", direction=\"receive\",stage=\"$stage\" }[$__interval]) / 1024 / 1024 * 8)  by (direction)",
+          "expr": "sum(rate(system_network_io{ namespace=\"$NS\", service_name=\"$service\", direction=\"receive\",deployment_environment=\"$stage\" }[$__interval]) / 1024 / 1024 * 8)  by (direction)",
           "instant": false,
           "interval": "",
           "intervalFactor": 1,
@@ -1167,7 +1167,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(system_network_io{ namespace=\"$NS\", service_name=\"$service\", direction=\"transmit\",stage=\"$stage\" }[$__interval]) / 1024 / 1024 * 8 * -1)  by (direction)",
+          "expr": "sum(rate(system_network_io{ namespace=\"$NS\", service_name=\"$service\", direction=\"transmit\",deployment_environment=\"$stage\" }[$__interval]) / 1024 / 1024 * 8 * -1)  by (direction)",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -1177,19 +1177,6 @@
       ],
       "title": "System Network IO",
       "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 24
-      },
-      "id": 2,
-      "panels": [],
-      "title": "Row title",
-      "type": "row"
     }
   ],
   "refresh": "5s",
@@ -1199,9 +1186,12 @@
   "templating": {
     "list": [
       {
+        "current": {
+          "selected": false,
+          "text": "Prometheus",
+          "value": "Prometheus"
+        },
         "datasource": "Prometheus",
-        "description": null,
-        "error": null,
         "hide": 0,
         "includeAll": false,
         "label": "datasource",
@@ -1321,38 +1311,23 @@
         "type": "interval"
       },
       {
-        "auto": false,
-        "auto_count": 30,
-        "auto_min": "10s",
-        "current": {
-          "selected": false,
-          "text": "dev",
-          "value": "dev"
-        },
+        "current": {},
+        "definition": "label_values(runtime_uptime{namespace=\"$NS\"}, deployment_environment)",
         "hide": 0,
+        "includeAll": false,
+        "multi": false,
         "name": "stage",
-        "options": [
-          {
-            "selected": true,
-            "text": "dev",
-            "value": "dev"
-          },
-          {
-            "selected": false,
-            "text": "stage",
-            "value": "stage"
-          },
-          {
-            "selected": false,
-            "text": "prod",
-            "value": "prod"
-          }
-        ],
-        "query": "dev,stage,prod",
-        "queryValue": "",
-        "refresh": 2,
+        "options": [],
+        "query": {
+          "query": "label_values(runtime_uptime{namespace=\"$NS\"}, deployment_environment)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
         "skipUrlSync": false,
-        "type": "interval"
+        "sort": 0,
+        "type": "query",
+        "datasource": "${DS_PROMETHEUS}"
       }
     ]
   },
@@ -1364,6 +1339,6 @@
   "timezone": "",
   "title": "opentracing",
   "uid": "G3uMSPtnk",
-  "version": 2,
+  "version": 1,
   "weekStart": ""
 }
