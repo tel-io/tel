@@ -1,5 +1,22 @@
 = Changelog
 
+== v2.0.5
+* grafana feature `tracesToLogs`: ref. from trace => logs
+* resources: add `service` which duplicate `ServiceNameKey` from semconv. We can't rid of `ServiceNameKey` because of `tempo` search feature. Furthermore `tracesToLogs` uses  `Loki`  labels which not support dot. That's why we can use simple `service` label and that's why we use for now `service` as label for loki.
+* somconv 1,7.0 => 1.10.0
+* mw: http extend metrics with `method`, `url`, `status` and `code` fields
+* mw: nats add metrics
+* grafana/dashboard: nats - full feature reach
+* grafana/dashboard: http - redesign
+* managed dashboards for `HTTP`
+* example: WIP nats service
+
+== v2.0.4
+* mw: grpc module move up to OTLP including metrics nad traces
+* mw: http move to options
+* grafana/dashboard: grpc
+* more complex example include
+
 == v2.0.3
 * Rid of errors /dev/stderr during closer because of sync - we use OTEL Logger closer for final sync now
 * Allow disable OTEL prapagation `OTEL_ENABLE`
