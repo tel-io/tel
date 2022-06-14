@@ -9,6 +9,7 @@
 * grafana/dashboard: nats - full feature reach
 * grafana/dashboard: http - redesign
 * managed dashboards for `HTTP`
+* example: grafana load all managed dashboards
 * example: WIP nats service
 
 == v2.0.4
