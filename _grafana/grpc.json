@@ -66,7 +66,7 @@
   "gnetId": 9186,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1655207190216,
+  "iteration": 1655208463624,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -147,7 +147,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "min_over_time(runtime_uptime{namespace=\"$NS\", deployment_environment=\"$stage\", service=\"$service\"}[15s]) /1000",
+          "expr": "min_over_time(runtime_uptime{service_namespace=\"$NS\", deployment_environment=\"$stage\", service=\"$service\"}[15s]) /1000",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -223,7 +223,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "(sum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"OK\"}[$__interval])) OR on() vector(0) + \nsum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"NotFound\"}[$__interval])) OR on() vector(0) + \nsum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"PermissionDenied\"}[$__interval])) OR on() vector(0) + \nsum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"InvalidArgument\"}[$__interval])) OR on() vector(0))\n/ \nsum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\"}[$__interval]))",
+          "expr": "(sum(rate(grpc_server_handled_total{service=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"OK\"}[$__interval])) OR on() vector(0) + \nsum(rate(grpc_server_handled_total{service=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"NotFound\"}[$__interval])) OR on() vector(0) + \nsum(rate(grpc_server_handled_total{service=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"PermissionDenied\"}[$__interval])) OR on() vector(0) + \nsum(rate(grpc_server_handled_total{service=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"InvalidArgument\"}[$__interval])) OR on() vector(0))\n/ \nsum(rate(grpc_server_handled_total{service=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\"}[$__interval]))",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -305,7 +305,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(irate(grpc_server_started_total{service_name=\"$service\", namespace=\"$NS\"}[$__interval]))",
+          "expr": "sum(irate(grpc_server_started_total{service_name=\"$service\", service_namespace=\"$NS\"}[$__interval]))",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -401,7 +401,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(process_cpu_time{namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}[ $__interval])) by(state,service_instance_id)",
+          "expr": "sum(rate(process_cpu_time{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}[ $__interval])) by(state,service_instance_id)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -473,7 +473,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "process_runtime_go_goroutines{namespace=\"$NS\", deployment_environment=\"$stage\", service_name=\"$service\"}",
+          "expr": "process_runtime_go_goroutines{service_namespace=\"$NS\", deployment_environment=\"$stage\", service_name=\"$service\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -577,7 +577,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "rate(process_runtime_go_gc_pause_total_ns{namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}[$__interval])",
+          "expr": "rate(process_runtime_go_gc_pause_total_ns{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}[$__interval])",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -716,7 +716,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "sum(process_runtime_go_mem_heap_sys{namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}) by (service_instance_id)",
+          "expr": "sum(process_runtime_go_mem_heap_sys{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}) by (service_instance_id)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -731,7 +731,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "sum(process_runtime_go_mem_heap_alloc{namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}) by (service_instance_id)",
+          "expr": "sum(process_runtime_go_mem_heap_alloc{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}) by (service_instance_id)",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -747,7 +747,7 @@
             "uid": "$cluster"
           },
           "exemplar": false,
-          "expr": "sum(process_runtime_go_mem_heap_inuse{namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}) by (service_instance_id)",
+          "expr": "sum(process_runtime_go_mem_heap_inuse{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}) by (service_instance_id)",
           "hide": false,
           "interval": "",
           "legendFormat": "in-use spans {{service_instance_id}}",
@@ -759,7 +759,7 @@
             "uid": "$cluster"
           },
           "exemplar": false,
-          "expr": "sum(system_memory_usage{namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}) by (state, service_instance_id)",
+          "expr": "sum(system_memory_usage{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}) by (state, service_instance_id)",
           "hide": true,
           "interval": "",
           "legendFormat": "{{state}} {{service_instance_id}}",
@@ -835,7 +835,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "process_runtime_go_mem_heap_alloc{service_name=\"$service\", namespace=\"$NS\"}",
+          "expr": "process_runtime_go_mem_heap_alloc{service_name=\"$service\", service_namespace=\"$NS\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -850,7 +850,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "rate(go_memstats_alloc_bytes_total{service_name=\"$service\", namespace=\"$NS\"}[30s])",
+          "expr": "rate(go_memstats_alloc_bytes_total{service_name=\"$service\", service_namespace=\"$NS\"}[30s])",
           "format": "time_series",
           "hide": true,
           "interval": "",
@@ -866,7 +866,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "process_runtime_go_mem_stack_inuse{service_name=\"$service\", namespace=\"$NS\"}",
+          "expr": "process_runtime_go_mem_stack_inuse{service_name=\"$service\", service_namespace=\"$NS\"}",
           "format": "time_series",
           "hide": true,
           "interval": "",
@@ -882,7 +882,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "process_runtime_go_mem_heap_inuse{service_name=\"$service\", namespace=\"$NS\"}",
+          "expr": "process_runtime_go_mem_heap_inuse{service_name=\"$service\", service_namespace=\"$NS\"}",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -1005,7 +1005,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "system_memory_usage{namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"} / 1024 / 1024",
+          "expr": "system_memory_usage{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"} / 1024 / 1024",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1019,7 +1019,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "system_memory_utilization{namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"} / 1024 / 1024",
+          "expr": "system_memory_utilization{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"} / 1024 / 1024",
           "format": "time_series",
           "hide": true,
           "instant": false,
@@ -1132,7 +1132,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(grpc_server_handled_total{service_name=\"$service\", namespace=\"$NS\", grpc_type=\"unary\"}[$__interval])) by (grpc_code)",
+          "expr": "sum(rate(grpc_server_handled_total{service_name=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\"}[$__interval])) by (grpc_code)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1228,7 +1228,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(irate(grpc_server_started_total{service_name=\"$service\", namespace=\"$NS\"}[$__interval])) by (grpc_method)",
+          "expr": "sum(irate(grpc_server_started_total{service_name=\"$service\", service_namespace=\"$NS\"}[$__interval])) by (grpc_method)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1241,6 +1241,7 @@
     },
     {
       "datasource": {
+        "type": "prometheus",
         "uid": "$cluster"
       },
       "fieldConfig": {
@@ -1318,8 +1319,14 @@
       "pluginVersion": "8.4.4",
       "targets": [
         {
-          "expr": "avg(rate(grpc_server_handling_seconds_sum{service_name=\"$service\", namespace=\"$NS\",grpc_type=\"unary\"}[$__interval])) by (grpc_method) * 1000",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": true,
+          "expr": "avg(rate(grpc_server_handling_seconds_sum{service_name=\"$service\", service_namespace=\"$NS\",grpc_type=\"unary\"}[$__interval])) by (grpc_method) * 1000",
           "format": "time_series",
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "{{grpc_method}}",
           "refId": "A"
@@ -1413,7 +1420,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(grpc_server_handled_total{service_name=\"$service\", namespace=\"$NS\", grpc_code!=\"OK\"}[$__interval])) by (grpc_method)",
+          "expr": "sum(rate(grpc_server_handled_total{service_name=\"$service\", service_namespace=\"$NS\", grpc_code!=\"OK\"}[$__interval])) by (grpc_method)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1426,6 +1433,7 @@
     },
     {
       "datasource": {
+        "type": "prometheus",
         "uid": "$cluster"
       },
       "fieldConfig": {
@@ -1503,8 +1511,14 @@
       "pluginVersion": "8.4.4",
       "targets": [
         {
-          "expr": "sum(rate(grpc_server_handled_total{service_name=\"$service\", namespace=\"$NS\", grpc_code!=\"OK\"}[$__interval])) by (grpc_method)\n/ \nsum(rate(grpc_server_started_total{service_name=\"$service\", namespace=\"$NS\"}[$__interval])) by (grpc_method)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": true,
+          "expr": "sum(rate(grpc_server_handled_total{service_name=\"$service\", service_namespace=\"$NS\", grpc_code!=\"OK\"}[$__interval])) by (grpc_method)\n/ \nsum(rate(grpc_server_started_total{service_name=\"$service\", service_namespace=\"$NS\"}[$__interval])) by (grpc_method)",
           "format": "time_series",
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "{{grpc_method}}",
           "refId": "A"
@@ -1598,7 +1612,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "histogram_quantile(0.99, \n  sum(rate(grpc_server_handling_seconds_bucket{service_name=\"$service\", namespace=\"$NS\"}[$__interval])) by (grpc_method,le)\n)",
+          "expr": "histogram_quantile(0.99, \n  sum(rate(grpc_server_handling_seconds_bucket{service_name=\"$service\", service_namespace=\"$NS\"}[$__interval])) by (grpc_method,le)\n)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1611,6 +1625,7 @@
     },
     {
       "datasource": {
+        "type": "prometheus",
         "uid": "$cluster"
       },
       "fieldConfig": {
@@ -1689,8 +1704,14 @@
       "pluginVersion": "8.4.4",
       "targets": [
         {
-          "expr": "100.0 - (\nsum(rate(grpc_server_handling_seconds_bucket{service_name=\"$service\", namespace=\"$NS\",le=\"$le\"}[$__interval])) by (grpc_method)\n / \nsum(rate(grpc_server_handling_seconds_count{service_name=\"$service\", namespace=\"$NS\"}[$__interval])) by (grpc_method)\n) * 100.0",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": true,
+          "expr": "100.0 - (\nsum(rate(grpc_server_handling_seconds_bucket{service_name=\"$service\", service_namespace=\"$NS\",le=\"$le\"}[$__interval])) by (grpc_method)\n / \nsum(rate(grpc_server_handling_seconds_count{service_name=\"$service\", service_namespace=\"$NS\"}[$__interval])) by (grpc_method)\n) * 100.0",
           "format": "time_series",
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "{{grpc_method}}",
           "refId": "A"
@@ -1714,6 +1735,7 @@
     },
     {
       "datasource": {
+        "type": "prometheus",
         "uid": "$cluster"
       },
       "fieldConfig": {
@@ -1791,8 +1813,14 @@
       "pluginVersion": "8.4.4",
       "targets": [
         {
-          "expr": "sum(rate(grpc_client_msg_sent_total{service_name=\"$service\", namespace=\"$NS\", grpc_type=\"unary\"}[$__interval])) by (grpc_service,grpc_method)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": true,
+          "expr": "sum(rate(grpc_client_msg_sent_total{service_name=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\"}[$__interval])) by (grpc_service,grpc_method)",
           "format": "time_series",
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "{{ grpc_service }} | {{grpc_method}}",
           "refId": "A"
@@ -1803,6 +1831,7 @@
     },
     {
       "datasource": {
+        "type": "prometheus",
         "uid": "$cluster"
       },
       "fieldConfig": {
@@ -1880,8 +1909,14 @@
       "pluginVersion": "8.4.4",
       "targets": [
         {
-          "expr": "sum(rate(grpc_client_handled_total{service_name=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"OK\"}[$__interval])) by (grpc_service,grpc_method)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": true,
+          "expr": "sum(rate(grpc_client_handled_total{service_name=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"OK\"}[$__interval])) by (grpc_service,grpc_method)",
           "format": "time_series",
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "{{ grpc_service }} | {{grpc_method}}",
           "refId": "A"
@@ -1892,6 +1927,7 @@
     },
     {
       "datasource": {
+        "type": "prometheus",
         "uid": "$cluster"
       },
       "fieldConfig": {
@@ -1969,8 +2005,14 @@
       "pluginVersion": "8.4.4",
       "targets": [
         {
-          "expr": "sum(rate(grpc_client_handled_total{service_name=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code!=\"OK\"}[$__interval])) by (grpc_code,grpc_service,grpc_method)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": true,
+          "expr": "sum(rate(grpc_client_handled_total{service_name=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\", grpc_code!=\"OK\"}[$__interval])) by (grpc_code,grpc_service,grpc_method)",
           "format": "time_series",
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "{{grpc_code }} | {{ grpc_service }} | {{grpc_method}}",
           "refId": "A"
@@ -1981,6 +2023,7 @@
     },
     {
       "datasource": {
+        "type": "prometheus",
         "uid": "$cluster"
       },
       "fieldConfig": {
@@ -2058,8 +2101,14 @@
       "pluginVersion": "8.4.4",
       "targets": [
         {
-          "expr": "sum(rate(grpc_client_started_total{service_name=\"$service\", namespace=\"$NS\", grpc_type=\"unary\"}[$__interval])) by (grpc_service, grpc_method) - \nsum(rate(grpc_client_handled_total{service_name=\"$service\", namespace=\"$NS\", grpc_type=\"unary\"}[$__interval])) by (grpc_service, grpc_method)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": true,
+          "expr": "sum(rate(grpc_client_started_total{service_name=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\"}[$__interval])) by (grpc_service, grpc_method) - \nsum(rate(grpc_client_handled_total{service_name=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\"}[$__interval])) by (grpc_service, grpc_method)",
           "format": "time_series",
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "{{ grpc_service }} | {{grpc_method }}",
           "refId": "A"
@@ -2070,6 +2119,7 @@
     },
     {
       "datasource": {
+        "type": "prometheus",
         "uid": "$cluster"
       },
       "fieldConfig": {
@@ -2147,8 +2197,14 @@
       "pluginVersion": "8.4.4",
       "targets": [
         {
-          "expr": "histogram_quantile(0.90, \n  sum(rate(grpc_client_handling_seconds_bucket{service_name=\"$service\", namespace=\"$NS\"}[$__interval])) by (grpc_method,le)\n)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": true,
+          "expr": "histogram_quantile(0.90, \n  sum(rate(grpc_client_handling_seconds_bucket{service_name=\"$service\", service_namespace=\"$NS\"}[$__interval])) by (grpc_method,le)\n)",
           "format": "time_series",
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "{{grpc_method }}",
           "refId": "A"
@@ -2159,6 +2215,7 @@
     },
     {
       "datasource": {
+        "type": "prometheus",
         "uid": "$cluster"
       },
       "fieldConfig": {
@@ -2236,8 +2293,14 @@
       "pluginVersion": "8.4.4",
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, \n  sum(rate(grpc_client_handling_seconds_bucket{service_name=\"$service\", namespace=\"$NS\"}[$__interval])) by (grpc_method,le)\n)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": true,
+          "expr": "histogram_quantile(0.99, \n  sum(rate(grpc_client_handling_seconds_bucket{service_name=\"$service\", service_namespace=\"$NS\"}[$__interval])) by (grpc_method,le)\n)",
           "format": "time_series",
+          "interval": "",
           "intervalFactor": 1,
           "legendFormat": "{{grpc_method }}",
           "refId": "A"
@@ -2683,16 +2746,37 @@
       {
         "current": {},
         "datasource": {
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "definition": "label_values(runtime_uptime{}, service_namespace)",
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "NS",
+        "options": [],
+        "query": {
+          "query": "label_values(runtime_uptime{}, service_namespace)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
           "uid": "$cluster"
         },
-        "definition": "label_values(runtime_uptime{namespace=\"$NS\"}, service_name)",
+        "definition": "label_values(runtime_uptime{service_namespace=\"$NS\"}, service_name)",
         "hide": 0,
         "includeAll": false,
         "multi": false,
         "name": "service",
         "options": [],
         "query": {
-          "query": "label_values(runtime_uptime{namespace=\"$NS\"}, service_name)",
+          "query": "label_values(runtime_uptime{service_namespace=\"$NS\"}, service_name)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -2706,22 +2790,25 @@
       },
       {
         "current": {},
-        "definition": "label_values(runtime_uptime{namespace=\"$NS\"}, deployment_environment)",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "definition": "label_values(runtime_uptime{service_namespace=\"$NS\"}, deployment_environment)",
         "hide": 0,
         "includeAll": false,
         "multi": false,
         "name": "stage",
         "options": [],
         "query": {
-          "query": "label_values(runtime_uptime{namespace=\"$NS\"}, deployment_environment)",
+          "query": "label_values(runtime_uptime{service_namespace=\"$NS\"}, deployment_environment)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
-        "type": "query",
-        "datasource": "${DS_PROMETHEUS}"
+        "type": "query"
       },
       {
         "auto": false,
@@ -2800,27 +2887,6 @@
         "refresh": 2,
         "skipUrlSync": false,
         "type": "interval"
-      },
-      {
-        "current": {},
-        "datasource": {
-          "uid": "${DS_PROMETHEUS}"
-        },
-        "definition": "label_values(runtime_uptime{}, namespace)",
-        "hide": 0,
-        "includeAll": false,
-        "multi": false,
-        "name": "NS",
-        "options": [],
-        "query": {
-          "query": "label_values(runtime_uptime{}, namespace)",
-          "refId": "StandardVariableQuery"
-        },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "type": "query"
       }
     ]
   },
