@@ -33,7 +33,7 @@ tel.UpdateTraceFields(ctx)
 ----
 
 understood grafana should setup `derivedFields` for Loki data source
-[source,json]
+[source,yaml]
 ----
   - name: Loki
     type: loki
@@ -51,7 +51,7 @@ understood grafana should setup `derivedFields` for Loki data source
 We match `tempo` with `loki` by `service_name` label. All logs should contain traceID by any key form and `service_name`.
 In grafana tempo datasource should be configured with `tracesToLogs`
 ==== prometheus to loki
-[source,json]
+[source,yaml]
 ----
   - name: Tempo
     type: tempo
@@ -82,6 +82,14 @@ In grafana tempo datasource should be configured with `tracesToLogs`
 [source,bash]
 ----
 go get github.com/d7561985/tel/v2@latest
+----
+
+=== collector
+OTEL collector configuration (labels) part of setup, this mean if you not properly setup it - you wouldn't be able to see appropriate result
+
+[source,yaml]
+----
+include::example/demo/otel-collector-config.yaml[]
 ----
 
 == Features

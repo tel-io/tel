@@ -1,5 +1,11 @@
 = Changelog
 
+== v2.0.6
+* remove severity fields
+* remove redundant duplicate
+* new env `DEPLOY_ENVIRONMENT` which expose DeploymentEnvironmentKey semconv
+* collector: prometheus  const_labels: stage, namespace replaced with resources,  loki: service_namespace, deployment_environment
+
 == v2.0.5
 * grafana feature `tracesToLogs`: ref. from trace => logs
 * resources: add `service` which duplicate `ServiceNameKey` from semconv. We can't rid of `ServiceNameKey` because of `tempo` search feature. Furthermore `tracesToLogs` uses  `Loki`  labels which not support dot. That's why we can use simple `service` label and that's why we use for now `service` as label for loki.
