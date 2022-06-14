@@ -45,6 +45,7 @@ func CreateRes(ctx context.Context, l Config) *resource.Resource {
 			semconv.ServiceNamespaceKey.String(l.Namespace),
 			// key: service.version
 			semconv.ServiceVersionKey.String(l.Version),
+			semconv.DeploymentEnvironmentKey.String(l.Environment),
 			semconv.ServiceInstanceIDKey.String(instanceGenerator(l.Service)),
 		),
 	)

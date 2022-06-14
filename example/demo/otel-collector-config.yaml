@@ -10,8 +10,6 @@ exporters:
     endpoint: "0.0.0.0:8889"
     const_labels:
       license: LICENSE # com, ru, ua, by, uk ....
-      stage: dev # dev, stage, prod
-      namespace: "product"
     resource_to_telemetry_conversion:
       enabled: true
   logging:
@@ -35,13 +33,19 @@ exporters:
       # ResourceAttributes are the resource attributes that are allowed to be added as labels on a log stream.
       #  Label names must match ^[a-zA-Z_][a-zA-Z0-9_]*$
       resource:
-        project: ""
-        # todo: check if semconv translate dot to underscore!!!
-        # semconv not translate dots. right now we use hack, and all resources we cast to underscore
-        service: ""
+        "service.namespace": "namespace" # without loki hack
+        service_namespace: "namespace" #
+        "deployment.environment": "deployment_environment"
+        "deployment_environment": "deployment_environment"
+        service: ""                            # tracesToLogs feature
       # Attributes are the log record attributes that are allowed to be added as labels on a log stream.
       attributes:
         level: ""
+#      record:
+#        traceID: "traceID"
+#        spanID: "spanID"
+#        severity: "severity"
+#        severityN: "severityN"
 # flog required attibutes for container
 #        container_name: ""
 #        source: ""

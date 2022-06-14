@@ -13,10 +13,11 @@ const (
 	//
 	envServiceName = "OTEL_SERVICE_NAME"
 
-	envNamespace = "NAMESPACE"
-	envVersion   = "VERSION"
-	envLogLevel  = "LOG_LEVEL"
-	envLogEncode = "LOG_ENCODE"
+	envNamespace         = "NAMESPACE"
+	envDeployEnvironment = "DEPLOY_ENVIRONMENT"
+	envVersion           = "VERSION"
+	envLogLevel          = "LOG_LEVEL"
+	envLogEncode         = "LOG_ENCODE"
 
 	envDebug      = "DEBUG"
 	envMonEnable  = "MONITOR_ENABLE"
@@ -41,10 +42,11 @@ type MonitorConfig struct {
 }
 
 type Config struct {
-	Service   string `env:"OTEL_SERVICE_NAME"`
-	Namespace string `env:"NAMESPACE"`
-	Version   string `env:"VERSION"`
-	LogLevel  string `env:"LOG_LEVEL" envDefault:"info"`
+	Service     string `env:"OTEL_SERVICE_NAME"`
+	Namespace   string `env:"NAMESPACE"`
+	Environment string `env:"DEPLOY_ENVIRONMENT"`
+	Version     string `env:"VERSION"`
+	LogLevel    string `env:"LOG_LEVEL" envDefault:"info"`
 	// Valid values are "json", "console" or "none"
 	LogEncode string `env:"LOG_ENCODE" envDefault:"json"`
 	Debug     bool   `env:"DEBUG" envDefault:"false"`
@@ -58,11 +60,12 @@ func DefaultConfig() Config {
 	host = strings.ToLower(strings.ReplaceAll(host, "-", "_"))
 
 	return Config{
-		Service:   host,
-		Version:   "dev",
-		Namespace: "default",
-		LogEncode: "json",
-		LogLevel:  "info",
+		Service:     host,
+		Version:     "dev",
+		Namespace:   "default",
+		Environment: "dev",
+		LogEncode:   "json",
+		LogLevel:    "info",
 		MonitorConfig: MonitorConfig{
 			Enable:      true,
 			MonitorAddr: "0.0.0.0:8011",
@@ -96,6 +99,7 @@ func GetConfigFromEnv() Config {
 
 	str(envVersion, &c.Version)
 	str(envNamespace, &c.Namespace)
+	str(envDeployEnvironment, &c.Environment)
 	str(envLogLevel, &c.LogLevel)
 	str(envLogEncode, &c.LogEncode)
 

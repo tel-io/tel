@@ -16,9 +16,9 @@ func Trans(res *resource.Resource, in []logskd.Log) *tracepb.ResourceLogs {
 
 	for _, log := range in {
 		v := &tracepb.LogRecord{
-			TimeUnixNano:   log.Time(),
-			SeverityNumber: log.Severity(),
-			SeverityText:   log.Severity().String(),
+			TimeUnixNano: log.Time(),
+			//SeverityNumber: log.Severity(),
+			//SeverityText:   log.Severity().String(),
 			//Name:           log.Name(),
 			Body: &v1.AnyValue{Value: &v1.AnyValue_StringValue{
 				StringValue: log.Body(),
@@ -59,9 +59,10 @@ func Trans(res *resource.Resource, in []logskd.Log) *tracepb.ResourceLogs {
 		SchemaUrl: semconv.SchemaURL,
 		Resource:  r,
 		ScopeLogs: []*tracepb.ScopeLogs{{LogRecords: ss}},
+		//ToDo: remove after migrate to opentelemetry-collector-contrib:0.52
 		//nolint: staticcheck
-		InstrumentationLibraryLogs: []*tracepb.InstrumentationLibraryLogs{{
-			LogRecords: ss,
-		}},
+		//InstrumentationLibraryLogs: []*tracepb.InstrumentationLibraryLogs{{
+		//	LogRecords: ss,
+		//}},
 	}
 }

@@ -93,13 +93,15 @@ go get github.com/d7561985/tel/v2@latest
 .OTEL_SERVICE_NAME
 service name
 
-.PROJECT
-obsolete but mean the same as `OTEL_SERVICE_NAME`
-
 `type`: string
 
 .NAMESPACE
 project namespace
+
+`type`: string
+
+.DEPLOY_ENVIRONMENT
+ENUM: dev, stage, prod
 
 `type`: string
 
