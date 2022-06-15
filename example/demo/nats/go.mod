@@ -62,7 +62,7 @@ require (
 
 require (
 	github.com/d7561985/tel/middleware/natsmw/v2 v2.0.4-0.20220606134059-0d84c15ba3e1
-	github.com/d7561985/tel/v2 v2.0.4-0.20220606134059-0d84c15ba3e1
+	github.com/d7561985/tel/v2 v2.0.6
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/nats-io/nats-server/v2 v2.8.4 // indirect
 	github.com/nats-io/nkeys v0.3.0 // indirect

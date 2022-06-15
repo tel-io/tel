@@ -11,6 +11,8 @@ import (
 	"github.com/d7561985/tel/v2"
 	health "github.com/d7561985/tel/v2/monitoring/heallth"
 	"github.com/nats-io/nats.go"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 var addr = "nats://127.0.0.1:4222"
