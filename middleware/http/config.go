@@ -18,11 +18,14 @@ var (
 	}
 )
 
+type PathExtractor func(r *http.Request) string
+
 type config struct {
-	log       *tel.Telemetry
-	hTracker  metrics.HTTPTracker
-	operation string
-	otelOpts  []otelhttp.Option
+	log           *tel.Telemetry
+	hTracker      metrics.HTTPTracker
+	operation     string
+	otelOpts      []otelhttp.Option
+	pathExtractor PathExtractor
 }
 
 // Option interface used for setting optional config properties.
@@ -48,6 +51,7 @@ func newConfig(opts ...Option) *config {
 			otelhttp.WithSpanNameFormatter(DefaultSpanNameFormatter),
 			otelhttp.WithFilter(DefaultFilter),
 		},
+		pathExtractor: DefaultURI,
 	}
 
 	for _, opt := range opts {
@@ -79,4 +83,14 @@ func WithOtelOpts(opts ...otelhttp.Option) Option {
 	return optionFunc(func(c *config) {
 		c.otelOpts = opts
 	})
+}
+
+func WithPathExtractor(in PathExtractor) Option {
+	return optionFunc(func(c *config) {
+		c.pathExtractor = in
+	})
+}
+
+func DefaultURI(r *http.Request) string {
+	return r.URL.RequestURI()
 }

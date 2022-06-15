@@ -71,7 +71,7 @@ func ServerMiddleware(opts ...Option) func(next http.Handler) http.Handler {
 				// inject additional metrics fields: otelhttp.NewHandler
 				if lableler, ok := otelhttp.LabelerFromContext(ctx); ok {
 					lableler.Add(attribute.String("method", r.Method))
-					lableler.Add(attribute.String("url", r.URL.RequestURI()))
+					lableler.Add(attribute.String("url", s.pathExtractor(r)))
 					lableler.Add(attribute.String("status", http.StatusText(w.Status)))
 					lableler.Add(attribute.Int("code", w.Status))
 				}
@@ -82,7 +82,7 @@ func ServerMiddleware(opts ...Option) func(next http.Handler) http.Handler {
 					tel.String("user-agent", r.UserAgent()),
 					tel.Any("req_header", r.Header),
 					tel.String("ip", r.RemoteAddr),
-					tel.String("path", r.URL.RequestURI()),
+					tel.String("url", s.pathExtractor(r)),
 					tel.String("status_code", http.StatusText(w.Status)),
 					tel.String("request", string(reqBody)),
 				)
