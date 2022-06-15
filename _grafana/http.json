@@ -72,7 +72,7 @@
   "gnetId": 9186,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1655207930396,
+  "iteration": 1655290302694,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -204,7 +204,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "sum(rate(runtime_uptime{service_namespace=\"$NS\"}[1m])) by ( namespace, service, service_version)",
+          "expr": "sum(rate(system_cpu_time{service_namespace=\"$NS\"}[1m])) by ( service_namespace, service, service_version)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1782,12 +1782,12 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "(sum(increase(http_server_duration_sum{service=\"$service\", service_namespace=\"$NS\"}[$interval])) by (url)\n/ sum(increase(http_server_duration_count{service=\"$service\", service_namespace=\"$NS\"}[$interval])) by (url)) >= 0",
+          "expr": "(sum(increase(http_server_duration_sum{service=\"$service\", service_namespace=\"$NS\"}[$interval])) by (status)\n/ sum(increase(http_server_duration_count{service=\"$service\", service_namespace=\"$NS\"}[$interval])) by (status)) >= 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{url}}",
+          "legendFormat": "{{status}}",
           "refId": "A"
         }
       ],
@@ -2366,7 +2366,7 @@
       "type": "timeseries"
     }
   ],
-  "refresh": "",
+  "refresh": "5s",
   "schemaVersion": 35,
   "style": "dark",
   "tags": [],
@@ -2516,7 +2516,7 @@
           "type": "prometheus",
           "uid": "${DS_PROMETHEUS}"
         },
-        "definition": "label_values(runtime_uptime{}, service_namespace)",
+        "definition": "label_values(http_server_duration_count{}, service_namespace)",
         "hide": 0,
         "includeAll": false,
         "label": "namespace",
@@ -2524,7 +2524,7 @@
         "name": "NS",
         "options": [],
         "query": {
-          "query": "label_values(runtime_uptime{}, service_namespace)",
+          "query": "label_values(http_server_duration_count{}, service_namespace)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -2564,14 +2564,14 @@
           "type": "prometheus",
           "uid": "${DS_PROMETHEUS}"
         },
-        "definition": "label_values(runtime_uptime{service_namespace=\"$NS\"}, deployment_environment)",
+        "definition": "label_values(http_server_duration_count{service_namespace=\"$NS\"}, deployment_environment)",
         "hide": 0,
         "includeAll": false,
         "multi": false,
         "name": "stage",
         "options": [],
         "query": {
-          "query": "label_values(runtime_uptime{service_namespace=\"$NS\"}, deployment_environment)",
+          "query": "label_values(http_server_duration_count{service_namespace=\"$NS\"}, deployment_environment)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,

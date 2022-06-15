@@ -15,7 +15,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "8.4.4"
+      "version": "8.3.3"
     },
     {
       "type": "panel",
@@ -33,6 +33,12 @@
       "type": "panel",
       "id": "stat",
       "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "Table",
       "version": ""
     },
     {
@@ -66,197 +72,24 @@
   "gnetId": 9186,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1655208463624,
+  "iteration": 1655233255735,
   "links": [],
   "liveNow": false,
   "panels": [
     {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      },
-      "id": 22,
-      "panels": [],
-      "title": "Global",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "custom": {
+            "align": "left",
+            "displayMode": "auto",
+            "filterable": false
+          },
+          "decimals": 2,
+          "displayName": "",
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#d44a3a",
-                "value": null
-              },
-              {
-                "color": "rgba(237, 129, 40, 0.89)",
-                "value": 0.1
-              },
-              {
-                "color": "#299c46",
-                "value": 0.9
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 8,
-        "x": 0,
-        "y": 1
-      },
-      "id": 15,
-      "links": [],
-      "maxDataPoints": 100,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "mean"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.4",
-      "repeatDirection": "h",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "exemplar": false,
-          "expr": "min_over_time(runtime_uptime{service_namespace=\"$NS\", deployment_environment=\"$stage\", service=\"$service\"}[15s]) /1000",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Up",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#299c46",
-                "value": null
-              },
-              {
-                "color": "rgba(237, 129, 40, 0.89)",
-                "value": 95
-              },
-              {
-                "color": "#d44a3a",
-                "value": 99
-              }
-            ]
-          },
-          "unit": "percentunit"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 8,
-        "x": 8,
-        "y": 1
-      },
-      "id": 12,
-      "links": [],
-      "maxDataPoints": 100,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "mean"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.4",
-      "repeatDirection": "h",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "exemplar": false,
-          "expr": "(sum(rate(grpc_server_handled_total{service=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"OK\"}[$__interval])) OR on() vector(0) + \nsum(rate(grpc_server_handled_total{service=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"NotFound\"}[$__interval])) OR on() vector(0) + \nsum(rate(grpc_server_handled_total{service=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"PermissionDenied\"}[$__interval])) OR on() vector(0) + \nsum(rate(grpc_server_handled_total{service=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"InvalidArgument\"}[$__interval])) OR on() vector(0))\n/ \nsum(rate(grpc_server_handled_total{service=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\"}[$__interval]))",
-          "format": "time_series",
-          "instant": true,
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Global Success Rate",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "rgb(31, 120, 193)",
-            "mode": "fixed"
-          },
-          "mappings": [
-            {
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "N/A"
-                }
-              },
-              "type": "special"
-            }
-          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -270,57 +103,392 @@
               }
             ]
           },
-          "unit": "ops"
+          "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "namespace"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align",
+                "value": "left"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bool_on_off"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "version"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
-        "h": 5,
-        "w": 8,
-        "x": 16,
-        "y": 1
+        "h": 6,
+        "w": 9,
+        "x": 0,
+        "y": 0
       },
-      "id": 14,
+      "id": 60,
       "links": [],
-      "maxDataPoints": 100,
       "options": {
-        "colorMode": "none",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "mean"
-          ],
+        "footer": {
           "fields": "",
-          "values": false
+          "reducer": [
+            "sum"
+          ],
+          "show": false
         },
-        "textMode": "auto"
+        "showHeader": true
       },
-      "pluginVersion": "8.4.4",
+      "pluginVersion": "8.3.3",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "exemplar": true,
-          "expr": "sum(irate(grpc_server_started_total{service_name=\"$service\", service_namespace=\"$NS\"}[$__interval]))",
-          "format": "time_series",
+          "exemplar": false,
+          "expr": "sum(rate(runtime_uptime{service_namespace=\"$NS\"}[1m])) by ( namespace, service, service_version)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
           "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "title": "QPS",
-      "type": "stat"
+      "title": "Services versions",
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {
+            "reducers": []
+          }
+        }
+      ],
+      "type": "table"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "left",
+            "displayMode": "color-background",
+            "filterable": false
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            },
+            {
+              "options": {
+                "match": "true",
+                "result": {
+                  "color": "green",
+                  "index": 1,
+                  "text": "UP"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "instance"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "job"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "service_version"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": false
+              },
+              {
+                "id": "displayName",
+                "value": "version"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "uptime"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "host_name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "host"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "custom.hidden",
+                "value": false
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "license"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "service_name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "service"
+              },
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "service_namespace"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "time"
+              },
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "exported_job"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              },
+              {
+                "id": "custom.minWidth"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "service_instance_id"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "instance id"
+              }
+            ]
+          }
+        ]
       },
+      "gridPos": {
+        "h": 6,
+        "w": 15,
+        "x": 9,
+        "y": 0
+      },
+      "id": 64,
+      "maxPerRow": 4,
+      "options": {
+        "footer": {
+          "fields": [],
+          "reducer": [
+            "allValues"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "exported_instance"
+          }
+        ]
+      },
+      "pluginVersion": "8.3.3",
+      "repeat": "license",
+      "repeatDirection": "v",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": false,
+          "expr": "max_over_time(runtime_uptime{service_namespace=\"$NS\",deployment_environment=\"$stage\"}[30s])",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Status",
+      "transformations": [],
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "id": 22,
+      "panels": [],
+      "title": "Global",
+      "type": "row"
+    },
+    {
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -378,9 +546,9 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 6
+        "y": 7
       },
-      "id": 36,
+      "id": 66,
       "links": [],
       "options": {
         "legend": {
@@ -401,7 +569,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(process_cpu_time{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}[ $__interval])) by(state,service_instance_id)",
+          "expr": "sum(rate(process_cpu_time{service_namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"}[ $__interval])) by(state,service_instance_id)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -417,10 +585,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
       "editable": true,
       "error": false,
       "fieldConfig": {
@@ -436,10 +600,10 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 6
+        "y": 7
       },
       "hiddenSeries": false,
-      "id": 32,
+      "id": 68,
       "isNew": true,
       "legend": {
         "avg": false,
@@ -458,7 +622,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.4.4",
+      "pluginVersion": "8.3.3",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -520,10 +684,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
       "editable": true,
       "error": false,
       "fieldConfig": {
@@ -540,10 +700,10 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 6
+        "y": 7
       },
       "hiddenSeries": false,
-      "id": 30,
+      "id": 70,
       "isNew": true,
       "legend": {
         "avg": false,
@@ -562,7 +722,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.4.4",
+      "pluginVersion": "8.3.3",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -619,10 +779,6 @@
       }
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -693,9 +849,9 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 13
+        "y": 14
       },
-      "id": 28,
+      "id": 72,
       "links": [],
       "options": {
         "legend": {
@@ -744,7 +900,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "$cluster"
+            "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
           "expr": "sum(process_runtime_go_mem_heap_inuse{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}) by (service_instance_id)",
@@ -756,7 +912,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "$cluster"
+            "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
           "expr": "sum(system_memory_usage{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}) by (state, service_instance_id)",
@@ -774,10 +930,6 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
       "editable": true,
       "error": false,
       "fieldConfig": {
@@ -793,10 +945,10 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 13
+        "y": 14
       },
       "hiddenSeries": false,
-      "id": 34,
+      "id": 74,
       "isNew": true,
       "legend": {
         "avg": false,
@@ -815,7 +967,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.4.4",
+      "pluginVersion": "8.3.3",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -984,9 +1136,9 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 13
+        "y": 14
       },
-      "id": 71,
+      "id": 76,
       "options": {
         "legend": {
           "calcs": [],
@@ -1037,19 +1189,517 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 21
       },
       "id": 20,
       "panels": [],
       "repeat": "grpc_service",
-      "title": "gRPC server requests",
+      "title": "Consumer",
       "type": "row"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "custom.filterable",
+                "value": false
+              },
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Requests"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Avg. Response Time"
+              },
+              {
+                "id": "unit",
+                "value": "ms"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "nats_subject"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "NATS Subject"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #C"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Error Rate"
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "custom.align"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
+                    },
+                    {
+                      "color": "rgba(237, 129, 40, 0.89)",
+                      "value": 0.5
+                    },
+                    {
+                      "color": "rgba(245, 54, 54, 0.9)",
+                      "value": 0.9
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
       },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 22
+      },
+      "id": 86,
+      "links": [],
+      "options": {
+        "footer": {
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "8.3.3",
+      "repeatDirection": "h",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": false,
+          "expr": "sum(increase(nats_consumer_duration_count{service=\"$service\"}[$__range])) by ( nats_subject) > 0",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": false,
+          "expr": "sum(increase(nats_consumer_duration_sum{service=\"$service\"}[$__range])) by (nats_subject) \n/ sum(increase(nats_consumer_duration_count{service=\"$service\"}[$__range])) by (nats_subject) > 0",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": false,
+          "expr": "(sum(increase(nats_consumer_duration_count{nats_code!~\"(1|2|3)\\\\d\\\\d\",service=\"$service\"}[$__range])) by (nats_subject) \n/ sum(increase(nats_consumer_duration_count{service=\"$service\"}[$__range])) by (nats_subject)) >= 0\nor (sum(increase(nats_consumer_duration_count{service=\"$service\"}[$__range])) by (nats_subject) > 0) * 0",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "C"
+        }
+      ],
+      "title": "Incoming Requests",
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {
+            "reducers": []
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "links": [],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 12,
+        "y": 22
+      },
+      "id": 88,
+      "links": [],
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "hidden",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "8.4.4",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": true,
+          "expr": "(sum(increase(nats_consumer_duration_sum{service=\"$service\", service_namespace=\"$NS\"}[$interval])) by (nats_subject)\n/ sum(increase(nats_consumer_duration_count{service=\"$service\", service_namespace=\"$NS\"}[$interval])) by (nats_subject)) >= 0",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{url}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Incoming Avg. Response Time",
+      "type": "timeseries"
+    },
+    {
+      "description": "Incoming HTTP Requests per second for the selected endpoints and applications",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "rgb(31, 120, 193)",
+            "mode": "fixed"
+          },
+          "decimals": 2,
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 2,
+        "x": 20,
+        "y": 22
+      },
+      "hideTimeOverride": true,
+      "id": 90,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.3.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": true,
+          "expr": "sum(rate(nats_consumer_duration_count{service=\"$service\",service_namespace=\"$NS\"}[$interval]))",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "timeShift": "15s",
+      "title": "In Req / Sec",
+      "type": "stat"
+    },
+    {
+      "description": "The error rate of incoming http requests for the selected endpoints and applications",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              },
+              {
+                "color": "rgba(237, 129, 40, 0.89)",
+                "value": 0.01
+              },
+              {
+                "color": "#d44a3a",
+                "value": 0.1
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 2,
+        "x": 22,
+        "y": 22
+      },
+      "hideTimeOverride": true,
+      "id": 92,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.3.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": false,
+          "expr": "(sum(increase(nats_consumer_duration_count{nats_code!~\"(1|2|3)\\\\d\\\\d\",service=\"$service\"}[$__range]))\n/ sum(increase(nats_consumer_duration_count{service=\"$service\"}[$__range])) >= 0)\nor (sum(increase(nats_consumer_duration_count{service=\"$service\"}[$__range])) > 0) * 0",
+          "format": "time_series",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "timeShift": "15s",
+      "title": "In Error Rate",
+      "type": "stat"
+    },
+    {
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1104,10 +1754,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 12,
         "x": 0,
-        "y": 21
+        "y": 28
       },
       "id": 26,
       "links": [],
@@ -1132,95 +1782,66 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(grpc_server_handled_total{service_name=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\"}[$__interval])) by (grpc_code)",
+          "expr": "(sum(increase(nats_consumer_duration_sum{service=\"$service\", service_namespace=\"$NS\"}[$interval])) by (nats_code)\n/ sum(increase(nats_consumer_duration_count{service=\"$service\", service_namespace=\"$NS\"}[$interval])) by (nats_code)) >= 0",
           "format": "time_series",
+          "instant": false,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{grpc_code}}",
+          "legendFormat": "{{nats_code}}",
           "refId": "A"
         }
       ],
-      "title": "gRPC request code",
+      "title": "Status Code",
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "links": [],
-          "mappings": [],
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "short"
+          "links": []
         },
         "overrides": []
       },
+      "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 12,
         "x": 12,
-        "y": 21
+        "y": 28
       },
+      "hiddenSeries": false,
       "id": 2,
-      "links": [],
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "table",
-          "placement": "right"
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "total": false,
+        "values": false
       },
-      "pluginVersion": "8.4.4",
+      "lines": true,
+      "linewidth": 2,
+      "links": [],
+      "nullPointMode": "connected",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "8.3.3",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
       "targets": [
         {
           "datasource": {
@@ -1228,22 +1849,46 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(irate(grpc_server_started_total{service_name=\"$service\", service_namespace=\"$NS\"}[$__interval])) by (grpc_method)",
+          "expr": "sum(irate(nats_consumer_duration_count{service=\"$service\", service_namespace=\"$NS\"}[$interval])) by (nats_subject)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{grpc_method}}",
+          "legendFormat": "{{url}}",
           "refId": "A"
         }
       ],
+      "thresholds": [],
+      "timeRegions": [],
       "title": "QPS",
-      "type": "timeseries"
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "logBase": 1,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "ops",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1298,10 +1943,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 24,
+        "h": 7,
+        "w": 12,
         "x": 0,
-        "y": 29
+        "y": 35
       },
       "id": 16,
       "links": [],
@@ -1324,11 +1969,11 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "avg(rate(grpc_server_handling_seconds_sum{service_name=\"$service\", service_namespace=\"$NS\",grpc_type=\"unary\"}[$__interval])) by (grpc_method) * 1000",
+          "expr": "avg(rate(nats_consumer_duration_sum{service=\"$service\", service_namespace=\"$NS\"}[$interval])) by (nats_subject)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{grpc_method}}",
+          "legendFormat": "{{nats_subject}}",
           "refId": "A"
         }
       ],
@@ -1336,106 +1981,6 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "links": [],
-          "mappings": [],
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 37
-      },
-      "id": 4,
-      "links": [],
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "table",
-          "placement": "right"
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "8.4.4",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "exemplar": true,
-          "expr": "sum(rate(grpc_server_handled_total{service_name=\"$service\", service_namespace=\"$NS\", grpc_code!=\"OK\"}[$__interval])) by (grpc_method)",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{grpc_method}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Request error rate",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1490,10 +2035,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
+        "h": 7,
         "w": 12,
         "x": 12,
-        "y": 37
+        "y": 35
       },
       "id": 6,
       "links": [],
@@ -1516,11 +2061,11 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(grpc_server_handled_total{service_name=\"$service\", service_namespace=\"$NS\", grpc_code!=\"OK\"}[$__interval])) by (grpc_method)\n/ \nsum(rate(grpc_server_started_total{service_name=\"$service\", service_namespace=\"$NS\"}[$__interval])) by (grpc_method)",
+          "expr": "sum(rate(nats_consumer_duration_count{service=\"$service\", service_namespace=\"$NS\", nats_code!~\"^[2-4]..$\"}[$interval])) by (nats_subject)\n/ \nsum(rate(nats_consumer_duration_count{service=\"$service\", service_namespace=\"$NS\"}[$interval])) by (nats_subject)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{grpc_method}}",
+          "legendFormat": "{{url}}",
           "refId": "A"
         }
       ],
@@ -1528,10 +2073,6 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1556,7 +2097,7 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true,
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -1567,7 +2108,6 @@
           },
           "links": [],
           "mappings": [],
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1581,21 +2121,25 @@
               }
             ]
           },
-          "unit": "s"
+          "unit": "ms"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
+        "h": 7,
         "w": 12,
         "x": 0,
-        "y": 46
+        "y": 42
       },
       "id": 8,
       "links": [],
       "options": {
         "legend": {
-          "calcs": [],
+          "calcs": [
+            "mean",
+            "max",
+            "min"
+          ],
           "displayMode": "table",
           "placement": "right"
         },
@@ -1612,96 +2156,67 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "histogram_quantile(0.99, \n  sum(rate(grpc_server_handling_seconds_bucket{service_name=\"$service\", service_namespace=\"$NS\"}[$__interval])) by (grpc_method,le)\n)",
+          "expr": "histogram_quantile($quantile,\nsum(rate(nats_consumer_duration_bucket{service=\"$service\", service_namespace=\"$NS\"}[1m])) by (nats_subject,le)\n)",
           "format": "time_series",
+          "instant": false,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{grpc_method}}",
+          "legendFormat": "{{nats_subject}}",
           "refId": "A"
         }
       ],
-      "title": "99%-tile latency of requests",
+      "title": "[[quantile]]-quantile latency of requests",
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "links": [],
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "percent"
+          "links": []
         },
         "overrides": []
       },
+      "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
-        "h": 9,
+        "h": 7,
         "w": 12,
         "x": 12,
-        "y": 46
+        "y": 42
       },
-      "id": 10,
+      "hiddenSeries": false,
+      "id": 4,
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": false,
+        "hideZero": false,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
       "links": [],
+      "nullPointMode": "null",
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "table",
-          "placement": "right"
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
+        "alertThreshold": true
       },
-      "pluginVersion": "8.4.4",
+      "percentage": false,
+      "pluginVersion": "8.3.3",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
       "targets": [
         {
           "datasource": {
@@ -1709,35 +2224,46 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "100.0 - (\nsum(rate(grpc_server_handling_seconds_bucket{service_name=\"$service\", service_namespace=\"$NS\",le=\"$le\"}[$__interval])) by (grpc_method)\n / \nsum(rate(grpc_server_handling_seconds_count{service_name=\"$service\", service_namespace=\"$NS\"}[$__interval])) by (grpc_method)\n) * 100.0",
+          "expr": "sum(rate(nats_consumer_duration_count{service=\"$service\", service_namespace=\"$NS\", nats_code!~\"^[2-4]..$\"}[$interval])) by (nats_subject)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{grpc_method}}",
+          "legendFormat": "{{code}}",
           "refId": "A"
         }
       ],
-      "title": "Percentage of slow queries",
-      "type": "timeseries"
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Request error rate",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "none",
+          "logBase": 1,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "Bps",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
     },
     {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 55
-      },
-      "id": 40,
-      "panels": [],
-      "title": "gRPC client requests",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1749,7 +2275,7 @@
             "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 10,
-            "gradientMode": "none",
+            "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -1761,7 +2287,7 @@
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "never",
+            "showPoints": "auto",
             "spanNulls": true,
             "stacking": {
               "group": "A",
@@ -1771,9 +2297,7 @@
               "mode": "off"
             }
           },
-          "links": [],
           "mappings": [],
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1787,222 +2311,32 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "binBps"
         },
         "overrides": []
       },
       "gridPos": {
         "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 56
-      },
-      "id": 64,
-      "links": [],
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "table",
-          "placement": "right"
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "8.4.4",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "exemplar": true,
-          "expr": "sum(rate(grpc_client_msg_sent_total{service_name=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\"}[$__interval])) by (grpc_service,grpc_method)",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{ grpc_service }} | {{grpc_method}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Requests sent",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "links": [],
-          "mappings": [],
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 64
-      },
-      "id": 62,
-      "links": [],
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "table",
-          "placement": "right"
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "8.4.4",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "exemplar": true,
-          "expr": "sum(rate(grpc_client_handled_total{service_name=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"OK\"}[$__interval])) by (grpc_service,grpc_method)",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{ grpc_service }} | {{grpc_method}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Responses (OK)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "links": [],
-          "mappings": [],
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
         "w": 12,
         "x": 0,
-        "y": 72
+        "y": 49
       },
-      "id": 63,
-      "links": [],
+      "id": 84,
       "options": {
         "legend": {
-          "calcs": [],
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "max"
+          ],
           "displayMode": "list",
           "placement": "bottom"
         },
         "tooltip": {
-          "mode": "multi",
+          "mode": "single",
           "sort": "none"
         }
       },
-      "pluginVersion": "8.4.4",
       "targets": [
         {
           "datasource": {
@@ -2010,699 +2344,30 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(grpc_client_handled_total{service_name=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\", grpc_code!=\"OK\"}[$__interval])) by (grpc_code,grpc_service,grpc_method)",
-          "format": "time_series",
+          "expr": "sum(irate((nats_consumer_response_content_length{}[$interval])))",
           "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{grpc_code }} | {{ grpc_service }} | {{grpc_method}}",
+          "legendFormat": "response",
           "refId": "A"
-        }
-      ],
-      "title": "Responses (not OK)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "links": [],
-          "mappings": [],
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "short"
         },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 72
-      },
-      "id": 66,
-      "links": [],
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "8.4.4",
-      "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(grpc_client_started_total{service_name=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\"}[$__interval])) by (grpc_service, grpc_method) - \nsum(rate(grpc_client_handled_total{service_name=\"$service\", service_namespace=\"$NS\", grpc_type=\"unary\"}[$__interval])) by (grpc_service, grpc_method)",
-          "format": "time_series",
+          "expr": "sum(irate((nats_consumer_request_content_length{}[$interval])))",
+          "hide": false,
           "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{ grpc_service }} | {{grpc_method }}",
-          "refId": "A"
+          "legendFormat": "request",
+          "refId": "B"
         }
       ],
-      "title": "Not handled requests",
+      "title": "Throughput",
       "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "links": [],
-          "mappings": [],
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 81
-      },
-      "id": 65,
-      "links": [],
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "8.4.4",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "exemplar": true,
-          "expr": "histogram_quantile(0.90, \n  sum(rate(grpc_client_handling_seconds_bucket{service_name=\"$service\", service_namespace=\"$NS\"}[$__interval])) by (grpc_method,le)\n)",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{grpc_method }}",
-          "refId": "A"
-        }
-      ],
-      "title": "90%-tile latency of requests",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$cluster"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "links": [],
-          "mappings": [],
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 81
-      },
-      "id": 69,
-      "links": [],
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "8.4.4",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "exemplar": true,
-          "expr": "histogram_quantile(0.99, \n  sum(rate(grpc_client_handling_seconds_bucket{service_name=\"$service\", service_namespace=\"$NS\"}[$__interval])) by (grpc_method,le)\n)",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{grpc_method }}",
-          "refId": "A"
-        }
-      ],
-      "title": "99%-tile latency of requests",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": true,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 90
-      },
-      "id": 42,
-      "panels": [
-        {
-          "datasource": {
-            "uid": "$cluster"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 10,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": true,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "links": [],
-              "mappings": [],
-              "min": 0,
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "none"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 24,
-            "x": 0,
-            "y": 91
-          },
-          "id": 52,
-          "links": [],
-          "options": {
-            "legend": {
-              "calcs": [
-                "mean",
-                "max",
-                "min"
-              ],
-              "displayMode": "table",
-              "placement": "right"
-            },
-            "tooltip": {
-              "mode": "multi",
-              "sort": "none"
-            }
-          },
-          "pluginVersion": "8.4.4",
-          "targets": [
-            {
-              "expr": "db_open_connections{namespace=\"$NS\", service_name=\"$service\"}",
-              "format": "time_series",
-              "intervalFactor": 1,
-              "legendFormat": "opened | {{ driver }} | {{ kubernetes_pod_name }}",
-              "refId": "A"
-            },
-            {
-              "expr": "db_inuse{namespace=\"$NS\", service_name=\"$service\"}",
-              "format": "time_series",
-              "intervalFactor": 1,
-              "legendFormat": "used | {{ driver }} | {{ kubernetes_pod_name }}",
-              "refId": "B"
-            },
-            {
-              "expr": "db_idle{namespace=\"$NS\", service_name=\"$service\"}",
-              "format": "time_series",
-              "intervalFactor": 1,
-              "legendFormat": "idle | {{ driver }} | {{ kubernetes_pod_name }}",
-              "refId": "C"
-            }
-          ],
-          "title": "Connections",
-          "type": "timeseries"
-        },
-        {
-          "datasource": {
-            "uid": "$cluster"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 10,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": true,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "links": [],
-              "mappings": [],
-              "min": 0,
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 9,
-            "w": 8,
-            "x": 0,
-            "y": 98
-          },
-          "id": 68,
-          "links": [],
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "multi",
-              "sort": "none"
-            }
-          },
-          "pluginVersion": "8.4.4",
-          "targets": [
-            {
-              "expr": "sum(rate(db_max_idle_closed{namespace=\"$NS\", service_name=\"$service\"}[$__interval])) by (driver)",
-              "format": "time_series",
-              "intervalFactor": 1,
-              "legendFormat": "{{ driver }} (SetMaxIdleConns)",
-              "refId": "A"
-            },
-            {
-              "expr": "sum(rate(db_max_lifetime_closed{namespace=\"$NS\", service_name=\"$service\"}[$__interval])) by (driver)",
-              "format": "time_series",
-              "intervalFactor": 1,
-              "legendFormat": "{{ driver }} (SetConnMaxLifetime)",
-              "refId": "B"
-            }
-          ],
-          "title": "Connections closed",
-          "type": "timeseries"
-        },
-        {
-          "datasource": {
-            "uid": "$cluster"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 10,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": true,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "links": [],
-              "mappings": [],
-              "min": 0,
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 9,
-            "w": 8,
-            "x": 8,
-            "y": 98
-          },
-          "id": 58,
-          "links": [],
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "multi",
-              "sort": "none"
-            }
-          },
-          "pluginVersion": "8.4.4",
-          "targets": [
-            {
-              "expr": "sum(rate(db_wait_count{namespace=\"$NS\", service_name=\"$service\"}[$__interval])) by (driver)",
-              "format": "time_series",
-              "intervalFactor": 1,
-              "legendFormat": "{{ driver }}",
-              "refId": "A"
-            }
-          ],
-          "title": "Connections wait count",
-          "type": "timeseries"
-        },
-        {
-          "datasource": {
-            "uid": "$cluster"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 10,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": true,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "links": [],
-              "mappings": [],
-              "min": 0,
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "s"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 9,
-            "w": 8,
-            "x": 16,
-            "y": 98
-          },
-          "id": 60,
-          "links": [],
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "multi",
-              "sort": "none"
-            }
-          },
-          "pluginVersion": "8.4.4",
-          "targets": [
-            {
-              "expr": "sum(rate(db_wait_duration_seconds{namespace=\"$NS\", service_name=\"$service\"}[$__interval])) by (driver)",
-              "format": "time_series",
-              "intervalFactor": 1,
-              "legendFormat": "{{ driver }}",
-              "refId": "A"
-            }
-          ],
-          "title": "Connections wait time",
-          "type": "timeseries"
-        }
-      ],
-      "title": "Database",
-      "type": "row"
     }
   ],
   "refresh": "5s",
-  "schemaVersion": 35,
+  "schemaVersion": 34,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -2727,35 +2392,20 @@
         "type": "datasource"
       },
       {
-        "current": {
-          "selected": false,
-          "text": "Prometheus",
-          "value": "Prometheus"
-        },
-        "hide": 0,
-        "includeAll": false,
-        "multi": false,
-        "name": "cluster",
-        "options": [],
-        "query": "prometheus",
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "type": "datasource"
-      },
-      {
         "current": {},
         "datasource": {
+          "type": "prometheus",
           "uid": "${DS_PROMETHEUS}"
         },
-        "definition": "label_values(runtime_uptime{}, service_namespace)",
+        "definition": "label_values(nats_consumer_duration_count{}, service_namespace)",
         "hide": 0,
         "includeAll": false,
+        "label": "namespace",
         "multi": false,
         "name": "NS",
         "options": [],
         "query": {
-          "query": "label_values(runtime_uptime{}, service_namespace)",
+          "query": "label_values(nats_consumer_duration_count{}, service_namespace)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -2767,16 +2417,17 @@
       {
         "current": {},
         "datasource": {
-          "uid": "$cluster"
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
         },
-        "definition": "label_values(runtime_uptime{service_namespace=\"$NS\"}, service_name)",
+        "definition": "label_values(nats_consumer_duration_count{service_namespace=\"$NS\"}, service)",
         "hide": 0,
         "includeAll": false,
         "multi": false,
         "name": "service",
         "options": [],
         "query": {
-          "query": "label_values(runtime_uptime{service_namespace=\"$NS\"}, service_name)",
+          "query": "label_values(nats_consumer_duration_count{service_namespace=\"$NS\"}, service)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -2789,26 +2440,78 @@
         "useTags": false
       },
       {
-        "current": {},
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
+        "auto": false,
+        "auto_count": 30,
+        "auto_min": "10s",
+        "current": {
+          "selected": false,
+          "text": "1m",
+          "value": "1m"
         },
-        "definition": "label_values(runtime_uptime{service_namespace=\"$NS\"}, deployment_environment)",
         "hide": 0,
-        "includeAll": false,
-        "multi": false,
-        "name": "stage",
-        "options": [],
-        "query": {
-          "query": "label_values(runtime_uptime{service_namespace=\"$NS\"}, deployment_environment)",
-          "refId": "StandardVariableQuery"
-        },
-        "refresh": 1,
-        "regex": "",
+        "name": "interval",
+        "options": [
+          {
+            "selected": true,
+            "text": "1m",
+            "value": "1m"
+          },
+          {
+            "selected": false,
+            "text": "5m",
+            "value": "5m"
+          },
+          {
+            "selected": false,
+            "text": "10m",
+            "value": "10m"
+          },
+          {
+            "selected": false,
+            "text": "30m",
+            "value": "30m"
+          },
+          {
+            "selected": false,
+            "text": "1h",
+            "value": "1h"
+          },
+          {
+            "selected": false,
+            "text": "6h",
+            "value": "6h"
+          },
+          {
+            "selected": false,
+            "text": "12h",
+            "value": "12h"
+          },
+          {
+            "selected": false,
+            "text": "1d",
+            "value": "1d"
+          },
+          {
+            "selected": false,
+            "text": "7d",
+            "value": "7d"
+          },
+          {
+            "selected": false,
+            "text": "14d",
+            "value": "14d"
+          },
+          {
+            "selected": false,
+            "text": "30d",
+            "value": "30d"
+          }
+        ],
+        "query": "1m,5m,10m,30m,1h,6h,12h,1d,7d,14d,30d",
+        "queryValue": "",
+        "refresh": 2,
         "skipUrlSync": false,
-        "sort": 0,
-        "type": "query"
+        "type": "interval"
       },
       {
         "auto": false,
@@ -2816,42 +2519,12 @@
         "auto_min": "10s",
         "current": {
           "selected": false,
-          "text": "0.25",
-          "value": "0.25"
+          "text": "0.99",
+          "value": "0.99"
         },
         "hide": 0,
-        "name": "le",
+        "name": "quantile",
         "options": [
-          {
-            "selected": false,
-            "text": "0.005",
-            "value": "0.005"
-          },
-          {
-            "selected": false,
-            "text": "0.01",
-            "value": "0.01"
-          },
-          {
-            "selected": false,
-            "text": "0.025",
-            "value": "0.025"
-          },
-          {
-            "selected": false,
-            "text": "0.05",
-            "value": "0.05"
-          },
-          {
-            "selected": false,
-            "text": "0.1",
-            "value": "0.1"
-          },
-          {
-            "selected": true,
-            "text": "0.25",
-            "value": "0.25"
-          },
           {
             "selected": false,
             "text": "0.5",
@@ -2859,39 +2532,58 @@
           },
           {
             "selected": false,
-            "text": "1",
-            "value": "1"
+            "text": "0.9",
+            "value": "0.9"
           },
           {
-            "selected": false,
-            "text": "2.5",
-            "value": "2.5"
-          },
-          {
-            "selected": false,
-            "text": "5",
-            "value": "5"
-          },
-          {
-            "selected": false,
-            "text": "10",
-            "value": "10"
-          },
-          {
-            "selected": false,
-            "text": "+Inf",
-            "value": "+Inf"
+            "selected": true,
+            "text": "0.99",
+            "value": "0.99"
           }
         ],
-        "query": "\"0.005\",\"0.01\",\"0.025\",\"0.05\",\"0.1\",\"0.25\",\"0.5\",\"1\",\"2.5\",\"5\",\"10\",\"+Inf\"",
+        "query": "\"0.5\",\"0.9\",\"0.99\"",
+        "queryValue": "",
         "refresh": 2,
         "skipUrlSync": false,
         "type": "interval"
+      },
+      {
+        "datasource": {
+          "uid": "$cluster"
+        },
+        "filters": [],
+        "hide": 0,
+        "label": "",
+        "name": "Filters",
+        "skipUrlSync": false,
+        "type": "adhoc"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "definition": "label_values(nats_consumer_duration_count{service_namespace=\"$NS\"}, deployment_environment)",
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "stage",
+        "options": [],
+        "query": {
+          "query": "label_values(nats_consumer_duration_count{service_namespace=\"$NS\"}, deployment_environment)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
       }
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {
@@ -2920,8 +2612,8 @@
     ]
   },
   "timezone": "",
-  "title": "OTEL-gRPC",
-  "uid": "ItfLvjEMz",
-  "version": 1,
+  "title": "NATS",
+  "uid": "j7GXrJj7z",
+  "version": 2,
   "weekStart": ""
 }

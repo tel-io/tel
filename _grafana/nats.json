@@ -15,7 +15,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "8.4.4"
+      "version": "8.3.3"
     },
     {
       "type": "panel",
@@ -72,7 +72,7 @@
   "gnetId": 9186,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1655215446023,
+  "iteration": 1655233255735,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -196,7 +196,7 @@
         },
         "showHeader": true
       },
-      "pluginVersion": "8.4.4",
+      "pluginVersion": "8.3.3",
       "targets": [
         {
           "datasource": {
@@ -453,7 +453,7 @@
           }
         ]
       },
-      "pluginVersion": "8.4.4",
+      "pluginVersion": "8.3.3",
       "repeat": "license",
       "repeatDirection": "v",
       "targets": [
@@ -622,7 +622,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.4.4",
+      "pluginVersion": "8.3.3",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -722,7 +722,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.4.4",
+      "pluginVersion": "8.3.3",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -967,7 +967,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.4.4",
+      "pluginVersion": "8.3.3",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1382,7 +1382,7 @@
         },
         "showHeader": true
       },
-      "pluginVersion": "8.4.4",
+      "pluginVersion": "8.3.3",
       "repeatDirection": "h",
       "targets": [
         {
@@ -1593,7 +1593,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.4.4",
+      "pluginVersion": "8.3.3",
       "targets": [
         {
           "datasource": {
@@ -1678,7 +1678,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.4.4",
+      "pluginVersion": "8.3.3",
       "targets": [
         {
           "datasource": {
@@ -1834,7 +1834,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.4.4",
+      "pluginVersion": "8.3.3",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -2209,7 +2209,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "8.4.4",
+      "pluginVersion": "8.3.3",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -2367,7 +2367,7 @@
     }
   ],
   "refresh": "5s",
-  "schemaVersion": 35,
+  "schemaVersion": 34,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -2390,6 +2390,29 @@
         "regex": "",
         "skipUrlSync": false,
         "type": "datasource"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "definition": "label_values(nats_consumer_duration_count{}, service_namespace)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "namespace",
+        "multi": false,
+        "name": "NS",
+        "options": [],
+        "query": {
+          "query": "label_values(nats_consumer_duration_count{}, service_namespace)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
       },
       {
         "current": {},
@@ -2541,37 +2564,14 @@
           "type": "prometheus",
           "uid": "${DS_PROMETHEUS}"
         },
-        "definition": "label_values(runtime_uptime{}, service_namespace)",
-        "hide": 0,
-        "includeAll": false,
-        "label": "namespace",
-        "multi": false,
-        "name": "NS",
-        "options": [],
-        "query": {
-          "query": "label_values(runtime_uptime{}, service_namespace)",
-          "refId": "StandardVariableQuery"
-        },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "type": "query"
-      },
-      {
-        "current": {},
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
-        "definition": "label_values(runtime_uptime{service_namespace=\"$NS\"}, deployment_environment)",
+        "definition": "label_values(nats_consumer_duration_count{service_namespace=\"$NS\"}, deployment_environment)",
         "hide": 0,
         "includeAll": false,
         "multi": false,
         "name": "stage",
         "options": [],
         "query": {
-          "query": "label_values(runtime_uptime{service_namespace=\"$NS\"}, deployment_environment)",
+          "query": "label_values(nats_consumer_duration_count{service_namespace=\"$NS\"}, deployment_environment)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -2614,6 +2614,6 @@
   "timezone": "",
   "title": "NATS",
   "uid": "j7GXrJj7z",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
