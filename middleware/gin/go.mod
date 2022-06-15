@@ -3,7 +3,7 @@ module github.com/d7561985/tel/middleware/gin/v2
 go 1.17
 
 require (
-	github.com/d7561985/tel/v2 v2.0.6
+	github.com/d7561985/tel/v2 v2.0.7-0.20220615144458-0de75316d42f
 	github.com/gin-gonic/gin v1.8.1
 )
 
