@@ -23,17 +23,22 @@ Keep in mind that collector has plugin version https://github.com/open-telemetry
 For instance, you can use `opentelemetry-collector-contrib` as `tel` receiver and route logging data to `Grafana Loki`, trace data to `Grafana Tempo` and metric data to `Prometheus + Grafana ;)`
 
 === Grafana references feature
+
 ==== loki to tempo
-`tel` approach to put `traceID` field with actual trace ID. All our middlewares should do that or developer should do it by himself
+
+`tel` approach to put `traceID` field with actual trace ID.
+All our middlewares should do that or developer should do it by himself
 
 Just call `UpdateTraceFields` before write some logs
 [source,go]
+
 ----
 tel.UpdateTraceFields(ctx)
 ----
 
 understood grafana should setup `derivedFields` for Loki data source
 [source,yaml]
+
 ----
   - name: Loki
     type: loki
@@ -48,10 +53,13 @@ understood grafana should setup `derivedFields` for Loki data source
 ----
 
 ==== tempo to loki
-We match `tempo` with `loki` by `service_name` label. All logs should contain traceID by any key form and `service_name`.
+
+We match `tempo` with `loki` by `service_name` label.
+All logs should contain traceID by any key form and `service_name`.
 In grafana tempo datasource should be configured with `tracesToLogs`
 ==== prometheus to loki
 [source,yaml]
+
 ----
   - name: Tempo
     type: tempo
@@ -76,7 +84,6 @@ In grafana tempo datasource should be configured with `tracesToLogs`
           - service_name
 ----
 
-
 == Install
 
 [source,bash]
@@ -85,6 +92,7 @@ go get github.com/d7561985/tel/v2@latest
 ----
 
 === collector
+
 OTEL collector configuration (labels) part of setup, this mean if you not properly setup it - you wouldn't be able to see appropriate result
 
 [source,yaml]
@@ -167,7 +175,6 @@ Thus offer sub-modules which should be added separately
 
 Already present
 [source,go]
-
 ----
 import(
         "github.com/d7561985/tel/v2/monitoring/metrics"
@@ -181,7 +188,10 @@ import(
 ...
 ----
 
+include::middleware/gin/README.adoc[]
+
 ==== grpc
+
 [source,bash]
 ----
 go get -v github.com/d7561985/tel/middleware/grpc/v2@latest

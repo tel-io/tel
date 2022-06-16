@@ -23,6 +23,7 @@ func ServerMiddlewareAll() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		w := q(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			c.Request = r
 			c.Next()
 		}))
 
