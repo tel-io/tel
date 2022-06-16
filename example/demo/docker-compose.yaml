@@ -2,7 +2,7 @@ version: "3"
 services:
   # To eventually offload to Tempo...
   tempo:
-    image: grafana/tempo:r24-161073a
+    image: grafana/tempo:1.4.1-amd64
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./tempo-local.yaml:/etc/tempo.yaml
