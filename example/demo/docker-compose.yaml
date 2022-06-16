@@ -65,7 +65,7 @@ services:
   grafana:
     container_name: grafana
     platform: linux/amd64
-    image: grafana/grafana:8.4.4
+    image: grafana/grafana:9.0.0
     volumes:
       - ./grafana.ini:/etc/grafana/grafana.ini
       - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
