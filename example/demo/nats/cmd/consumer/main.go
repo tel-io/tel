@@ -17,7 +17,7 @@ import (
 )
 
 var addr = "nats://127.0.0.1:4222"
-var cAddr = "http://127.0.0.1:52608"
+var cAddr = "http://127.0.0.1:54239"
 
 func main() {
 	ccx, cancel := context.WithCancel(context.Background())
