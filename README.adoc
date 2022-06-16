@@ -14,6 +14,90 @@ Ony context all logs.
 
 Decrease external dependencies as match as possible.
 
+== Features
+
+.All-In-One
+Library establish connection via GRPC OTLP protocol with `opentelemetry-collector-contrib` (official OTEL server) and send `logs`, `traces` and `metrics`. Collector by the way distribute them to `Loki`, `Tempo` and `Prometheus` or any other services which you prefer and which collector support.
+Furthermore, we prepared for you working `dashboards` in `./__grafana` folder which created for our `middlewares` for most popular servers and clients.
+
+.Logs
+Our goal to support https://grafana.com/docs/loki/latest/logql/log_queries/#logfmt[logfmt] format for `Loki` viewing. Via simple `zap` library interface.
+
+By the way, you can enrich log attributes which should be written only when whey would really need
+
+[source,go]
+----
+// create copy of ctx which we enrich with log attributes
+cxt := tel.Global().Copy().Ctx()
+
+// pass ctx in controller->store->root layers and enrich information
+err := func (ctx context.Context) error{
+	tel.FromCtx(ctx).PutAttr(extract...)
+	return return fmt.Errorf("some error")
+}(ctx)
+
+// and you write log message only when it really needed
+// with all putted attribute via ctx from ALL layers earlier
+// No need to look previous info/debug messages
+// All needed information in one message with all attributes which you already added, but which would be writen only when you really do call `Error()`, `Info()`, `Debug()` and so on
+//
+// for example: only when you got error
+if err != nil{
+	tel.FromCtx(ctx).Error("error happened", tel.Error(err))
+}
+
+----
+
+.Trace
+Library simplify usage with creating `Spans` of trace
+
+Also, you can send not only logs and also encroach `trace events`
+
+[source,go]
+----
+	span, ctx := tel.StartSpanFromContext(req.Context(), "my trace")
+	defer span.End()
+
+	tel.FromCtx(ctx).Info("this message will be saved both in log and trace",
+		// and this will come to the trace as attribute
+		tel.Int("code", errCode))
+----
+
+.Metrics
+Simplify working with metrics
+[source,go]
+----
+	m := tel.Global().Meter("github.com/MyRepo/MyLib/myInstrumenation")
+
+	requestLatency, err := m.SyncFloat64().Histogram("demo_client.request_latency",
+		instrument.WithDescription("The latency of requests processed"))
+	if err != nil {
+		t.Fatal("metric load error", tel.Error(err))
+	}
+
+    ...
+    start := time.Now()
+    ....
+
+    ms := float64(time.Now().Sub(start).Microseconds())
+
+    requestLatency.Record(ctx, ms,
+        attribute.String("userID", "e64916d9-bfd0-4f79-8ee3-847f2d034d20"),
+        attribute.Int("orderID", 1),
+    )
+----
+
+.Middleware
+* Recovery flow
+* Instantiate new copy of `tel` for further handler
+* Basic metrics with respective dashboard for grafana
+* Trace propagation
+** client part - send (inject) current trace span to the server
+** server part - read (extract) trace and create new trace child one (or absolutly new if no trace info was provided or this info where not properly wrapped via propagator protocol of OTEL specification)
+
+
+
+
 == Logging stack
 
 Logging data exported via `OTEL's` GRPC protocol. `tel` developed to trespass it via https://github.com/open-telemetry/opentelemetry-collector[open-telemetry collector] which should route log data up to any desired log receivers.
@@ -219,6 +303,9 @@ go get -v github.com/d7561985/tel/middleware/echo/v2@latest
 ----
 
 ==== Propagators
+https://opentelemetry.io/docs/reference/specification/context/api-propagators/[specification]
+
+In few words: this is a way how trace propagate between services
 
 .github.com/d7561985/tel/v2/propagators/natsprop
 Just helper which uses any TextMapPropagator (by default globally declared or via WithPropagators option).
