@@ -283,7 +283,6 @@ include::middleware/gin/README.adoc[]
 go get -v github.com/d7561985/tel/middleware/grpc/v2@latest
 ----
 
-and import
 [source,go]
 ----
 import(

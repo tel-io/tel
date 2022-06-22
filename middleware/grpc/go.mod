@@ -5,7 +5,7 @@ go 1.17
 replace github.com/d7561985/tel/v2 => ../../
 
 require (
-	github.com/d7561985/tel/v2 v2.0.4-0.20220603122539-108e0f4542d2
+	github.com/d7561985/tel/v2 v2.0.7-0.20220622101338-2f69979cb5b5
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/stretchr/testify v1.7.1
 	github.com/tel-io/otelgrpc v1.0.2-0.20220605174232-2f9b4153a0a4
@@ -58,7 +58,7 @@ require (
 	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
 	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8 // indirect
-	golang.org/x/text v0.3.5 // indirect
+	golang.org/x/text v0.3.6 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )

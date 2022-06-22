@@ -33,7 +33,7 @@ func UnaryClientInterceptorAll(o ...Option) grpc.UnaryClientInterceptor {
 	otmetr := otelgrpc.NewClientMetrics(c.mOpts...)
 
 	return grpc_middleware.ChainUnaryClient(
-		otracer.UnaryClientInterceptor(),
+		otracer.UnaryClientInterceptor(c.traceOpts...),
 		UnaryClientInterceptor(o...),
 		otmetr.UnaryClientInterceptor(),
 	)
@@ -140,6 +140,26 @@ func UnaryServerInterceptor(o ...Option) grpc.UnaryServerInterceptor {
 
 		return resp, err
 	}
+}
+
+func StreamServerInterceptor(opts ...Option) grpc.ServerOption {
+	c := newConfig(opts...)
+
+	otmetr := otelgrpc.NewServerMetrics(c.metricsOpts...)
+
+	return grpc.ChainStreamInterceptor(
+		otracer.StreamServerInterceptor(c.traceOpts...),
+		otmetr.StreamServerInterceptor())
+}
+
+func StreamClientInterceptor(opts ...Option) grpc.DialOption {
+	c := newConfig(opts...)
+	otmetr := otelgrpc.NewClientMetrics(c.metricsOpts...)
+
+	return grpc.WithChainStreamInterceptor(
+		otmetr.StreamClientInterceptor(),
+		otracer.StreamClientInterceptor(c.traceOpts...),
+	)
 }
 
 func grpcLogHelper(

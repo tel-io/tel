@@ -3,11 +3,15 @@ package grpc
 import (
 	"github.com/d7561985/tel/v2"
 	"github.com/tel-io/otelgrpc"
+	otracer "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 )
 
 type config struct {
-	mOpts []otelgrpc.Option
-	log   *tel.Telemetry
+	mOpts       []otelgrpc.Option
+	traceOpts   []otracer.Option
+	metricsOpts []otelgrpc.Option
+
+	log *tel.Telemetry
 
 	// ignore grpc list
 	ignore []string
@@ -29,7 +33,8 @@ func newConfig(opts ...Option) *config {
 	l := tel.Global()
 
 	c := &config{
-		log: &l,
+		log:         &l,
+		metricsOpts: []otelgrpc.Option{otelgrpc.WithServerHandledHistogram(true)},
 	}
 
 	for _, opt := range opts {
@@ -54,5 +59,17 @@ func WithTel(t *tel.Telemetry) Option {
 func WithIgnoreList(ignore []string) Option {
 	return optionFunc(func(c *config) {
 		c.ignore = append(c.ignore, ignore...)
+	})
+}
+
+func WithTracerOption(opts ...otracer.Option) Option {
+	return optionFunc(func(c *config) {
+		c.traceOpts = opts
+	})
+}
+
+func WithMetricOption(option ...otelgrpc.Option) Option {
+	return optionFunc(func(c *config) {
+		c.metricsOpts = option
 	})
 }
