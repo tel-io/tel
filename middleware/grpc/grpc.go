@@ -142,21 +142,21 @@ func UnaryServerInterceptor(o ...Option) grpc.UnaryServerInterceptor {
 	}
 }
 
-func StreamServerInterceptor(opts ...Option) grpc.ServerOption {
+func StreamServerInterceptor(opts ...Option) grpc.StreamServerInterceptor {
 	c := newConfig(opts...)
 
 	otmetr := otelgrpc.NewServerMetrics(c.metricsOpts...)
 
-	return grpc.ChainStreamInterceptor(
+	return grpc_middleware.ChainStreamServer(
 		otracer.StreamServerInterceptor(c.traceOpts...),
 		otmetr.StreamServerInterceptor())
 }
 
-func StreamClientInterceptor(opts ...Option) grpc.DialOption {
+func StreamClientInterceptor(opts ...Option) grpc.StreamClientInterceptor {
 	c := newConfig(opts...)
 	otmetr := otelgrpc.NewClientMetrics(c.metricsOpts...)
 
-	return grpc.WithChainStreamInterceptor(
+	return grpc_middleware.ChainStreamClient(
 		otmetr.StreamClientInterceptor(),
 		otracer.StreamClientInterceptor(c.traceOpts...),
 	)
