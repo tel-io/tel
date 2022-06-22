@@ -7,10 +7,9 @@ import (
 	"time"
 
 	"github.com/d7561985/tel/v2/pkg/ztrace"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/metric/global"
+	"go.opentelemetry.io/otel/metric/nonrecording"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -29,16 +28,21 @@ type Telemetry struct {
 	trace trace.Tracer
 
 	cfg *Config
+
+	traceProvider  trace.TracerProvider
+	metricProvider metric.MeterProvider
 }
 
 func NewNull() Telemetry {
 	cfg := DefaultDebugConfig()
 
 	return Telemetry{
-		cfg:     &cfg,
-		Monitor: createNilMonitor(),
-		Logger:  zap.NewExample(),
-		trace:   trace.NewNoopTracerProvider().Tracer(instrumentationName),
+		cfg:            &cfg,
+		Monitor:        createNilMonitor(),
+		Logger:         zap.NewExample(),
+		trace:          trace.NewNoopTracerProvider().Tracer(instrumentationName),
+		traceProvider:  trace.NewNoopTracerProvider(),
+		metricProvider: nonrecording.NewNoopMeterProvider(),
 	}
 }
 
@@ -48,10 +52,12 @@ func NewSimple(cfg Config) Telemetry {
 	rand.Seed(time.Now().Unix())
 
 	out := Telemetry{
-		cfg:     &cfg,
-		Monitor: createMonitor(cfg.MonitorAddr, cfg.Debug),
-		Logger:  newLogger(cfg),
-		trace:   trace.NewNoopTracerProvider().Tracer(instrumentationName),
+		cfg:            &cfg,
+		Monitor:        createMonitor(cfg.MonitorAddr, cfg.Debug),
+		Logger:         newLogger(cfg),
+		trace:          trace.NewNoopTracerProvider().Tracer(instrumentationName),
+		traceProvider:  trace.NewNoopTracerProvider(),
+		metricProvider: nonrecording.NewNoopMeterProvider(),
 	}
 
 	SetGlobal(out)
@@ -129,15 +135,25 @@ func (t Telemetry) T() trace.Tracer {
 	return t.trace
 }
 
+// MetricProvider used in constructor creation
+func (t Telemetry) MetricProvider() metric.MeterProvider {
+	return t.metricProvider
+}
+
 // Meter create new metric instance which should be treated as new
 func (t Telemetry) Meter(ins string, opts ...metric.MeterOption) metric.Meter {
-	return global.Meter(ins, opts...)
+	return t.metricProvider.Meter(ins, opts...)
+}
+
+// TracerProvider used in constructor creation
+func (t Telemetry) TracerProvider() trace.TracerProvider {
+	return t.traceProvider
 }
 
 // Tracer instantiate with specific name and tel option
 // @return new Telemetry pointed to this one
 func (t Telemetry) Tracer(name string, opts ...trace.TracerOption) Telemetry {
-	t.trace = otel.Tracer(name, opts...)
+	t.trace = t.traceProvider.Tracer(name, opts...)
 	return t
 }
 

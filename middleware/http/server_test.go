@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/d7561985/tel/v2"
-	"github.com/d7561985/tel/v2/monitoring/metrics"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -39,10 +38,7 @@ func TestTelemetry_HttpServerMiddlewareAll(t *testing.T) {
 		fmt.Println(request.Context().Value(key{}))
 	}))
 
-	m := metrics.NewHTTPMetric(metrics.DefaultHTTPPathRetriever())
-	assert.NoError(t, m.SetUp())
-
-	handler = ServerMiddlewareAll(WithHttpTracker(m))(handler)
+	handler = ServerMiddlewareAll(WithTel(tel.FromCtx(ctx)))(handler)
 
 	// check context preservation already added fields
 	handler = func(next http.Handler) http.Handler {

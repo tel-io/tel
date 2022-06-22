@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/d7561985/tel/v2"
-	"github.com/d7561985/tel/v2/monitoring/metrics"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
@@ -22,7 +21,6 @@ type PathExtractor func(r *http.Request) string
 
 type config struct {
 	log           *tel.Telemetry
-	hTracker      metrics.HTTPTracker
 	operation     string
 	otelOpts      []otelhttp.Option
 	pathExtractor PathExtractor
@@ -45,7 +43,6 @@ func newConfig(opts ...Option) *config {
 
 	c := &config{
 		log:       &l,
-		hTracker:  metrics.NewHTTPMetric(metrics.DefaultHTTPPathRetriever()),
 		operation: "HTTP",
 		otelOpts: []otelhttp.Option{
 			otelhttp.WithSpanNameFormatter(DefaultSpanNameFormatter),
@@ -61,15 +58,15 @@ func newConfig(opts ...Option) *config {
 	return c
 }
 
+// WithTel also add options to pass own metric and trace provider
 func WithTel(t *tel.Telemetry) Option {
 	return optionFunc(func(c *config) {
 		c.log = t
-	})
-}
 
-func WithHttpTracker(t metrics.HTTPTracker) Option {
-	return optionFunc(func(c *config) {
-		c.hTracker = t
+		c.otelOpts = append(c.otelOpts,
+			otelhttp.WithMeterProvider(t.MetricProvider()),
+			otelhttp.WithTracerProvider(t.TracerProvider()),
+		)
 	})
 }
 
@@ -81,7 +78,7 @@ func WithOperation(name string) Option {
 
 func WithOtelOpts(opts ...otelhttp.Option) Option {
 	return optionFunc(func(c *config) {
-		c.otelOpts = opts
+		c.otelOpts = append(c.otelOpts, opts...)
 	})
 }
 

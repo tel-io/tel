@@ -108,6 +108,7 @@ func (o *oTrace) apply(ctx context.Context, t *Telemetry) func(context.Context) 
 
 	otel.SetTracerProvider(tracerProvider)
 
+	t.traceProvider = tracerProvider
 	t.trace = otel.Tracer(GenServiceName(t.cfg.Namespace, t.cfg.Service) + "_tracer")
 
 	return func(cxt context.Context) {
@@ -151,6 +152,7 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 	)
 
 	global.SetMeterProvider(pusher)
+	t.metricProvider = pusher
 
 	err = pusher.Start(ctx)
 	handleErr(err, "Failed to start metric pusher")
