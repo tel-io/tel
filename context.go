@@ -54,9 +54,5 @@ func UpdateTraceFields(ctx context.Context) {
 // for gracefully continue trace ctx should contain both span and tele
 func StartSpanFromContext(ctx context.Context, name string, opts ...trace.SpanStartOption) (
 	trace.Span, context.Context) {
-	t := FromCtx(ctx)
-
-	cxt, s := t.T().Start(ctx, name, opts...)
-
-	return s, WrapContext(cxt, t.WithSpan(s))
+	return FromCtx(ctx).StartSpan(ctx, name, opts...)
 }

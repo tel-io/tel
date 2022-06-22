@@ -158,13 +158,14 @@ func (t *Telemetry) PutAttr(attr ...attribute.KeyValue) *Telemetry {
 	return t
 }
 
-// StartSpan start absolutely new trace telemetry span
+// StartSpan start new trace telemetry span
+// in case if ctx contains embed trace it will continue chain
 // keep in mind than that function don't continue any trace, only create new
 // for continue span use StartSpanFromContext
 //
 // return context where embed telemetry with span writer
-func (t *Telemetry) StartSpan(name string, opts ...trace.SpanStartOption) (trace.Span, context.Context) {
-	cxt, s := t.trace.Start(context.Background(), name, opts...)
+func (t *Telemetry) StartSpan(ctx context.Context, name string, opts ...trace.SpanStartOption) (trace.Span, context.Context) {
+	cxt, s := t.trace.Start(ctx, name, opts...)
 
 	ccx := WithContext(cxt, *t.WithSpan(s))
 	UpdateTraceFields(ccx)
