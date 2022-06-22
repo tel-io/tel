@@ -134,9 +134,10 @@ func (t Telemetry) Meter(ins string, opts ...metric.MeterOption) metric.Meter {
 	return global.Meter(ins, opts...)
 }
 
-// Tracer instantiate and  return new Telemetry pointed to this one
-func (t Telemetry) Tracer() Telemetry {
-	t.trace = otel.Tracer(GenServiceName(t.cfg.Namespace, t.cfg.Service) + "_tracer")
+// Tracer instantiate with specific name and tel option
+// @return new Telemetry pointed to this one
+func (t Telemetry) Tracer(name string, opts ...trace.TracerOption) Telemetry {
+	t.trace = otel.Tracer(name, opts...)
 	return t
 }
 
