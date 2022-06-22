@@ -7,22 +7,20 @@ import (
 // NewServeMux creates a new TracedServeMux.
 func NewServeMux(opts ...Option) *TracedServeMux {
 	return &TracedServeMux{
-		mux:  http.NewServeMux(),
-		opts: opts,
+		mux: http.NewServeMux(),
+		mw:  ServerMiddlewareAll(opts...),
 	}
 }
 
 // TracedServeMux is a wrapper around http.ServeMux that instruments handlers for tracing.
 type TracedServeMux struct {
 	mux *http.ServeMux
-
-	opts []Option
+	mw  func(next http.Handler) http.Handler
 }
 
 // Handle implements http.ServeMux#Handle
 func (tm *TracedServeMux) Handle(pattern string, handler http.Handler) {
-	mw := ServerMiddlewareAll(tm.opts...)
-	tm.mux.Handle(pattern, mw(handler))
+	tm.mux.Handle(pattern, tm.mw(handler))
 }
 
 // ServeHTTP implements http.ServeMux#ServeHTTP
