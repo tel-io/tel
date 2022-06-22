@@ -81,7 +81,7 @@ func (s *Server) crashHttp(w http.ResponseWriter, req *http.Request) {
 }
 
 func (s *Server) errorHttp(w http.ResponseWriter, req *http.Request) {
-	span, _ := tel.StartSpanFromContext(req.Context(), "errorHttp")
+	span, ctx := tel.StartSpanFromContext(req.Context(), "errorHttp")
 	defer span.End()
 
 	errCode := int(rand.Int63n(11)) + 500
@@ -89,4 +89,8 @@ func (s *Server) errorHttp(w http.ResponseWriter, req *http.Request) {
 		errCode = http.StatusOK
 	}
 	w.WriteHeader(errCode)
+
+	tel.FromCtx(ctx).Info("this message will be saved both in log and trace",
+		// and this will come to the trace as attribute
+		tel.Int("code", errCode))
 }

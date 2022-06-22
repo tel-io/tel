@@ -59,6 +59,7 @@ func New(t tel.Telemetry, clt hClient) *Service {
 		requestCount:   requestCount,
 		commonLabels: []attribute.KeyValue{
 			attribute.String("userID", "e64916d9-bfd0-4f79-8ee3-847f2d034d20"),
+			attribute.Int("orderID", 1),
 			//attribute.String("namespace", cfg.Namespace),
 			//attribute.String("project", cfg.Service),
 		},

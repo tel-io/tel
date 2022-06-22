@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/d7561985/tel/v2/pkg/ztrace"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/global"
@@ -131,6 +132,12 @@ func (t Telemetry) T() trace.Tracer {
 // Meter create new metric instance which should be treated as new
 func (t Telemetry) Meter(ins string, opts ...metric.MeterOption) metric.Meter {
 	return global.Meter(ins, opts...)
+}
+
+// Tracer instantiate and  return new Telemetry pointed to this one
+func (t Telemetry) Tracer() Telemetry {
+	t.trace = otel.Tracer(GenServiceName(t.cfg.Namespace, t.cfg.Service) + "_tracer")
+	return t
 }
 
 // PutFields update current logger instance with new fields,
