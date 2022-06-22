@@ -257,18 +257,20 @@ Thus offer sub-modules which should be added separately
 
 ==== http
 
-Already present
+Already present in tel package as it uses native golang code
+
 [source,go]
 ----
-import(
-        "github.com/d7561985/tel/v2/monitoring/metrics"
-        mwr "github.com/d7561985/tel/v2/middleware/http"
-)
-...
-	mTracker := metrics.NewHTTPMetric(metrics.DefaultHTTPPathRetriever())
-	mw := mwr.NewServer(params.Logger)
+package main
 
-    handler := mw.HTTPServerMiddlewareAll(mTracker)
+import mw "github.com/d7561985/tel/v2/middleware/http"
+
+...
+func (s *Server) createServeMux() http.Handler {
+	mux := mw.NewServeMux(mw.WithTel(s.tel))
+	mux.Handle("/customer", http.HandlerFunc(s.customer))
+	return mux
+}
 ...
 ----
 
@@ -279,6 +281,14 @@ include::middleware/gin/README.adoc[]
 [source,bash]
 ----
 go get -v github.com/d7561985/tel/middleware/grpc/v2@latest
+----
+
+and import
+[source,go]
+----
+import(
+    mw "github.com/d7561985/tel/middleware/grpc/v2"
+)
 ----
 
 ==== NATS
