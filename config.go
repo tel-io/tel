@@ -83,6 +83,7 @@ func DefaultDebugConfig() Config {
 	c.Debug = true
 	c.LogLevel = "debug"
 	c.LogEncode = "console"
+	c.MonitorConfig.Enable = false
 
 	return c
 }
