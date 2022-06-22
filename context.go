@@ -28,7 +28,7 @@ func FromCtx(ctx context.Context) *Telemetry {
 		return t
 	}
 
-	v := NewNull()
+	v := Global().Copy()
 	v.Warn("use null Telemetry")
 	v.PutFields(String("warn", "use null Telemetry"))
 
