@@ -17,11 +17,13 @@ Decrease external dependencies as match as possible.
 == Features
 
 .All-In-One
-Library establish connection via GRPC OTLP protocol with `opentelemetry-collector-contrib` (official OTEL server) and send `logs`, `traces` and `metrics`. Collector by the way distribute them to `Loki`, `Tempo` and `Prometheus` or any other services which you prefer and which collector support.
+Library establish connection via GRPC OTLP protocol with `opentelemetry-collector-contrib` (official OTEL server) and send `logs`, `traces` and `metrics`.
+Collector by the way distribute them to `Loki`, `Tempo` and `Prometheus` or any other services which you prefer and which collector support.
 Furthermore, we prepared for you working `dashboards` in `./__grafana` folder which created for our `middlewares` for most popular servers and clients.
 
 .Logs
-Our goal to support https://grafana.com/docs/loki/latest/logql/log_queries/#logfmt[logfmt] format for `Loki` viewing. Via simple `zap` library interface.
+Our goal to support https://grafana.com/docs/loki/latest/logql/log_queries/#logfmt[logfmt] format for `Loki` viewing.
+Via simple `zap` library interface.
 
 By the way, you can enrich log attributes which should be written only when whey would really need
 
@@ -66,6 +68,7 @@ Also, you can send not only logs and also encroach `trace events`
 .Metrics
 Simplify working with metrics
 [source,go]
+
 ----
 	m := tel.Global().Meter("github.com/MyRepo/MyLib/myInstrumenation")
 
@@ -94,9 +97,6 @@ Simplify working with metrics
 * Trace propagation
 ** client part - send (inject) current trace span to the server
 ** server part - read (extract) trace and create new trace child one (or absolutly new if no trace info was provided or this info where not properly wrapped via propagator protocol of OTEL specification)
-
-
-
 
 == Logging stack
 
@@ -283,11 +283,36 @@ include::middleware/gin/README.adoc[]
 go get -v github.com/d7561985/tel/middleware/grpc/v2@latest
 ----
 
+server:
+
 [source,go]
 ----
 import(
     mw "github.com/d7561985/tel/middleware/grpc/v2"
 )
+func main(){
+	server := grpc.NewServer(
+		grpc.UnaryInterceptor(mw.UnaryServerInterceptorAll(mw.WithTel(&tele))),
+		grpc.StreamInterceptor(mw.StreamServerInterceptor()),
+	)
+}
+
+----
+
+client:
+
+[source,go]
+----
+import(
+    mw "github.com/d7561985/tel/middleware/grpc/v2"
+)
+func main(){
+    conn, err := grpc.Dial(hostPort, grpc.WithTransportCredentials(insecure.NewCredentials()),
+            grpc.WithUnaryInterceptor(mw.UnaryClientInterceptorAll(mw.WithTel(&tele))),
+            grpc.WithStreamInterceptor(mw.StreamClientInterceptor()),
+        )
+}
+
 ----
 
 ==== NATS
@@ -312,6 +337,7 @@ go get -v github.com/d7561985/tel/middleware/echo/v2@latest
 ----
 
 ==== Propagators
+
 https://opentelemetry.io/docs/reference/specification/context/api-propagators/[specification]
 
 In few words: this is a way how trace propagate between services
