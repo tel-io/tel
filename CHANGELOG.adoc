@@ -1,5 +1,9 @@
 = Changelog
 
+== latest
+* move managed infra `docker-compose` to ./docker folder from example
+* example came up with new `hotrod`  project port from `jaeger`
+
 == v2.0.7
 * full function gin mw
 * mw: http mux helper

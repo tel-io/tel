@@ -1,29 +1,21 @@
-# Demo
+# demo
 
-* rate(system_cpu_time{}[1m])
+## Running
 
-inside demo folder:
+### Run TEL infra
 
-1. run docker-compose: `$ docker-composer up`
-2. go run client: `$ go run client/main.go`
-3. visit: [http://127.0.0.1:3000](http://127.0.0.1:3000)
+* Download folder `demo` from https://github.com/d7561985/tel/docker
+* Run Tel infrastructure backend (OTEL Collector, Grafana, Grafana Loki, Grafana Tempo and Prometheus) and HotROD demo with `docker-compose -f path-to-yml-file up`
+* Access Grafana UI at http://localhost:3000
+* Shutdown / cleanup with `docker-compose -f path-to-yml-file down`
 
-## tempo
-examples: https://github.com/grafana/tempo/tree/main/example/docker-compose/otel-collector
+Alternatively, you can run each component separately as described below.
 
-search enable:
-* https://github.com/grafana/tempo/tree/main/example/docker-compose/tempo-search
+### Run manually Hot R.O.D
 
-## loki setup
-* https://grafana.com/docs/grafana/latest/datasources/loki/
-
-### Derived fields
-
+```bash
+go run ./client/main.go
+go run ./gin/main.go
 ```
-jsonData:
-derivedFields:
-- datasourceUid: tempo
-matcherRegex: "\"traceID\":\"(\\w+)\""
-name: trace
-url: '$${__value.raw}'
-```
+
+* visit Grafana UI at http://localhost:3000 and explore metrics
