@@ -7,7 +7,6 @@ import (
 	mw "github.com/d7561985/tel/v2/middleware/http"
 
 	"github.com/d7561985/tel/v2"
-	"github.com/d7561985/tel/v2/monitoring/metrics"
 	"github.com/go-chi/chi"
 )
 
@@ -25,7 +24,5 @@ func (Receiver) GetPath(r *http.Request) string {
 }
 
 func HTTPServerMiddlewareAll(ctx context.Context) func(http.Handler) http.Handler {
-	m := metrics.NewHTTPMetric(new(Receiver))
-
-	return mw.NewServer(tel.FromCtx(ctx)).HTTPServerMiddlewareAll(m)
+	return mw.ServerMiddlewareAll(mw.WithTel(tel.FromCtx(ctx)))
 }

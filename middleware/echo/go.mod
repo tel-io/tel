@@ -3,7 +3,7 @@ module github.com/d7561985/tel/middleware/echo/v2
 go 1.17
 
 require (
-	github.com/d7561985/tel/v2 v2.0.7-0.20220615104652-1dfb038704cc
+	github.com/d7561985/tel/v2 v2.0.7-0.20220623070540-45a3fbe14f89
 	github.com/labstack/echo/v4 v4.7.2
 )
 

@@ -71,6 +71,8 @@ github.com/d7561985/tel/v2 v2.0.6 h1:K+Z0M8YcVMyq5xnxGOxgb5pooyNiNDRfdQTqVDxuFTA
 github.com/d7561985/tel/v2 v2.0.6/go.mod h1:CXlAWQxVjY4d175HpweldVaLqxy/J3R2LwiKy6KywaA=
 github.com/d7561985/tel/v2 v2.0.7-0.20220615104652-1dfb038704cc h1:0LJpTOOyhirV0BRdm6eCnUiisbRx6Q2Vv4u3/x3IgXs=
 github.com/d7561985/tel/v2 v2.0.7-0.20220615104652-1dfb038704cc/go.mod h1:CXlAWQxVjY4d175HpweldVaLqxy/J3R2LwiKy6KywaA=
+github.com/d7561985/tel/v2 v2.0.7-0.20220623070540-45a3fbe14f89 h1:fp5RRsMukq081MHWMegqN8Ik4oM05rrKHFYqnSL7Lg4=
+github.com/d7561985/tel/v2 v2.0.7-0.20220623070540-45a3fbe14f89/go.mod h1:9hyXE2xVGPMNax8fLGcu29Iq/7rmz/ZzepjI9T5u79I=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
