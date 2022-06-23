@@ -183,7 +183,7 @@ func (t *Telemetry) PutAttr(attr ...attribute.KeyValue) *Telemetry {
 func (t *Telemetry) StartSpan(ctx context.Context, name string, opts ...trace.SpanStartOption) (trace.Span, context.Context) {
 	cxt, s := t.trace.Start(ctx, name, opts...)
 
-	ccx := WithContext(cxt, *t.WithSpan(s))
+	ccx := WrapContext(cxt, t.WithSpan(s))
 	UpdateTraceFields(ccx)
 
 	return s, ccx
