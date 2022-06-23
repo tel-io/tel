@@ -30,7 +30,7 @@ var ErrGrpcInternal = status.New(codes.Internal, "internal server error").Err()
 //  * metrics via metrics.UnaryClientInterceptor
 func UnaryClientInterceptorAll(o ...Option) grpc.UnaryClientInterceptor {
 	c := newConfig(o...)
-	otmetr := otelgrpc.NewClientMetrics(c.mOpts...)
+	otmetr := otelgrpc.NewClientMetrics(c.metricsOpts...)
 
 	return grpc_middleware.ChainUnaryClient(
 		otracer.UnaryClientInterceptor(c.traceOpts...),
@@ -86,7 +86,7 @@ func UnaryClientInterceptor(o ...Option) grpc.UnaryClientInterceptor {
 //  * metrics via metrics.UnaryServerInterceptor
 func UnaryServerInterceptorAll(o ...Option) grpc.UnaryServerInterceptor {
 	c := newConfig(o...)
-	otmetr := otelgrpc.NewServerMetrics(c.mOpts...)
+	otmetr := otelgrpc.NewServerMetrics(c.metricsOpts...)
 
 	return grpc_middleware.ChainUnaryServer(
 		otracer.UnaryServerInterceptor(),

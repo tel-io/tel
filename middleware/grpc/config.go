@@ -7,7 +7,6 @@ import (
 )
 
 type config struct {
-	mOpts       []otelgrpc.Option
 	traceOpts   []otracer.Option
 	metricsOpts []otelgrpc.Option
 
@@ -44,15 +43,11 @@ func newConfig(opts ...Option) *config {
 	return c
 }
 
-func WithMeterOptions(opts ...otelgrpc.Option) Option {
-	return optionFunc(func(c *config) {
-		c.mOpts = append(c.mOpts, opts...)
-	})
-}
-
 func WithTel(t *tel.Telemetry) Option {
 	return optionFunc(func(c *config) {
 		c.log = t
+		c.traceOpts = append(c.traceOpts, otracer.WithTracerProvider(t.TracerProvider()))
+		c.metricsOpts = append(c.metricsOpts, otelgrpc.WithMeterProvider(t.MetricProvider()))
 	})
 }
 
@@ -62,12 +57,14 @@ func WithIgnoreList(ignore []string) Option {
 	})
 }
 
+// WithTracerOption overwrite already existed options
 func WithTracerOption(opts ...otracer.Option) Option {
 	return optionFunc(func(c *config) {
 		c.traceOpts = opts
 	})
 }
 
+// WithMetricOption overwrite already existed options
 func WithMetricOption(option ...otelgrpc.Option) Option {
 	return optionFunc(func(c *config) {
 		c.metricsOpts = option

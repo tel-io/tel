@@ -1,5 +1,16 @@
 = Changelog
 
+== v2.0.7
+* full function gin mw
+* mw: http mux helper
+* mw: http option with path exstraction
+* mw: http default span naming convention more simple and logical
+* mw: grpc stream client/server helper
+* not use global meter and trace provider during new instantiation of trace or meter
+* documentation related to mw usage
+* tel.FromCtx uses global tel instance
+* minor improvements and fixes
+
 == v2.0.6
 * remove severity fields
 * remove redundant duplicate

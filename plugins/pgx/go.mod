@@ -3,7 +3,7 @@ module github.com/d7561985/tel/plugins/pgx/v2
 go 1.17
 
 require (
-	github.com/d7561985/tel/v2 v2.0.2
+	github.com/d7561985/tel/v2 v2.0.7-0.20220623070942-7a423eda56d3
 	github.com/jackc/pgx/v4 v4.15.0
 	github.com/stretchr/testify v1.7.1
 	go.uber.org/zap v1.21.0
@@ -55,8 +55,8 @@ require (
 	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8 // indirect
 	golang.org/x/text v0.3.6 // indirect
 	google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1 // indirect
-	google.golang.org/grpc v1.46.0 // indirect
+	google.golang.org/grpc v1.47.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
-	gopkg.in/yaml.v2 v2.3.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
