@@ -4,7 +4,7 @@
 
 ### Run TEL infra
 
-* Download folder `demo` from https://github.com/d7561985/tel/docker
+* Download  or move to folder `docker` at  https://github.com/d7561985/tel/docker
 * Run Tel infrastructure backend (OTEL Collector, Grafana, Grafana Loki, Grafana Tempo and Prometheus) and HotROD demo with `docker-compose -f path-to-yml-file up`
 * Access Grafana UI at http://localhost:3000
 * Shutdown / cleanup with `docker-compose -f path-to-yml-file down`
