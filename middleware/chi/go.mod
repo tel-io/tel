@@ -3,7 +3,7 @@ module github.com/d7561985/tel/middleware/chi/v2
 go 1.17
 
 require (
-	github.com/d7561985/tel/v2 v2.0.7-0.20220623070540-45a3fbe14f89
+	github.com/d7561985/tel/v2 v2.0.7-0.20220623120559-4cb48d4e7378
 	github.com/go-chi/chi v1.5.4
 )
 

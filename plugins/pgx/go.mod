@@ -3,7 +3,7 @@ module github.com/d7561985/tel/plugins/pgx/v2
 go 1.17
 
 require (
-	github.com/d7561985/tel/v2 v2.0.7-0.20220623070942-7a423eda56d3
+	github.com/d7561985/tel/v2 v2.0.7-0.20220623120559-4cb48d4e7378
 	github.com/jackc/pgx/v4 v4.15.0
 	github.com/stretchr/testify v1.7.1
 	go.uber.org/zap v1.21.0
