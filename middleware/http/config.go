@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -9,8 +10,8 @@ import (
 )
 
 var (
-	DefaultSpanNameFormatter = func(operation string, r *http.Request) string {
-		return operation + r.Method + r.URL.Path
+	DefaultSpanNameFormatter = func(_ string, r *http.Request) string {
+		return fmt.Sprintf("%s: %s", r.Method, r.URL.Path)
 	}
 	DefaultFilter = func(r *http.Request) bool {
 		return !(r.Method == http.MethodGet && strings.HasPrefix(r.URL.RequestURI(), "/health"))
