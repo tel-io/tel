@@ -7,7 +7,7 @@ import (
 	mw "github.com/d7561985/tel/v2/middleware/http"
 
 	"github.com/d7561985/tel/v2"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 )
 
 const defaultPath = "<no-path>"

@@ -113,7 +113,7 @@ func (s *Service) run(ctx context.Context) {
 }
 
 func (s *Service) oneShoot(t tel.Telemetry) error {
-	span, cxt := t.StartSpan("ExecuteRequest")
+	span, cxt := t.StartSpan(t.Ctx(), "ExecuteRequest")
 	defer span.End()
 
 	start := time.Now()
