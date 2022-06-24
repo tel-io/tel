@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/d7561985/tel/v2"
-	"github.com/d7561985/tel/v2/monitoring/metrics"
+	"github.com/felixge/httpsnoop"
 	"go.opentelemetry.io/otel/attribute"
 	"go.uber.org/zap/zapcore"
 
@@ -47,13 +47,31 @@ func ServerMiddleware(opts ...Option) func(next http.Handler) http.Handler {
 	s := newConfig(opts...)
 
 	return func(next http.Handler) http.Handler {
-		fn := func(rw http.ResponseWriter, req *http.Request) {
+		fn := func(w http.ResponseWriter, req *http.Request) {
 			var err error
+
+			rww := &respWriterWrapper{ResponseWriter: w}
 
 			// inject log
 			// Warning! Don't use telemetry further, only via r.Context()
 			r := req.WithContext(s.log.WithContext(req.Context()))
-			w := metrics.NewHTTPStatusResponseWriter(rw)
+
+			// Wrap w to use our ResponseWriter methods while also exposing
+			// other interfaces that w may implement (http.CloseNotifier,
+			// http.Flusher, http.Hijacker, http.Pusher, io.ReaderFrom).
+
+			w = httpsnoop.Wrap(w, httpsnoop.Hooks{
+				Header: func(httpsnoop.HeaderFunc) httpsnoop.HeaderFunc {
+					return rww.Header
+				},
+				Write: func(httpsnoop.WriteFunc) httpsnoop.WriteFunc {
+					return rww.Write
+				},
+				WriteHeader: func(httpsnoop.WriteHeaderFunc) httpsnoop.WriteHeaderFunc {
+					return rww.WriteHeader
+				},
+			})
+
 			ctx := r.Context()
 
 			// set tracing identification to log
@@ -72,8 +90,8 @@ func ServerMiddleware(opts ...Option) func(next http.Handler) http.Handler {
 				if lableler, ok := otelhttp.LabelerFromContext(ctx); ok {
 					lableler.Add(attribute.String("method", r.Method))
 					lableler.Add(attribute.String("url", s.pathExtractor(r)))
-					lableler.Add(attribute.String("status", http.StatusText(w.Status)))
-					lableler.Add(attribute.Int("code", w.Status))
+					lableler.Add(attribute.String("status", http.StatusText(rww.statusCode)))
+					lableler.Add(attribute.Int("code", rww.statusCode))
 				}
 
 				l := tel.FromCtx(ctx).With(
@@ -83,12 +101,12 @@ func ServerMiddleware(opts ...Option) func(next http.Handler) http.Handler {
 					tel.Any("req_header", r.Header),
 					tel.String("ip", r.RemoteAddr),
 					tel.String("url", s.pathExtractor(r)),
-					tel.String("status_code", http.StatusText(w.Status)),
+					tel.String("status_code", http.StatusText(rww.statusCode)),
 					tel.String("request", string(reqBody)),
 				)
 
-				if w.Response != nil {
-					l = l.With(tel.String("response", string(w.Response)))
+				if rww.response != nil {
+					l = l.With(tel.String("response", string(rww.response)))
 				}
 
 				lvl := zapcore.DebugLevel
