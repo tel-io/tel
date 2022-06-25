@@ -22,18 +22,20 @@ type gClient interface {
 }
 
 type Server struct {
+	addr   string
 	uk     attribute.Key
 	client gClient
 }
 
-func New(c *grpctest.Client) *Server {
+func New(t tel.Telemetry, c *grpctest.Client, addr string) *Server {
 	return &Server{
+		addr:   addr,
 		client: c,
 		uk:     attribute.Key("username"),
 	}
 }
 
-func (s *Server) Start() (url string, err error) {
+func (s *Server) Start(ctx context.Context) (err error) {
 	m := mw.ServerMiddlewareAll()
 
 	mx := http.NewServeMux()
@@ -44,18 +46,18 @@ func (s *Server) Start() (url string, err error) {
 	srv := &http.Server{}
 	srv.Handler = mx
 
-	l, err := net.Listen("tcp", "127.0.0.1:")
+	l, err := net.Listen("tcp", s.addr)
 	if err != nil {
-		return "", errors.WithMessage(err, "listen")
+		return errors.WithMessage(err, "listen")
 	}
 
 	go func() {
-		if err := srv.Serve(l); err != nil {
-			tel.Global().Fatal("http srv", tel.String("addr", l.Addr().String()), tel.Error(err))
-		}
+		<-ctx.Done()
+		tel.FromCtx(ctx).Info("http down")
+		_ = srv.Shutdown(ctx)
 	}()
 
-	return l.Addr().String(), nil
+	return errors.WithStack(srv.Serve(l))
 }
 
 func (s *Server) helloHttp(w http.ResponseWriter, req *http.Request) {

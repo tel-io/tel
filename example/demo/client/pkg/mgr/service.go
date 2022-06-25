@@ -17,8 +17,6 @@ import (
 )
 
 const (
-	threads = 40
-
 	ServerLatency = "demo_client.request_latency"
 	ServerCounter = "demo_client.request_counts"
 )
@@ -66,7 +64,7 @@ func New(t tel.Telemetry, clt hClient) *Service {
 	}
 }
 
-func (s *Service) Start(ctx context.Context) error {
+func (s *Service) Start(ctx context.Context, threads int) error {
 	// fill ctx with extra data
 	method, err := baggage.NewMember("namespace", "TEST")
 	if err != nil {
@@ -91,12 +89,17 @@ func (s *Service) Start(ctx context.Context) error {
 	}
 
 	<-ctx.Done()
+	tel.FromCtx(ctx).Info("controller down")
 
 	return nil
 }
 
 func (s *Service) run(ctx context.Context) {
+	<-time.After(time.Second * 5)
+
 	t := tel.FromCtx(ctx)
+	t.Info("run")
+
 	for {
 		select {
 		case <-ctx.Done():

@@ -10,10 +10,10 @@ import (
 	"time"
 
 	grpcx "github.com/d7561985/tel/middleware/grpc/v2"
+	"github.com/d7561985/tel/v2"
 	"github.com/pkg/errors"
 	"github.com/tel-io/otelgrpc"
 	"github.com/tel-io/otelgrpc/example/api"
-	otracer "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -120,35 +120,41 @@ func (s *server) SayHelloBidiStream(stream api.HelloService_SayHelloBidiStreamSe
 	return nil
 }
 
-func Start() (addr string, err error) {
-	lis, err := net.Listen("tcp", ":")
+func Start(ctx context.Context, addr string) error {
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		return "", errors.WithMessagef(err, "failed to listen: %v", err)
+		return errors.WithMessagef(err, "failed to listen: %v", err)
 	}
 
-	otmetr := otelgrpc.NewServerMetrics(
+	otmetr := []otelgrpc.Option{
 		otelgrpc.WithServerHandledHistogram(true),
 		otelgrpc.WithConstLabels(
 			attribute.String("userID", "e64916d9-bfd0-4f79-8ee3-847f2d034d20"),
 			attribute.String("xxx", "example"),
 			attribute.String("yyy", "server"),
 		),
-	)
+	}
 
 	s := grpc.NewServer(
 		// for unary use tel module
-		grpc.ChainUnaryInterceptor(grpcx.UnaryServerInterceptorAll()),
+		grpc.ChainUnaryInterceptor(grpcx.UnaryServerInterceptorAll(
+			grpcx.WithTel(tel.FromCtx(ctx)),
+			grpcx.WithMetricOption(otmetr...),
+		)),
 		// for stream use stand-alone trace + metrics no recover
-		grpc.ChainStreamInterceptor(otracer.StreamServerInterceptor(), otmetr.StreamServerInterceptor()),
+		grpc.ChainStreamInterceptor(grpcx.StreamServerInterceptor(grpcx.WithTel(tel.FromCtx(ctx)),
+			grpcx.WithMetricOption(otmetr...),
+		)),
 	)
 
 	api.RegisterHelloServiceServer(s, &server{})
 
 	go func() {
-		if err := s.Serve(lis); err != nil {
-			log.Fatalf("failed to serve: %v", err)
-		}
+		<-ctx.Done()
+		tel.FromCtx(ctx).Info("grpc down")
+
+		s.Stop()
 	}()
 
-	return lis.Addr().String(), nil
+	return errors.WithStack(s.Serve(lis))
 }

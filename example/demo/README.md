@@ -11,10 +11,10 @@
 
 Alternatively, you can run each component separately as described below.
 
-### Run manually Hot R.O.D
+### Run manually
 
 ```bash
-go run ./client/main.go
+go run ./client/main.go all
 go run ./gin/main.go
 ```
 

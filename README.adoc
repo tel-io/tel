@@ -141,6 +141,7 @@ understood grafana should setup `derivedFields` for Loki data source
 We match `tempo` with `loki` by `service_name` label.
 All logs should contain traceID by any key form and `service_name`.
 In grafana tempo datasource should be configured with `tracesToLogs`
+
 ==== prometheus to loki
 [source,yaml]
 
@@ -181,7 +182,7 @@ OTEL collector configuration (labels) part of setup, this mean if you not proper
 
 [source,yaml]
 ----
-include::example/demo/otel-collector-config.yaml[]
+include::docker/otel-collector-config.yaml[]
 ----
 
 == Features

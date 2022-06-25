@@ -8,7 +8,6 @@ import (
 	"net"
 
 	"github.com/d7561985/tel/v2"
-	"github.com/d7561985/tel/v2/monitoring/metrics"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/examples/helloworld/helloworld"
@@ -74,9 +73,6 @@ func (s *Suite) TestGrpcPanicMW() {
 
 	defer l.Close()
 	defer srv.Stop()
-
-	// just in case, link metrics
-	s.NoError(metrics.NewGrpcTracker(srv).SetUp())
 
 	dial, err := grpc.Dial(l.Addr().String(),
 		grpc.WithInsecure(),
