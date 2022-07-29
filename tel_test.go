@@ -57,7 +57,7 @@ func Test_telemetry_With(t *testing.T) {
 
 	// StartSpan goal to check if return sctx save tele reference and save to correct stream
 	t.Run("check new span", func(t *testing.T) {
-		span, sctx := FromCtx(ctx).StartSpan("test")
+		span, sctx := FromCtx(ctx).StartSpan(ctx, "test")
 		defer span.End()
 
 		const testMsg = "traced log"
