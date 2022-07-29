@@ -7,6 +7,7 @@
 * mw: http Wrap w to use our ResponseWriter methods while also exposing  other interfaces that w may implement (http.CloseNotifier,
 http.Flusher, http.Hijacker, http.Pusher, io.ReaderFrom) and update gin, echo and chi libs to this fix
 * rid of prometheus dependencies, not we all clean
+* mw: gin fix status writing
 
 == v2.0.7
 * full function gin mw

@@ -209,23 +209,20 @@ ENUM: dev, stage, prod
 .LOG_LEVEL
 info log
 
+`type`: string
+NOTE:  debug, info, warn, error, dpanic, panic, fatal
+
+
 .LOG_ENCODE
 valid options: `console` and `json` or "none"
 
 none - disable print to console (only OTEL or critical errors)
-
-`type`: string
-NOTE:  debug, info, warn, error, dpanic, panic, fatal
 
 .DEBUG
 for IsDebug() function
 
 `type`: bool
 
-.SENTRY_DSN
-sentry dns
-
-`type`: string
 
 .MONITOR_ENABLE
 default: `true`

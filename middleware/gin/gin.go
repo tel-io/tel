@@ -3,11 +3,14 @@ package gin
 import (
 	"net/http"
 	"net/url"
+	"strings"
 
 	mw "github.com/d7561985/tel/v2/middleware/http"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/baggage"
 )
+
+const prefix = "path="
 
 func ServerMiddlewareAll() gin.HandlerFunc {
 	q := mw.ServerMiddlewareAll(mw.WithPathExtractor(func(r *http.Request) string {
@@ -18,13 +21,18 @@ func ServerMiddlewareAll() gin.HandlerFunc {
 			return r.URL.Path
 		}
 
-		return v
+		if v != prefix && strings.HasPrefix(v, prefix) {
+			return strings.Split(v, "path=")[1]
+		}
+
+		return r.URL.Path
 	}))
 
 	return func(c *gin.Context) {
 		w := q(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			c.Request = r
 			c.Next()
+			w.WriteHeader(c.Writer.Status())
 		}))
 
 		req := c.Request
