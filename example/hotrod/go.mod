@@ -4,9 +4,10 @@ go 1.18
 
 require (
 	github.com/d7561985/tel/middleware/grpc/v2 v2.0.0-20220623120715-d067fa8d26aa
-	github.com/d7561985/tel/v2 v2.0.7
+	github.com/d7561985/tel/v2 v2.0.8-0.20220624154856-a1e3e63cddf0
 	github.com/gogo/protobuf v1.3.2
 	github.com/jaegertracing/jaeger v1.35.2
+	github.com/joho/godotenv v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.2
 	github.com/spf13/cobra v1.5.0
@@ -27,7 +28,6 @@ require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
-	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect

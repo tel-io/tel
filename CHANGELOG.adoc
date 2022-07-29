@@ -8,6 +8,7 @@
 http.Flusher, http.Hijacker, http.Pusher, io.ReaderFrom) and update gin, echo and chi libs to this fix
 * rid of prometheus dependencies, not we all clean
 * mw: gin fix status writing
+* docker: load loki config + rid from const_labels: const_labels in prometheus, Clients should use own resource for doing that, for example via env: `OTEL_RESOURCE_ATTRIBUTES=license=COM`
 
 == v2.0.7
 * full function gin mw

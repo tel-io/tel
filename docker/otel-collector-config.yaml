@@ -9,7 +9,7 @@ exporters:
   prometheus:
     endpoint: "0.0.0.0:8889"
     const_labels:
-      license: LICENSE # com, ru, ua, by, uk ....
+      #license: LICENSE # com, ru, ua, by, uk ....
     resource_to_telemetry_conversion:
       enabled: true
   logging:
