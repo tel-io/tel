@@ -1,0 +1,10 @@
+version: "3"
+services:
+  example:
+    ports:
+      - 8080:8080
+    environment:
+      OTEL_COLLECTOR_GRPC_ADDR: otel-collector:4317
+    build:
+      context: .
+      dockerfile: Dockerfile

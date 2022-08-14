@@ -12,8 +12,10 @@ import (
 
 const prefix = "path="
 
-func ServerMiddlewareAll() gin.HandlerFunc {
-	q := mw.ServerMiddlewareAll(mw.WithPathExtractor(func(r *http.Request) string {
+// ServerMiddlewareAll create mw for gin which uses github.com/d7561985/tel/v2/middleware/http
+// note: WithPathExtractor option of it is overwritten
+func ServerMiddlewareAll(opts ...mw.Option) gin.HandlerFunc {
+	opts = append(opts, mw.WithPathExtractor(func(r *http.Request) string {
 		b := baggage.FromContext(r.Context())
 
 		v, err := url.PathUnescape(b.Member("path").String())
@@ -27,6 +29,8 @@ func ServerMiddlewareAll() gin.HandlerFunc {
 
 		return r.URL.Path
 	}))
+
+	q := mw.ServerMiddlewareAll(opts...)
 
 	return func(c *gin.Context) {
 		w := q(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -22,6 +22,8 @@ const postContent = "XXX"
 func TestTelemetry_HttpServerMiddlewareAll(t *testing.T) {
 	c := tel.DefaultDebugConfig()
 	c.LogLevel = "debug"
+	c.OtelConfig.Enable = false
+
 	srv, closer := tel.New(context.Background(), c)
 	defer closer()
 
