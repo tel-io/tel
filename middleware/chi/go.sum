@@ -69,6 +69,8 @@ github.com/cncf/xds/go v0.0.0-20211011173535-cb28da3451f1/go.mod h1:eXthEFrGJvWH
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/d7561985/tel/v2 v2.0.7-0.20220623120559-4cb48d4e7378 h1:7NA5w2mq+csNqNJVUZ1EeC886fh1cAKHRE+UTBST7eg=
 github.com/d7561985/tel/v2 v2.0.7-0.20220623120559-4cb48d4e7378/go.mod h1:9hyXE2xVGPMNax8fLGcu29Iq/7rmz/ZzepjI9T5u79I=
+github.com/d7561985/tel/v2 v2.0.8-0.20220815102930-214732237a18 h1:3udq/KJ4KePphyCXYxFjQaIABDL60j5UrsgAaCl+Ekk=
+github.com/d7561985/tel/v2 v2.0.8-0.20220815102930-214732237a18/go.mod h1:uan+P4SBH6vaHXIeq2D0hTVxaUBnRWW4MxtaGy9tsqY=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

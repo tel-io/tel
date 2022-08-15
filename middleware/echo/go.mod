@@ -8,7 +8,7 @@ replace (
 )
 
 require (
-	github.com/d7561985/tel/v2 v2.0.8-0.20220624154128-3efe6a38c43d
+	github.com/d7561985/tel/v2 v2.0.8-0.20220815102930-214732237a18
 	github.com/gorilla/websocket v1.5.0
 	github.com/labstack/echo/v4 v4.7.2
 	github.com/stretchr/testify v1.7.1
