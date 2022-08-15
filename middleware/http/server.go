@@ -16,12 +16,14 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
+type Middleware func(next http.Handler) http.Handler
+
 // ServerMiddlewareAll represent all essential metrics
 // Execution order:
 //  * opentracing injection via nethttp.Middleware
 //  * recovery + measure execution time + debug log via own ServerMiddleware
 //  * metrics via metrics.NewHTTPMiddlewareWithOption
-func ServerMiddlewareAll(opts ...Option) func(next http.Handler) http.Handler {
+func ServerMiddlewareAll(opts ...Option) Middleware {
 	s := newConfig(opts...)
 
 	tr := func(next http.Handler) http.Handler {
@@ -43,11 +45,18 @@ func ServerMiddlewareAll(opts ...Option) func(next http.Handler) http.Handler {
 // * telemetry log injection
 // * measure execution time
 // * recovery
-func ServerMiddleware(opts ...Option) func(next http.Handler) http.Handler {
+func ServerMiddleware(opts ...Option) Middleware {
 	s := newConfig(opts...)
 
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, req *http.Request) {
+			for _, f := range s.filters {
+				if !f(req) {
+					next.ServeHTTP(w, req)
+					return
+				}
+			}
+
 			var err error
 
 			rww := &respWriterWrapper{ResponseWriter: w}
