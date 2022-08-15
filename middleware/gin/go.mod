@@ -3,7 +3,7 @@ module github.com/d7561985/tel/middleware/gin/v2
 go 1.17
 
 require (
-	github.com/d7561985/tel/v2 v2.0.8-0.20220624154128-3efe6a38c43d
+	github.com/d7561985/tel/v2 v2.0.8-0.20220815102842-fad02fbb59b1
 	github.com/gin-gonic/gin v1.8.1
 	go.opentelemetry.io/otel v1.7.0
 )
