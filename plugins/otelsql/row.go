@@ -1,4 +1,4 @@
-package sqlwrapper
+package otelsql
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	sqlattribute "github.com/d7561985/tel/plugins/sqlwrapper/v2/attribute"
+	sqlattribute "github.com/d7561985/tel/plugins/otelsql/v2/attribute"
 )
 
 const (

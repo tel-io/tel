@@ -1,4 +1,4 @@
-package sqlwrapper
+package otelsql
 
 const (
 	dbSQLClientLatencyMs = "db.sql.client.latency"

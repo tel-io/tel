@@ -1,4 +1,4 @@
-package sqlwrapper
+package otelsql
 
 import (
 	"context"
@@ -19,7 +19,7 @@ import (
 
 const _maxDriver = 150
 
-const instrumentationName = "github.com/d7561985/tel/v2/plugins/sqlwrapper"
+const instrumentationName = "github.com/d7561985/tel/v2/plugins/otelsql"
 
 var regMu sync.Mutex
 
@@ -223,7 +223,7 @@ func (d otDriver) Connect(ctx context.Context) (driver.Conn, error) {
 		return nil, err
 	}
 
-	return makeConn(c, d.connConfig), nil
+	return wrapConn(c, d.connConfig), nil
 }
 
 func (d otDriver) Driver() driver.Driver {

@@ -1,4 +1,4 @@
-package sqlwrapper
+package otelsql
 
 import "context"
 
