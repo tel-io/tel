@@ -8,8 +8,11 @@ import (
 	otelsql "github.com/d7561985/tel/plugins/otelsql/v2"
 	"github.com/d7561985/tel/v2"
 	"github.com/pkg/errors"
+	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"time"
 )
+
+var resClick = semconv.DBSystemKey.String("clockhouse")
 
 func Open(ctx context.Context, addr string) (*sql.DB, error) {
 	// setup connector
@@ -47,6 +50,7 @@ func Open(ctx context.Context, addr string) (*sql.DB, error) {
 		otelsql.TraceRowsClose(),
 		otelsql.TraceRowsAffected(),
 		otelsql.WithTracerProvider(tel.FromCtx(ctx).TracerProvider()),
+		otelsql.WithSystem(resClick),
 	)
 
 	// create connection with wrapper

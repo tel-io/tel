@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+var clickhouse = semconv.DBSystemKey.String("clockhouse")
+
 func OpenDB(dsn string) (*sql.DB, error) {
 	// Register the otelsql wrapper for the provided postgres driver.
 	driverName, err := otelsql.Register("clickhouse",
@@ -16,8 +18,8 @@ func OpenDB(dsn string) (*sql.DB, error) {
 		otelsql.TraceQueryWithoutArgs(),
 		otelsql.TraceRowsClose(),
 		otelsql.TraceRowsAffected(),
-		otelsql.WithDatabaseName("my_database"),        // Optional.
-		otelsql.WithSystem(semconv.DBSystemPostgreSQL), // Optional.
+		otelsql.WithDatabaseName("my_database"), // Optional.
+		otelsql.WithSystem(clickhouse),          // Optional.
 	)
 	if err != nil {
 		return nil, err
