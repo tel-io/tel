@@ -19,8 +19,8 @@ import (
 	"context"
 	"net"
 
-	mw "github.com/d7561985/tel/middleware/grpc/v2"
 	"github.com/d7561985/tel/v2"
+	mw "github.com/tel-io/instrumentation/middleware/grpc"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )

@@ -10,8 +10,8 @@ import (
 
 	"github.com/d7561985/tel/example/demo/client/v2/pkg/grpctest"
 	"github.com/d7561985/tel/v2"
-	mw "github.com/d7561985/tel/v2/middleware/http"
 	"github.com/pkg/errors"
+	mw "github.com/tel-io/instrumentation/middleware/http"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/trace"

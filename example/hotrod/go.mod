@@ -3,14 +3,15 @@ module hotrod
 go 1.18
 
 require (
-	github.com/d7561985/tel/middleware/grpc/v2 v2.0.0-20220907091312-c92245c66356
-	github.com/d7561985/tel/v2 v2.0.8-0.20220907091312-c92245c66356
+	github.com/d7561985/tel/v2 v2.0.8-0.20220907122942-341fd6f2bee6
 	github.com/gogo/protobuf v1.3.2
 	github.com/jaegertracing/jaeger v1.35.2
 	github.com/joho/godotenv v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.2
 	github.com/spf13/cobra v1.5.0
+	github.com/tel-io/instrumentation/middleware/grpc v0.0.0-20220907155016-5135187287af
+	github.com/tel-io/instrumentation/middleware/http v0.0.0-20220907155016-5135187287af
 	go.opentelemetry.io/otel v1.8.0
 	go.opentelemetry.io/otel/trace v1.8.0
 	go.uber.org/zap v1.21.0
@@ -64,7 +65,4 @@ require (
 	google.golang.org/protobuf v1.28.0 // indirect
 )
 
-replace (
-	github.com/d7561985/tel/middleware/grpc/v2 => ../../middleware/grpc
-	github.com/d7561985/tel/v2 => ../..
-)
+replace github.com/d7561985/tel/v2 => ../..

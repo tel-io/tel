@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"net/url"
 
-	mw "github.com/d7561985/tel/v2/middleware/http"
 	"github.com/pkg/errors"
+	mw "github.com/tel-io/instrumentation/middleware/http"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/baggage"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"

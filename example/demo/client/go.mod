@@ -3,10 +3,11 @@ module github.com/d7561985/tel/example/demo/client/v2
 go 1.17
 
 require (
-	github.com/d7561985/tel/v2 v2.0.8-0.20220907085335-6009aa23d301
+	github.com/d7561985/tel/v2 v2.0.8-0.20220907122942-341fd6f2bee6
 	github.com/joho/godotenv v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/tel-io/instrumentation/middleware/grpc v0.0.0-20220907131920-978a5a53d1f4
+	github.com/tel-io/instrumentation/middleware/http v0.0.0-20220907155016-5135187287af
 	github.com/tel-io/otelgrpc v1.0.2-0.20220605174232-2f9b4153a0a4
 	github.com/tel-io/otelgrpc/example v0.0.0-20220605174232-2f9b4153a0a4
 	github.com/urfave/cli/v2 v2.10.3
@@ -58,6 +59,4 @@ require (
 	google.golang.org/protobuf v1.28.0 // indirect
 )
 
-replace (
-	github.com/d7561985/tel/v2 => ../../..
-)
+replace github.com/d7561985/tel/v2 => ../../..

@@ -26,8 +26,8 @@ import (
 
 	"hotrod/pkg/httperr"
 
-	mw "github.com/d7561985/tel/v2/middleware/http"
 	"github.com/jaegertracing/jaeger/pkg/httpfs"
+	mw "github.com/tel-io/instrumentation/middleware/http"
 )
 
 //go:embed web_assets/*

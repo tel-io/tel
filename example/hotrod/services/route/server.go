@@ -32,7 +32,7 @@ import (
 	"hotrod/pkg/httperr"
 	"hotrod/services/config"
 
-	mw "github.com/d7561985/tel/v2/middleware/http"
+	mw "github.com/tel-io/instrumentation/middleware/http"
 )
 
 // Server implements Route service
