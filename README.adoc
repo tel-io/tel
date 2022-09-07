@@ -355,6 +355,14 @@ github.com/d7561985/tel/plugins/pgx/v2
 go get -v github.com/d7561985/tel/plugins/pgx/v2@latest
 ----
 
+==== SQL
+[source,bash]
+----
+go get -v github.com/d7561985/tel/plugins/otelsql/v2@latest
+----
+For documentation please visit README.md file on plugin location
+
+
 == ToDo
 
 * [ ] Expose health check to specific metric

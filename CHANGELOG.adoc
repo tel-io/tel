@@ -11,6 +11,7 @@ http.Flusher, http.Hijacker, http.Pusher, io.ReaderFrom) and update gin, echo an
 * docker: load loki config + rid from const_labels: const_labels in prometheus, Clients should use own resource for doing that, for example via env: `OTEL_RESOURCE_ATTRIBUTES=license=COM`
 * gin: redesign example
 * mw: http filter now affect main mw not only httpTrace, appead option WithFilter
+* plugin otelsql first version - traces and meterics
 
 == v2.0.7
 * full function gin mw
