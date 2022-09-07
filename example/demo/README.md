@@ -15,7 +15,6 @@ Alternatively, you can run each component separately as described below.
 
 ```bash
 go run ./client/main.go all
-go run ./gin/main.go
 ```
 
 * visit Grafana UI at http://localhost:3000 and explore metrics

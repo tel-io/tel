@@ -8,12 +8,11 @@ import (
 	"sync"
 	"time"
 
-	grpcx "github.com/d7561985/tel/middleware/grpc/v2"
 	"github.com/d7561985/tel/v2"
 	"github.com/pkg/errors"
+	grpcx "github.com/tel-io/instrumentation/middleware/grpc"
 	"github.com/tel-io/otelgrpc"
 	"github.com/tel-io/otelgrpc/example/api"
-	otracer "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel/attribute"
 
 	"google.golang.org/grpc"
@@ -27,19 +26,19 @@ type Client struct {
 }
 
 func NewClient(addr string) (*Client, error) {
-	otmetr := otelgrpc.NewClientMetrics(otelgrpc.WithServerHandledHistogram(true),
-		otelgrpc.WithConstLabels(
-			attribute.String("xxx", "example"),
-			attribute.String("yyy", "client"),
-		),
-	)
-
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(
 		insecure.NewCredentials()),
 		// for unary use tel module
 		grpc.WithChainUnaryInterceptor(grpcx.UnaryClientInterceptorAll()),
 		// for stream use stand-alone trace + metrics no recover
-		grpc.WithChainStreamInterceptor(otracer.StreamClientInterceptor(), otmetr.StreamClientInterceptor()),
+		grpc.WithChainStreamInterceptor(grpcx.StreamClientInterceptor(
+			grpcx.WithMetricOption(
+				otelgrpc.WithServerHandledHistogram(true),
+				otelgrpc.WithConstLabels(
+					attribute.String("xxx", "example"),
+					attribute.String("yyy", "client"),
+				)),
+		)),
 		grpc.WithBlock(),
 	)
 

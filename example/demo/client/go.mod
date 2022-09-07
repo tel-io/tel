@@ -3,14 +3,13 @@ module github.com/d7561985/tel/example/demo/client/v2
 go 1.17
 
 require (
-	github.com/d7561985/tel/middleware/grpc/v2 v2.0.0-20220907085335-6009aa23d301
 	github.com/d7561985/tel/v2 v2.0.8-0.20220907085335-6009aa23d301
 	github.com/joho/godotenv v1.4.0
 	github.com/pkg/errors v0.9.1
+	github.com/tel-io/instrumentation/middleware/grpc v0.0.0-20220907131920-978a5a53d1f4
 	github.com/tel-io/otelgrpc v1.0.2-0.20220605174232-2f9b4153a0a4
 	github.com/tel-io/otelgrpc/example v0.0.0-20220605174232-2f9b4153a0a4
 	github.com/urfave/cli/v2 v2.10.3
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.32.0
 	go.opentelemetry.io/otel v1.8.0
 	go.opentelemetry.io/otel/metric v0.31.0
 	go.opentelemetry.io/otel/trace v1.8.0
@@ -38,6 +37,7 @@ require (
 	github.com/tklauser/numcpus v0.4.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.32.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/host v0.32.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.32.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.32.0 // indirect
@@ -59,6 +59,5 @@ require (
 )
 
 replace (
-	github.com/d7561985/tel/middleware/grpc/v2 => ../../../middleware/grpc
 	github.com/d7561985/tel/v2 => ../../..
 )

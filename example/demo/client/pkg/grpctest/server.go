@@ -9,9 +9,9 @@ import (
 	"net"
 	"time"
 
-	grpcx "github.com/d7561985/tel/middleware/grpc/v2"
 	"github.com/d7561985/tel/v2"
 	"github.com/pkg/errors"
+	grpcx "github.com/tel-io/instrumentation/middleware/grpc"
 	"github.com/tel-io/otelgrpc"
 	"github.com/tel-io/otelgrpc/example/api"
 	"go.opentelemetry.io/otel"
