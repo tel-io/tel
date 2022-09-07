@@ -16,6 +16,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/metric/aggregator/histogram"
 	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
 	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
 	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
@@ -24,6 +25,13 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
+
+// DefaultHistogramBoundaries have been copied from prometheus.DefBuckets.
+//
+// Note we anticipate the use of a high-precision histogram sketch as
+// the standard histogram aggregator for OTLP export.
+// (https://github.com/open-telemetry/opentelemetry-specification/issues/982).
+var DefaultHistogramBoundaries = []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10}
 
 type Option interface {
 	apply(context.Context, *Telemetry) func(ctx context.Context)
@@ -142,7 +150,9 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 
 	pusher := controller.New(
 		processor.NewFactory(
-			simple.NewWithHistogramDistribution(),
+			simple.NewWithHistogramDistribution(
+				histogram.WithExplicitBoundaries(DefaultHistogramBoundaries),
+			),
 			metricExp,
 			processor.WithMemory(true),
 		),

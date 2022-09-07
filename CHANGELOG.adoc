@@ -12,6 +12,7 @@ http.Flusher, http.Hijacker, http.Pusher, io.ReaderFrom) and update gin, echo an
 * gin: redesign example
 * mw: http filter now affect main mw not only httpTrace, appead option WithFilter
 * plugin otelsql first version - traces and meterics
+* DefaultHistogramBoundaries - allow change explicitly change histogram boundaries
 
 == v2.0.7
 * full function gin mw
