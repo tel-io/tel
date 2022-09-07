@@ -2,6 +2,11 @@
 
 ## How to run
 
+First run otel stack from  `/github.com/d7561985/tel/docker` using command inside that folder 
+```bash
+docker-compose up
+```
+
 ### Docker
 
 Start docker:
@@ -20,4 +25,13 @@ ENV_MODE=open go run main.go
 connector mode:
 ```bash
 ENV_MODE=connect go run main.go
+```
+
+### docker-composer
+inside example folder
+
+NOTE: no connection with OTEL docker-compose network
+
+```bash
+docker-compose up
 ```

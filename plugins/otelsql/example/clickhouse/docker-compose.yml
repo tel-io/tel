@@ -12,7 +12,10 @@ services:
   client:
     build:
       dockerfile: $PWD/Dockerfile
-      context: ..
+      context: $PWD
+    environment:
+      - ENV_MODE=connect
+      - ENV_CLICK_ADDR=clickhouse:9000
     ports:
       - 8011:8011
     depends_on:
