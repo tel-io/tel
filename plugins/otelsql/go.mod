@@ -1,4 +1,4 @@
-module github.com/d7561985/tel/plugins/sqlwrapper/v2
+module github.com/d7561985/tel/plugins/otelsql/v2
 
 go 1.17
 

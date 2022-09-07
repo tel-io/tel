@@ -12,7 +12,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"go.opentelemetry.io/otel/trace"
 
-	sqlattribute "github.com/d7561985/tel/plugins/sqlwrapper/v2/attribute"
+	sqlattribute "github.com/d7561985/tel/plugins/otelsql/v2/attribute"
 )
 
 type spanNameFormatter func(ctx context.Context, op string) string
