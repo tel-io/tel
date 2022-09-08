@@ -73,7 +73,7 @@ services:
       - ./grafana.ini:/etc/grafana/grafana.ini
       - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
       - ./dashboard.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
-      - ../_grafana:/etc/grafana/dashboards
+      - ./dashboards:/etc/grafana/dashboards
     environment:
       GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
       GF_AUTH_ANONYMOUS_ENABLED: "true"
