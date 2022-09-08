@@ -10,8 +10,8 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.2
 	github.com/spf13/cobra v1.5.0
-	github.com/tel-io/instrumentation/middleware/grpc v0.0.0-20220907155016-5135187287af
-	github.com/tel-io/instrumentation/middleware/http v0.0.0-20220907155016-5135187287af
+	github.com/tel-io/instrumentation/middleware/grpc v1.0.0
+	github.com/tel-io/instrumentation/middleware/http v1.0.0
 	go.opentelemetry.io/otel v1.8.0
 	go.opentelemetry.io/otel/trace v1.8.0
 	go.uber.org/zap v1.21.0
