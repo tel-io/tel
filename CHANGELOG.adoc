@@ -15,6 +15,7 @@ http.Flusher, http.Hijacker, http.Pusher, io.ReaderFrom) and update gin, echo an
 * DefaultHistogramBoundaries - allow change explicitly change histogram boundaries
 * move modules, plugins to new repo https://github.com/tel-io/instrumentation
 * grafana dashboards move to  https://github.com/tel-io/instrumentation/tree/main/grafana-dashboards
+* configuration bug fix related to bool values
 
 == v2.0.7
 * full function gin mw
