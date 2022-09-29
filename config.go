@@ -128,7 +128,7 @@ func str(env string, v *string) {
 }
 
 func bl(env string, v *bool) {
-	if val, _ := strconv.ParseBool(os.Getenv(env)); val {
+	if val, err := strconv.ParseBool(os.Getenv(env)); err == nil {
 		*v = val
 	}
 }
