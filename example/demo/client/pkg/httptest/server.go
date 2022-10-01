@@ -2,13 +2,13 @@ package httptest
 
 import (
 	"context"
+	"github.com/tel-io/tel/v2"
 	"io"
 	"math/rand"
 	"net"
 	"net/http"
 	"time"
 
-	"github.com/d7561985/tel/v2"
 	"github.com/pkg/errors"
 	mw "github.com/tel-io/instrumentation/middleware/http"
 	"github.com/tel-io/tel/example/demo/client/v2/pkg/grpctest"

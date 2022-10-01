@@ -17,6 +17,7 @@ http.Flusher, http.Hijacker, http.Pusher, io.ReaderFrom) and update gin, echo an
 * grafana dashboards move to  https://github.com/tel-io/instrumentation/tree/main/grafana-dashboards
 * configuration bug fix related to bool values
 * migration github.com/d7561985/tel => github.com/tel-io/tel
+* set default brunch as `main`
 
 == v2.0.7
 * full function gin mw

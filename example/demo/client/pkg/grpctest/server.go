@@ -3,13 +3,13 @@ package grpctest
 import (
 	"context"
 	"fmt"
+	"github.com/tel-io/tel/v2"
 	"io"
 	"log"
 	"math/rand"
 	"net"
 	"time"
 
-	"github.com/d7561985/tel/v2"
 	"github.com/pkg/errors"
 	grpcx "github.com/tel-io/instrumentation/middleware/grpc"
 	"github.com/tel-io/otelgrpc"

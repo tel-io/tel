@@ -2,8 +2,8 @@ package cli
 
 import (
 	"fmt"
+	"github.com/tel-io/tel/v2"
 
-	"github.com/d7561985/tel/v2"
 	"github.com/pkg/errors"
 	"github.com/tel-io/tel/example/demo/client/v2/pkg/httptest"
 	"github.com/tel-io/tel/example/demo/client/v2/pkg/mgr"

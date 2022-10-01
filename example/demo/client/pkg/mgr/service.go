@@ -2,11 +2,11 @@ package mgr
 
 import (
 	"context"
+	"github.com/tel-io/tel/v2"
 	"math/rand"
 	"sync"
 	"time"
 
-	"github.com/d7561985/tel/v2"
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/baggage"
@@ -36,7 +36,7 @@ type Service struct {
 }
 
 func New(t tel.Telemetry, clt hClient) *Service {
-	m := t.Meter("github.com/d7561985/tel/example/demo/client/v2")
+	m := t.Meter("github.com/tel-io/tel/example/demo/client/v2")
 
 	requestLatency, err := m.SyncFloat64().Histogram(ServerLatency,
 		instrument.WithDescription("The latency of requests processed"))

@@ -3,15 +3,15 @@ module hotrod
 go 1.18
 
 require (
-	github.com/d7561985/tel/v2 v2.0.8-0.20220907122942-341fd6f2bee6
+	github.com/d7561985/tel/v2 v2.1.0-rc
 	github.com/gogo/protobuf v1.3.2
 	github.com/jaegertracing/jaeger v1.35.2
 	github.com/joho/godotenv v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.2
 	github.com/spf13/cobra v1.5.0
-	github.com/tel-io/instrumentation/middleware/grpc v1.0.0
-	github.com/tel-io/instrumentation/middleware/http v1.0.0
+	github.com/tel-io/instrumentation/middleware/grpc v1.1.0
+	github.com/tel-io/instrumentation/middleware/http v1.1.0
 	go.opentelemetry.io/otel v1.8.0
 	go.opentelemetry.io/otel/trace v1.8.0
 	go.uber.org/zap v1.21.0
@@ -40,6 +40,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.22.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tel-io/otelgrpc v1.0.2-0.20220605174232-2f9b4153a0a4 // indirect
+	github.com/tel-io/tel/v2 v2.1.0-rc // indirect
 	github.com/tklauser/go-sysconf v0.3.10 // indirect
 	github.com/tklauser/numcpus v0.4.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect

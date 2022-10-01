@@ -174,7 +174,7 @@ In grafana tempo datasource should be configured with `tracesToLogs`
 
 [source,bash]
 ----
-go get github.com/d7561985/tel/v2@latest
+go get github.com/tel-io/tel/v2@latest
 ----
 
 === collector
