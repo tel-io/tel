@@ -1,9 +1,9 @@
 package cli
 
 import (
-	"github.com/d7561985/tel/example/demo/client/v2/pkg/grpctest"
 	"github.com/d7561985/tel/v2"
 	"github.com/pkg/errors"
+	"github.com/tel-io/tel/example/demo/client/v2/pkg/grpctest"
 	"github.com/urfave/cli/v2"
 )
 

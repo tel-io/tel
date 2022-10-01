@@ -1,8 +1,8 @@
 package ztrace
 
 import (
-	"github.com/d7561985/tel/v2/pkg/zlogfmt"
 	"github.com/pkg/errors"
+	"github.com/tel-io/tel/v2/pkg/zlogfmt"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap/zapcore"

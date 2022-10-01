@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/d7561985/tel/v2/otlplog/logskd"
-	"github.com/d7561985/tel/v2/otlplog/otlploggrpc"
-	"github.com/d7561985/tel/v2/pkg/zlogfmt"
+	"github.com/tel-io/tel/v2/otlplog/logskd"
+	"github.com/tel-io/tel/v2/otlplog/otlploggrpc"
+	"github.com/tel-io/tel/v2/pkg/zlogfmt"
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	rt "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"

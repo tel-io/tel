@@ -3,8 +3,8 @@ package logtransform
 import (
 	"strings"
 
-	"github.com/d7561985/tel/v2/otlplog/logskd"
-	"github.com/d7561985/tel/v2/pkg/tracetransform"
+	"github.com/tel-io/tel/v2/otlplog/logskd"
+	"github.com/tel-io/tel/v2/pkg/tracetransform"
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	v1 "go.opentelemetry.io/proto/otlp/common/v1"

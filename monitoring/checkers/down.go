@@ -1,7 +1,7 @@
 package checkers
 
 import (
-	health "github.com/d7561985/tel/v2/monitoring/heallth"
+	health "github.com/tel-io/tel/v2/monitoring/heallth"
 )
 
 type ShutDownChecker struct{}

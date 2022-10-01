@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/d7561985/tel/example/demo/client/v2/cli"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/tel-io/tel/example/demo/client/v2/cli"
 )
 
 func main() {

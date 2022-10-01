@@ -6,9 +6,9 @@ import (
 	"net/http/pprof"
 	"time"
 
-	"github.com/d7561985/tel/v2/monitoring/checkers"
-	health "github.com/d7561985/tel/v2/monitoring/heallth"
 	"github.com/pkg/errors"
+	"github.com/tel-io/tel/v2/monitoring/checkers"
+	health "github.com/tel-io/tel/v2/monitoring/heallth"
 )
 
 const (

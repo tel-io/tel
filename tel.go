@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/d7561985/tel/v2/pkg/ztrace"
+	"github.com/tel-io/tel/v2/pkg/ztrace"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"

@@ -19,8 +19,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/d7561985/tel/v2/otlplog/otlpconfig"
 	"github.com/stretchr/testify/assert"
+	"github.com/tel-io/tel/v2/otlplog/otlpconfig"
 )
 
 const (

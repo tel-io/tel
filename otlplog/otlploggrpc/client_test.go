@@ -23,9 +23,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/d7561985/tel/v2/otlplog/otlploggrpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tel-io/tel/v2/otlplog/otlploggrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/encoding/gzip"

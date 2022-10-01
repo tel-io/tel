@@ -19,9 +19,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/d7561985/tel/v2/otlplog/retry"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tel-io/tel/v2/otlplog/retry"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

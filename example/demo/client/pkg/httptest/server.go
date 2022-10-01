@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/d7561985/tel/example/demo/client/v2/pkg/grpctest"
 	"github.com/d7561985/tel/v2"
 	"github.com/pkg/errors"
 	mw "github.com/tel-io/instrumentation/middleware/http"
+	"github.com/tel-io/tel/example/demo/client/v2/pkg/grpctest"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/trace"

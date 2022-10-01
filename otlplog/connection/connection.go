@@ -22,8 +22,8 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/d7561985/tel/v2/otlplog/otlpconfig"
-	"github.com/d7561985/tel/v2/otlplog/retry"
+	"github.com/tel-io/tel/v2/otlplog/otlpconfig"
+	"github.com/tel-io/tel/v2/otlplog/retry"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

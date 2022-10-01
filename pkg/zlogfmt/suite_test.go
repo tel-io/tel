@@ -3,8 +3,8 @@ package zlogfmt
 import (
 	"testing"
 
-	"github.com/d7561985/tel/v2/otlplog/logskd/logprocmocks"
 	"github.com/stretchr/testify/suite"
+	"github.com/tel-io/tel/v2/otlplog/logskd/logprocmocks"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
