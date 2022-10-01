@@ -8,7 +8,7 @@
 http.Flusher, http.Hijacker, http.Pusher, io.ReaderFrom) and update gin, echo and chi libs to this fix
 * rid of prometheus dependencies, not we all clean
 * mw: gin fix status writing
-* docker: load loki config + rid from const_labels: const_labels in prometheus, Clients should use own resource for doing that, for example via env: `OTEL_RESOURCE_ATTRIBUTES=license=COM`
+* docker: load loki config + rid of const_labels: const_labels in prometheus, Clients should use own resource for doing that, for example via env: `OTEL_RESOURCE_ATTRIBUTES=license=COM`
 * gin: redesign example
 * mw: http filter now affect main mw not only httpTrace, appead option WithFilter
 * plugin otelsql first version - traces and meterics
