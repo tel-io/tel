@@ -1,0 +1,52 @@
+= Monitor concept
+Combine health check concept and monitoring server
+
+
+== Configuration
+
+.MONITOR_ENABLE
+simple bool value
+
+Enable /health endpoint in provided monitoring address
+
+.MONITOR_ADDR
+just addr with port
+
+.DEBUG
+Enable pprof
+
+
+== Endpoints
+=== HTTP
+
+* /health
+
+With DEBUG:
+
+* /debug/pprof/
+* /debug/pprof/cmdline
+* /debug/pprof/profile/
+* /debug/pprof/symbol/
+* /debug/pprof/trace/
+
+=== Metrics
+* up
+* up.status
+
+=== Usage
+Developer should set option `tel.WithHealthCheckers(...)` with required checkers
+
+
+[source,go]
+----
+_,_ = tel.New(ctx, cfg, tel.WithMonitor(
+	    // example simple checker which report what service is DOWN
+        health.CheckerFunc(func(context.Context) health.WithHealthCheckers {
+                return health.NewReport("down-checker", false)
+            })
+	))
+----
+
+
+== Checkers
+tel-io project provide some checkers in our https://github.com/tel-io/instrumentation[instruments] repo

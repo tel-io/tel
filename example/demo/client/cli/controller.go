@@ -1,8 +1,11 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"github.com/tel-io/tel/v2"
+	health "github.com/tel-io/tel/v2/monitoring/heallth"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/pkg/errors"
 	"github.com/tel-io/tel/example/demo/client/v2/pkg/httptest"
@@ -27,11 +30,16 @@ func Controller() *cli.Command {
 		Action: func(ctx *cli.Context) error {
 			cfg := tel.GetConfigFromEnv()
 			cfg.LogEncode = "console"
-			cfg.Namespace = "TEST"
-			cfg.Service = "CONTROLLER"
-			cfg.MonitorConfig.Enable = false
 
-			t, closer := tel.New(ctx.Context, cfg)
+			t, closer := tel.New(ctx.Context, cfg,
+				tel.WithNamespace("TEST"),
+				tel.WithServiceName("CONTROLLER"),
+				tel.WithMonitorEnable(true),
+				tel.WithHealthCheckers(health.CheckerFunc(func(ctx context.Context) health.ReportDocument {
+					return health.NewReport("CONTROLLER", true, attribute.Key("ke").Bool(true))
+				})),
+			)
+
 			defer closer()
 
 			t.Info(cfg.Service, tel.String("collector", cfg.Addr), tel.Int("threads", ctx.Int(mgsThreads)))

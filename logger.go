@@ -7,7 +7,7 @@ import (
 
 type Logger interface {
 	//Named(s string) Logger
-	//WithOptions(opts ...zap.Option) Logger
+	//WithOptions(opts ...zap.controllers) Logger
 	//With(fields ...zap.Field) Logger
 
 	Check(lvl zapcore.Level, msg string) *zapcore.CheckedEntry

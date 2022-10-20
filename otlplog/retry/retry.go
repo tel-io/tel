@@ -113,7 +113,7 @@ func (c Config) RequestFunc(evaluate EvaluateFunc) RequestFunc {
 	}
 }
 
-// Allow override for testing.
+// Allow override for otesting.
 var waitFunc = wait
 
 func wait(ctx context.Context, delay time.Duration) error {

@@ -1,6 +1,7 @@
 package tel
 
 import (
+	health "github.com/tel-io/tel/v2/monitoring/heallth"
 	"os"
 	"strconv"
 	"strings"
@@ -29,6 +30,17 @@ const (
 
 const DisableLog = "none"
 
+// Option interface used for setting optional config properties.
+type Option interface {
+	apply(*Config)
+}
+
+type optionFunc func(*Config)
+
+func (o optionFunc) apply(c *Config) {
+	o(c)
+}
+
 type OtelConfig struct {
 	Enable bool `env:"OTEL_ENABLE" envDefault:"true"`
 	// OtelAddr address where grpc open-telemetry exporter serve
@@ -39,6 +51,8 @@ type OtelConfig struct {
 type MonitorConfig struct {
 	Enable      bool   `env:"MONITOR_ENABLE" envDefault:"true"`
 	MonitorAddr string `env:"MONITOR_ADDR" envDefault:"0.0.0.0:8011"`
+
+	healthChecker []health.Checker
 }
 
 type Config struct {
@@ -131,4 +145,39 @@ func bl(env string, v *bool) {
 	if val, err := strconv.ParseBool(os.Getenv(env)); err == nil {
 		*v = val
 	}
+}
+
+// WithHealthCheckers provide checkers to monitoring system for check health status of service
+func WithHealthCheckers(c ...health.Checker) Option {
+	return optionFunc(func(config *Config) {
+		config.MonitorConfig.healthChecker = append(config.MonitorConfig.healthChecker, c...)
+	})
+}
+
+// WithServiceName set service name
+func WithServiceName(name string) Option {
+	return optionFunc(func(config *Config) {
+		config.Service = name
+	})
+}
+
+// WithNamespace set service namespace
+func WithNamespace(ns string) Option {
+	return optionFunc(func(config *Config) {
+		config.Namespace = ns
+	})
+}
+
+// WithMonitorEnable enable monitoring
+func WithMonitorEnable(enable bool) Option {
+	return optionFunc(func(config *Config) {
+		config.MonitorConfig.Enable = enable
+	})
+}
+
+// WithMonitoringAddr overwrite monitoring addr
+func WithMonitoringAddr(addr string) Option {
+	return optionFunc(func(config *Config) {
+		config.MonitorConfig.MonitorAddr = addr
+	})
 }

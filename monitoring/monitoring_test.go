@@ -1,7 +1,6 @@
-package tel
+package monitoring
 
 import (
-	"context"
 	"io/ioutil"
 	"net/http/httptest"
 	"testing"
@@ -11,13 +10,10 @@ import (
 
 // Test_monitor_Start check if health endpoint is working
 func Test_monitor_Start(t *testing.T) {
-	srv, closer := New(context.TODO(), DefaultConfig())
-	defer closer()
+	m := NewMon(WithDebug(true), WithAddr(":"))
+	m.route()
 
-	ctx := srv.Ctx()
-
-	m := createMonitor(":8080", true)
-	m.route(ctx)
+	go m.Start()
 
 	s := httptest.NewServer(m.server.Handler)
 

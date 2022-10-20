@@ -2,6 +2,7 @@ package tel
 
 import (
 	"context"
+	"github.com/tel-io/tel/v2/monitoring"
 	"time"
 
 	"github.com/tel-io/tel/v2/otlplog/logskd"
@@ -33,7 +34,7 @@ import (
 // (https://github.com/open-telemetry/opentelemetry-specification/issues/982).
 var DefaultHistogramBoundaries = []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10}
 
-type Option interface {
+type controllers interface {
 	apply(context.Context, *Telemetry) func(ctx context.Context)
 }
 
@@ -41,7 +42,7 @@ type oLog struct {
 	res *resource.Resource
 }
 
-func withOteLog(res *resource.Resource) Option {
+func withOteLog(res *resource.Resource) controllers {
 	return &oLog{res: res}
 }
 
@@ -84,7 +85,7 @@ type oTrace struct {
 	res *resource.Resource
 }
 
-func withOteTrace(res *resource.Resource) Option {
+func withOteTrace(res *resource.Resource) controllers {
 	return &oTrace{res: res}
 }
 
@@ -129,7 +130,7 @@ type oMetric struct {
 	res *resource.Resource
 }
 
-func withOteMetric(res *resource.Resource) Option {
+func withOteMetric(res *resource.Resource) controllers {
 	return &oMetric{res: res}
 }
 
@@ -186,16 +187,32 @@ type oMonitor struct{}
 
 // withMonitor enable monitor system which represent health check with some additional options
 // use tel.AddHealthChecker to add health handlers
-func withMonitor() Option {
+func withMonitor() controllers {
 	return &oMonitor{}
 }
 
 func (o *oMonitor) apply(ctx context.Context, t *Telemetry) func(context.Context) {
-	m := t.Monitor.(*monitor)
-	go m.Start(t.Ctx())
+	if !t.cfg.MonitorConfig.Enable {
+		return func(ctx context.Context) {}
+	}
+
+	t.Info("start monitoring", String("addr", t.cfg.MonitorAddr), Bool("debug", t.cfg.Debug))
+
+	m := monitoring.NewMon(
+		monitoring.WithAddr(t.cfg.MonitorAddr),
+		monitoring.WithDebug(t.cfg.Debug),
+		monitoring.WithChecker(t.cfg.healthChecker...),
+	)
+
+	go func() {
+		if err := m.Start(ctx); err != nil {
+			t.Error("start monitoring", Error(err))
+		}
+	}()
 
 	return func(cxt context.Context) {
-		m.GracefulStop(cxt)
-		t.Info("monitor has been shutdown")
+		if err := m.GracefulStop(cxt); err != nil {
+			t.Error("stop monitoring", Error(err))
+		}
 	}
 }

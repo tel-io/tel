@@ -3,7 +3,6 @@ package tel
 import (
 	"os"
 	"testing"
-	
 )
 
 func TestGetConfigFromEnv(t *testing.T) {
@@ -24,7 +23,7 @@ func TestBoolOverwrite(t *testing.T) {
 		strBoolFalse   = "false"
 		strBoolInvalid = "invalid-value"
 	)
-	
+
 	_ = os.Setenv(envBoolExistTrue, strBoolTrue)
 	_ = os.Setenv(envBoolExistFalse, strBoolFalse)
 	_ = os.Setenv(envBoolExistInvalid, strBoolInvalid)

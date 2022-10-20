@@ -20,8 +20,6 @@ var (
 )
 
 type Telemetry struct {
-	Monitor
-
 	*zap.Logger
 
 	trace trace.Tracer
@@ -37,7 +35,6 @@ func NewNull() Telemetry {
 
 	return Telemetry{
 		cfg:            &cfg,
-		Monitor:        createNilMonitor(),
 		Logger:         zap.NewExample(),
 		trace:          trace.NewNoopTracerProvider().Tracer(instrumentationName),
 		traceProvider:  trace.NewNoopTracerProvider(),
@@ -52,7 +49,6 @@ func NewSimple(cfg Config) Telemetry {
 
 	out := Telemetry{
 		cfg:            &cfg,
-		Monitor:        createMonitor(cfg.MonitorAddr, cfg.Debug),
 		Logger:         newLogger(cfg),
 		trace:          trace.NewNoopTracerProvider().Tracer(instrumentationName),
 		traceProvider:  trace.NewNoopTracerProvider(),
@@ -66,20 +62,27 @@ func NewSimple(cfg Config) Telemetry {
 
 // New create telemetry instance
 func New(ctx context.Context, cfg Config, options ...Option) (Telemetry, func()) {
+	for _, option := range options {
+		option.apply(&cfg)
+	}
+
 	out := NewSimple(cfg)
+
+	var controls []controllers
 
 	if cfg.OtelConfig.Enable {
 		res := CreateRes(ctx, cfg)
+
 		// we're afraid that someone double this or miss something - that's why none exported options
-		options = append(options, withOteLog(res), withOteTrace(res), withOteMetric(res))
+		controls = append(controls, withOteLog(res), withOteTrace(res), withOteMetric(res))
 	}
 
 	if cfg.MonitorConfig.Enable {
-		options = append(options, withMonitor())
+		controls = append(controls, withMonitor())
 	}
 
 	var closers []func(context.Context)
-	for _, fn := range options {
+	for _, fn := range controls {
 		closers = append(closers, fn.apply(ctx, &out))
 	}
 

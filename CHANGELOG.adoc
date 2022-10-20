@@ -18,6 +18,8 @@ http.Flusher, http.Hijacker, http.Pusher, io.ReaderFrom) and update gin, echo an
 * configuration bug fix related to bool values
 * migration github.com/d7561985/tel => github.com/tel-io/tel
 * set default brunch as `main`
+* monitoring feature redesign: now users should set specific option for start monitoring and provided more clear checker helpers
+* monitoring metric health provider: `up` && `up.status`
 
 == v2.0.7
 * full function gin mw
