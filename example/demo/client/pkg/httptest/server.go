@@ -36,7 +36,7 @@ func New(t tel.Telemetry, c *grpctest.Client, addr string) *Server {
 }
 
 func (s *Server) Start(ctx context.Context) (err error) {
-	m := mw.ServerMiddlewareAll()
+	m := mw.ServerMiddlewareAll(mw.WithTel(tel.FromCtx(ctx)))
 
 	mx := http.NewServeMux()
 	mx.Handle("/hello", m(http.HandlerFunc(s.helloHttp)))

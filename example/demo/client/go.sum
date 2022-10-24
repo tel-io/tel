@@ -204,6 +204,8 @@ github.com/stretchr/testify v1.7.1 h1:5TQK59W5E3v0r2duFAb7P95B6hEeOyEnHRa8MjYSMT
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/tel-io/instrumentation/middleware/grpc v1.1.0 h1:qo8bKlBbUUV4OHGI7u2Xq8qFWAU+kAQzTdwBNu9siI8=
 github.com/tel-io/instrumentation/middleware/grpc v1.1.0/go.mod h1:ODAboUPADsWMSfldl5IZpKein+AKUx4Qgr1NpweTe4g=
+github.com/tel-io/instrumentation/middleware/grpc v1.1.1 h1:dmKF7VvhLXyQMfNXuwNQRxuVvdeAHIGEe3gp3hISOk4=
+github.com/tel-io/instrumentation/middleware/grpc v1.1.1/go.mod h1:wTGLDsZVoSoNfJAXf5Ed2fxGjur1/S/53vzdRPAHvDQ=
 github.com/tel-io/instrumentation/middleware/http v1.1.0 h1:oFuIWcW92GWVN0P9ZYFFLVywVcxJu4K/aQvs2Dk+WMI=
 github.com/tel-io/instrumentation/middleware/http v1.1.0/go.mod h1:H3RUuSJ3oc7t0bZcrvjQwvsdyGoEOI8pK0oBC56y0x0=
 github.com/tel-io/otelgrpc v1.0.1/go.mod h1:6W2izuFWAGPNGQeS87RiDirxitpi38GlzEuf6c/jHEM=

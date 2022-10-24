@@ -2,15 +2,14 @@ package httptest
 
 import (
 	"context"
+	"github.com/tel-io/tel/v2"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 
 	"github.com/pkg/errors"
 	mw "github.com/tel-io/instrumentation/middleware/http"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/baggage"
-	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -21,16 +20,16 @@ type Client struct {
 	trace trace.Tracer
 }
 
-func NewClient(addr string) (*Client, error) {
+func NewClient(t *tel.Telemetry, addr string) (*Client, error) {
 	a, err := url.Parse(addr)
 	if err != nil {
 		return nil, errors.WithMessagef(err, "parse url %q", addr)
 	}
 
 	return &Client{
-		trace:  otel.Tracer("example/client"),
+		trace:  t.TracerProvider().Tracer("example/client"),
 		addr:   a,
-		client: mw.NewClient(nil),
+		client: mw.UpdateClient(mw.NewClient(nil), mw.WithTel(t)),
 	}, nil
 }
 
@@ -40,9 +39,6 @@ func (c *Client) Get(ccx context.Context, path string) (err error) {
 
 	u := *c.addr
 	u.Path = path
-
-	ctx, span := c.trace.Start(ctx, path, trace.WithAttributes(semconv.PeerServiceKey.String("ExampleService")))
-	defer span.End()
 
 	req, _ := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 

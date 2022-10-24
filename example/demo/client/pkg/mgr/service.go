@@ -97,7 +97,7 @@ func (s *Service) Start(ctx context.Context, threads int) error {
 func (s *Service) run(ctx context.Context) {
 	<-time.After(time.Second * 5)
 
-	t := tel.FromCtx(ctx)
+	t := tel.FromCtx(ctx).Copy()
 	t.Info("run")
 
 	for {
@@ -107,7 +107,7 @@ func (s *Service) run(ctx context.Context) {
 		default:
 		}
 
-		if err := s.oneShoot(t.Copy()); err != nil {
+		if err := s.oneShoot(t); err != nil {
 			t.Fatal("shot", tel.Error(err))
 		}
 

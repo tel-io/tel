@@ -25,13 +25,16 @@ type Client struct {
 	cln  api.HelloServiceClient
 }
 
-func NewClient(addr string) (*Client, error) {
+func NewClient(t *tel.Telemetry, addr string) (*Client, error) {
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(
 		insecure.NewCredentials()),
 		// for unary use tel module
-		grpc.WithChainUnaryInterceptor(grpcx.UnaryClientInterceptorAll()),
+		grpc.WithChainUnaryInterceptor(
+			grpcx.UnaryClientInterceptorAll(grpcx.WithTel(t)),
+		),
 		// for stream use stand-alone trace + metrics no recover
 		grpc.WithChainStreamInterceptor(grpcx.StreamClientInterceptor(
+			grpcx.WithTel(t),
 			grpcx.WithMetricOption(
 				otelgrpc.WithServerHandledHistogram(true),
 				otelgrpc.WithConstLabels(
@@ -136,6 +139,8 @@ func (c *Client) callSayHelloServerStream(ccx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("opening SayHelloServerStream: %w", err)
 	}
+
+	tel.FromCtx(ccx).PutFields(tel.String("tx-i", "aaaaaaaaaa"))
 
 	for {
 		_, err := stream.Recv()

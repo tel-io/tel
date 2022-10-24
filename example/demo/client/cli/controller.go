@@ -47,7 +47,7 @@ func Controller() *cli.Command {
 				return errors.WithStack(fmt.Errorf("mgsThreads <= 0"))
 			}
 
-			hClt, err := httptest.NewClient("http://" + ctx.String(httpServer))
+			hClt, err := httptest.NewClient(&t, "http://"+ctx.String(httpServer))
 			if err != nil {
 				t.Fatal("http client", tel.Error(err))
 			}

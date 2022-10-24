@@ -35,7 +35,7 @@ func HttpServer() *cli.Command {
 			t.Info(cfg.Service, tel.String("collector", cfg.Addr))
 
 			// grpc client
-			gCLient, err := grpctest.NewClient(ctx.String(grpcServer))
+			gCLient, err := grpctest.NewClient(&t, ctx.String(grpcServer))
 			if err != nil {
 				return errors.WithMessagef(err, "connect to grpc server: %s", ctx.String(grpcServer))
 			}

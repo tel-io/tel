@@ -1,3 +1,8 @@
 = ToDo
-* move metrics to OTEL from all middlewares
-* integrate monitor with OTEL Metric
+
+* protect library from miss usage:
+**  not copy in MT thread
+** MT usage checks
+** os.exit or panic should send correctly all gathered logs or at least we should pring some solutions
+* race detection fixes and prevention
+
