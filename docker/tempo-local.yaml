@@ -1,10 +1,13 @@
 server:
   http_listen_port: 3200
+  log_level: info
+
 
 search_enabled: true
 
 overrides:
   max_search_bytes_per_trace: 20_000
+  block_retention: 168h
 
 distributor:
   receivers:                           # this configuration will listen on all ports and protocols that tempo is capable of.

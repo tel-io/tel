@@ -13,6 +13,9 @@ receivers:
             - targets: ['0.0.0.0:8888']
 exporters:
   logging:
+    loglevel: info
+    sampling_initial: 10
+    sampling_thereafter: 50
   prometheusremotewrite:
     endpoint: http://mimir:9009/api/v1/push
     resource_to_telemetry_conversion:
