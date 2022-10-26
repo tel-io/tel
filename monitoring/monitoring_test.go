@@ -1,6 +1,7 @@
 package monitoring
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http/httptest"
 	"testing"
@@ -13,7 +14,7 @@ func Test_monitor_Start(t *testing.T) {
 	m := NewMon(WithDebug(true), WithAddr(":"))
 	m.route()
 
-	go m.Start()
+	go m.Start(context.Background())
 
 	s := httptest.NewServer(m.server.Handler)
 

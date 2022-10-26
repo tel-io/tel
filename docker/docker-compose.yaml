@@ -53,21 +53,31 @@ services:
         max-size: 100m
     depends_on:
       - tempo
-
-  prometheus:
-    container_name: prometheus
-    image: prom/prometheus:v2.36.1
-    # added storage wal retentions 1week or 10GB
-    command: ["--config.file=/etc/prometheus/prometheus.yml",
-              "--storage.tsdb.retention.time=7d",
-              "--storage.tsdb.retention.size=10GB"]
-    volumes:
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+      - mimir
+  mimir:
+    image: grafana/mimir:latest
+    command: ["-config.file=/etc/mimir.yaml"]
+    hostname: mimir
     ports:
-      - "9090:9090"
-    logging:
-      options:
-        max-size: 100m
+      - "9009:9009"
+    volumes:
+      - ./mimir.yaml:/etc/mimir.yaml
+      - ./alertmanager-fallback-config.yaml:/etc/alertmanager-fallback-config.yaml
+      - ./mimir-data:/tmp/mimir
+#  prometheus:
+#    container_name: prometheus
+#    image: prom/prometheus:v2.36.1
+#    # added storage wal retentions 1week or 10GB
+#    command: ["--config.file=/etc/prometheus/prometheus.yml",
+#              "--storage.tsdb.retention.time=7d",
+#              "--storage.tsdb.retention.size=10GB"]
+#    volumes:
+#      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+#    ports:
+#      - "9090:9090"
+#    logging:
+#      options:
+#        max-size: 100m
   grafana:
     container_name: grafana
     platform: linux/amd64
@@ -87,3 +97,5 @@ services:
     logging:
       options:
         max-size: 100m
+    depends_on:
+      - mimir

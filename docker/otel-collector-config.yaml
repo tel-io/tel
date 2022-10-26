@@ -13,6 +13,14 @@ exporters:
     resource_to_telemetry_conversion:
       enabled: true
   logging:
+  otlphttp:
+    endpoint: http://mimir:9009/otlp
+  prometheusremotewrite:
+    endpoint: http://mimir:9009/api/v1/push
+  otlp/2:
+    endpoint: mimir:9095
+    tls:
+      insecure: true
   otlp:
     endpoint: tempo:4317
     tls:
@@ -85,7 +93,7 @@ service:
     metrics:
       receivers: [ otlp ]
       processors: [ batch ]
-      exporters: [ logging, prometheus ]
+      exporters: [ logging, otlphttp]
     logs:
       receivers: [ fluentforward, otlp ]
       processors: [ memory_limiter, batch ]
