@@ -169,11 +169,11 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 	handleErr(err, "Failed to start metric pusher")
 
 	// runtime exported
-	err = rt.Start()
+	err = rt.Start(rt.WithMeterProvider(pusher))
 	handleErr(err, "Failed to start runtime metric")
 
 	// host metrics exporter
-	err = host.Start()
+	err = host.Start(host.WithMeterProvider(pusher))
 	handleErr(err, "Failed to start host metric")
 
 	return func(cxt context.Context) {
