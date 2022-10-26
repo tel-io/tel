@@ -20,6 +20,7 @@ http.Flusher, http.Hijacker, http.Pusher, io.ReaderFrom) and update gin, echo an
 * set default brunch as `main`
 * monitoring feature redesign: now users should set specific option for start monitoring and provided more clear checker helpers
 * monitoring metric health provider: `up` && `up.status`
+* docker example migrate from prometheus to mimir
 
 == v2.0.7
 * full function gin mw

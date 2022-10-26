@@ -14,21 +14,6 @@ datasources:
         - datasourceUid: tempo
           name: traceID
       httpMethod: POST
-#  - name: Prometheus
-#    uid: prometheus
-#    type: prometheus
-#    access: proxy
-#    orgId: 1
-#    url: http://prometheus:9090
-#    basicAuth: false
-#    isDefault: true
-#    version: 1
-#    editable: true
-#    jsonData:
-#      exemplarTraceIdDestinations:
-#        - datasourceUid: tempo
-#          name: traceID
-#      httpMethod: POST
   - name: Tempo
     type: tempo
     access: proxy

@@ -4,23 +4,19 @@ receivers:
   otlp:
     protocols:
       grpc:
-
-exporters:
   prometheus:
-    endpoint: "0.0.0.0:8889"
-    const_labels:
-      #license: LICENSE # com, ru, ua, by, uk ....
-    resource_to_telemetry_conversion:
-      enabled: true
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector'
+          scrape_interval: 5s
+          static_configs:
+            - targets: ['0.0.0.0:8888']
+exporters:
   logging:
-  otlphttp:
-    endpoint: http://mimir:9009/otlp
   prometheusremotewrite:
     endpoint: http://mimir:9009/api/v1/push
-  otlp/2:
-    endpoint: mimir:9095
-    tls:
-      insecure: true
+    resource_to_telemetry_conversion:
+      enabled: true
   otlp:
     endpoint: tempo:4317
     tls:
@@ -49,14 +45,6 @@ exporters:
       # Attributes are the log record attributes that are allowed to be added as labels on a log stream.
       attributes:
         level: ""
-#      record:
-#        traceID: "traceID"
-#        spanID: "spanID"
-#        severity: "severity"
-#        severityN: "severityN"
-# flog required attibutes for container
-#        container_name: ""
-#        source: ""
 processors:
   batch:
     send_batch_size: 50
@@ -91,9 +79,9 @@ service:
       processors: [ batch ]
       exporters: [ logging, otlp ]
     metrics:
-      receivers: [ otlp ]
+      receivers: [ prometheus, otlp ]
       processors: [ batch ]
-      exporters: [ logging, otlphttp]
+      exporters: [ logging, prometheusremotewrite]
     logs:
       receivers: [ fluentforward, otlp ]
       processors: [ memory_limiter, batch ]

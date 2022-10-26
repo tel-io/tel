@@ -6,6 +6,7 @@ limits:
   accept_ha_samples: true
   max_label_names_per_series: 1000
   label_values_max_cardinality_label_names_per_request: 1000
+  compactor_blocks_retention_period: 168h
 
 blocks_storage:
   backend: filesystem
@@ -43,7 +44,7 @@ ruler_storage:
 server:
   http_listen_port: 9009
   grpc_listen_port: 9095
-  log_level: debug
+  log_level: info
 
 store_gateway:
   sharding_ring:
