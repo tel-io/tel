@@ -6,7 +6,8 @@ server:
 search_enabled: true
 
 overrides:
-  max_search_bytes_per_trace: 20_000
+  max_search_bytes_per_trace: 30_000
+  max_bytes_per_trace: 20_000_000
   block_retention: 168h
 
 distributor:

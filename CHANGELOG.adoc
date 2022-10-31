@@ -1,6 +1,6 @@
 = Changelog
 
-== latest
+== v2.1.0
 * example client - rework for more flexible instance view
 * move managed infra `docker-compose` to ./docker folder from example
 * example came up with new `hotrod`  project port from `jaeger`

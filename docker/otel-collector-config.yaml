@@ -50,8 +50,8 @@ exporters:
         level: ""
 processors:
   batch:
-    send_batch_size: 50
-    timeout: 5s
+    send_batch_size: 150
+    timeout: 15s
   # Enabling the memory_limiter is strongly recommended for every pipeline.
   # Configuration is based on the amount of memory allocated to the collector.
   # The configuration below assumes 2GB of memory. In general, the ballast

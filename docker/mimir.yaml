@@ -7,6 +7,7 @@ limits:
   max_label_names_per_series: 1000
   label_values_max_cardinality_label_names_per_request: 1000
   compactor_blocks_retention_period: 168h
+  ingestion_rate: 30_000
 
 blocks_storage:
   backend: filesystem
