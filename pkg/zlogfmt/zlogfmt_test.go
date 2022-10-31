@@ -46,10 +46,16 @@ func (s *Suite) TestLogLevelCheck() {
 			0,
 		},
 		{
-			"Expect error = ignore lo level",
+			"expect write: debug=error",
 			zapcore.DebugLevel,
-			zapcore.PanicLevel,
-			0,
+			zapcore.ErrorLevel,
+			1,
+		},
+		{
+			"expect write: debug=debug",
+			zapcore.DebugLevel,
+			zapcore.DebugLevel,
+			1,
 		},
 	}
 
@@ -65,9 +71,10 @@ func (s *Suite) TestLogLevelCheck() {
 				return zapcore.NewTee(core, c)
 			}))
 
-			ll.Check(tt.writeLvl, "MSG")
+			ll = ll.With(zap.String("zxx", "yyy")) // in addition, use copy functionality
+			ll.Check(tt.writeLvl, "MSG").Write(zap.String("qqq", "www"))
 
-			x.AssertNumberOfCalls(s.T(), "Write", 0)
+			x.AssertNumberOfCalls(s.T(), "Write", tt.expecte)
 		})
 	}
 }

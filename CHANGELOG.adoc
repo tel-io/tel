@@ -1,5 +1,8 @@
 = Changelog
 
+== v2.1.1
+* critical fix: zap core not inherited level at copy
+
 == v2.1.0
 * example client - rework for more flexible instance view
 * move managed infra `docker-compose` to ./docker folder from example

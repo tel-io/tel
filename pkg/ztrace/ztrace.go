@@ -26,6 +26,7 @@ func (c *Core) With(fields []zapcore.Field) zapcore.Core {
 	return &Core{
 		Span: c.Span,
 		enc:  c.enc.Clone(fields),
+		lvl:  c.lvl,
 	}
 }
 func (c *Core) Write(entry zapcore.Entry, fields []zapcore.Field) error {

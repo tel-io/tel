@@ -46,6 +46,7 @@ func (c *Core) With(fields []zapcore.Field) zapcore.Core {
 	clone := &Core{
 		batch: c.batch,
 		buf:   c.buf.Clone(fields),
+		lvl:   c.lvl,
 	}
 
 	return clone
