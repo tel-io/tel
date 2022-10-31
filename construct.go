@@ -63,13 +63,9 @@ func genInstanceID(srv string) string {
 }
 
 func newLogger(l Config) *zap.Logger {
-	var lvl zapcore.Level
-
-	handleErr(lvl.Set(l.LogLevel), fmt.Sprintf("zap set log lever %q", l.LogLevel))
-
 	zapconfig := zap.NewProductionConfig()
 	zapconfig.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
-	zapconfig.Level = zap.NewAtomicLevelAt(lvl)
+	zapconfig.Level = zap.NewAtomicLevelAt(l.Level())
 	zapconfig.Encoding = l.LogEncode
 
 	if zapconfig.Encoding == DisableLog {
@@ -81,7 +77,7 @@ func newLogger(l Config) *zap.Logger {
 	pl, err := zapconfig.Build(
 		zap.WithCaller(true),
 		zap.AddStacktrace(zapcore.ErrorLevel),
-		zap.IncreaseLevel(lvl),
+		zap.IncreaseLevel(l.Level()),
 	)
 	handleErr(err, "zap build")
 

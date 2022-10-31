@@ -195,7 +195,7 @@ func (t *Telemetry) StartSpan(ctx context.Context, name string, opts ...trace.Sp
 // Furthermore we create new log instance with trace fields
 func (t Telemetry) WithSpan(s trace.Span) *Telemetry {
 	t.Logger = t.Logger.WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
-		return zapcore.NewTee(core, ztrace.New(s))
+		return zapcore.NewTee(core, ztrace.New(t.LogLevel(), s))
 	}))
 
 	return &t

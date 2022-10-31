@@ -1,7 +1,9 @@
 package tel
 
 import (
+	"fmt"
 	health "github.com/tel-io/tel/v2/monitoring/heallth"
+	"go.uber.org/zap/zapcore"
 	"os"
 	"strconv"
 	"strings"
@@ -180,4 +182,11 @@ func WithMonitoringAddr(addr string) Option {
 	return optionFunc(func(config *Config) {
 		config.MonitorConfig.MonitorAddr = addr
 	})
+}
+
+func (c *Config) Level() zapcore.Level {
+	var lvl zapcore.Level
+	handleErr(lvl.Set(c.LogLevel), fmt.Sprintf("zap set log lever %q", c.LogLevel))
+
+	return lvl
 }

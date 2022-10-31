@@ -1,5 +1,12 @@
 package zlogfmt
 
+import (
+	"github.com/stretchr/testify/mock"
+	"github.com/tel-io/tel/v2/otlplog/logskd/logprocmocks"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+)
+
 const (
 	dumpExample = `goroutine 5 [running]:
 runtime/debug.Stack()
@@ -17,3 +24,50 @@ testing.tRunner(0x14000127860, 0x14000144120)
 created by testing.(*T).Run
 	/Users/dzmitryharupa/SDK/go1.17/src/testing/testing.go:1306 +0x328`
 )
+
+func (s *Suite) TestLogLevelCheck() {
+	tests := []struct {
+		name     string
+		lvl      zapcore.Level
+		writeLvl zapcore.Level
+		expecte  int // 1 if it should be written
+
+	}{
+		{
+			"THe same level = should called",
+			zapcore.ErrorLevel,
+			zapcore.ErrorLevel,
+			1,
+		},
+		{
+			"Expect error = ignore lo level",
+			zapcore.ErrorLevel,
+			zapcore.DebugLevel,
+			0,
+		},
+		{
+			"Expect error = ignore lo level",
+			zapcore.DebugLevel,
+			zapcore.PanicLevel,
+			0,
+		},
+	}
+
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			x := &logprocmocks.LogProcessor{}
+			x.On("Write", mock.Anything, mock.Anything).Return(nil)
+
+			c := NewCore(tt.lvl, x)
+
+			ll, _ := zap.NewDevelopment()
+			ll = ll.WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+				return zapcore.NewTee(core, c)
+			}))
+
+			ll.Check(tt.writeLvl, "MSG")
+
+			x.AssertNumberOfCalls(s.T(), "Write", 0)
+		})
+	}
+}

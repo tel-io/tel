@@ -15,6 +15,7 @@ import (
 type Core struct {
 	batch logskd.LogProcessor
 	buf   *ObjectEncoder
+	lvl   zapcore.Level
 }
 
 const (
@@ -27,18 +28,19 @@ const (
 var _ zapcore.Core = new(Core)
 
 // NewCore create zap Core instance which transcede logfmt for Grafana Loki
-func NewCore(ex logskd.LogProcessor) *Core {
+func NewCore(lvl zapcore.Level, ex logskd.LogProcessor) *Core {
 	c := &Core{
 		batch: ex,
 		buf:   New(nil),
+		lvl:   lvl,
 	}
 
 	return c
 }
 
 // Enabled always returns true, because that we always protected from basic root
-// so, this should implemented only if we use that Core as main
-func (c *Core) Enabled(zapcore.Level) bool { return true }
+// so, this should implement only if we use that Core as main
+func (c *Core) Enabled(lvl zapcore.Level) bool { return lvl >= c.lvl }
 
 func (c *Core) With(fields []zapcore.Field) zapcore.Core {
 	clone := &Core{
@@ -50,7 +52,11 @@ func (c *Core) With(fields []zapcore.Field) zapcore.Core {
 }
 
 func (c *Core) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
-	return ce.AddCore(ent, c)
+	if c.Enabled(ent.Level) {
+		return ce.AddCore(ent, c)
+	}
+
+	return ce
 }
 
 func (c *Core) Write(entry zapcore.Entry, fields []zapcore.Field) error {

@@ -15,10 +15,11 @@ var (
 type Core struct {
 	trace.Span
 	enc *zlogfmt.AtrEncoder
+	lvl zapcore.Level
 }
 
-func New(span trace.Span) zapcore.Core {
-	return &Core{Span: span, enc: zlogfmt.NewAttr()}
+func New(lvl zapcore.Level, span trace.Span) zapcore.Core {
+	return &Core{lvl: lvl, Span: span, enc: zlogfmt.NewAttr()}
 }
 
 func (c *Core) With(fields []zapcore.Field) zapcore.Core {
@@ -48,9 +49,13 @@ func (c *Core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
 }
 
 func (c *Core) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
-	return ce.AddCore(ent, c)
+	if c.Enabled(ent.Level) {
+		return ce.AddCore(ent, c)
+	}
+
+	return ce
 }
 
 func (c Core) Sync() error { return nil }
 
-func (c Core) Enabled(level zapcore.Level) bool { return true }
+func (c Core) Enabled(lvl zapcore.Level) bool { return lvl >= c.lvl }

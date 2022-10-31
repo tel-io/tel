@@ -21,6 +21,7 @@ http.Flusher, http.Hijacker, http.Pusher, io.ReaderFrom) and update gin, echo an
 * monitoring feature redesign: now users should set specific option for start monitoring and provided more clear checker helpers
 * monitoring metric health provider: `up` && `up.status`
 * docker example migrate from prometheus to mimir
+* core plugins: tracer && logger inherit log level
 
 == v2.0.7
 * full function gin mw

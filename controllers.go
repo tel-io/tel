@@ -58,7 +58,7 @@ func (o *oLog) apply(ctx context.Context, t *Telemetry) func(context.Context) {
 	handleErr(err, "Failed to create the collector log exporter")
 
 	batcher := logskd.NewBatchLogProcessor(logExporter)
-	cc := zlogfmt.NewCore(batcher)
+	cc := zlogfmt.NewCore(t.cfg.Level(), batcher)
 
 	t.Logger = zap.L().WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
 		return zapcore.NewTee(core, cc)
