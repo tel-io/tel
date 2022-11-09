@@ -1,12 +1,21 @@
 package tel
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"github.com/pkg/errors"
 	health "github.com/tel-io/tel/v2/monitoring/heallth"
 	"go.uber.org/zap/zapcore"
+	"google.golang.org/grpc/credentials"
 	"os"
 	"strconv"
 	"strings"
+)
+
+var (
+	ErrNoTLS    = errors.New("no tls configuration")
+	ErrCaAppend = errors.New("append certs from pem")
 )
 
 const (
@@ -27,7 +36,12 @@ const (
 	envMon        = "MONITOR_ADDR"
 	envOtelEnable = "OTEL_ENABLE"
 	evnOtel       = "OTEL_COLLECTOR_GRPC_ADDR"
-	envOtelInsec  = "OTEL_EXPORTER_WITH_INSECURE"
+
+	envOtelInsec         = "OTEL_EXPORTER_WITH_INSECURE"
+	envOtelTlsServerName = "OTEL_COLLECTOR_TLS_SERVER_NAME"
+	envOtelTlsCA         = "OTEL_COLLECTOR_TLS_CA_CERT"
+	envOtelCert          = "OTEL_COLLECTOR_TLS_CLIENT_CERT"
+	envOtelKey           = "OTEL_COLLECTOR_TLS_CLIENT_KEY"
 )
 
 const DisableLog = "none"
@@ -45,9 +59,32 @@ func (o optionFunc) apply(c *Config) {
 
 type OtelConfig struct {
 	Enable bool `env:"OTEL_ENABLE" envDefault:"true"`
+
 	// OtelAddr address where grpc open-telemetry exporter serve
-	Addr         string `env:"OTEL_COLLECTOR_GRPC_ADDR" envDefault:"0.0.0.0:4317"`
-	WithInsecure bool   `env:"OTEL_EXPORTER_WITH_INSECURE" envDefault:"true"`
+	Addr string `env:"OTEL_COLLECTOR_GRPC_ADDR" envDefault:"0.0.0.0:4317"`
+	// WithInsecure controls whether a client verifies the server's
+	// certificate chain and host name. If InsecureSkipVerify is true, crypto/tls
+	// accepts any certificate presented by the server and any host name in that
+	// certificate. In this mode, TLS is susceptible to machine-in-the-middle
+	// attacks unless custom verification is used. This should be used only for
+	// testing or in combination with VerifyConnection or VerifyPeerCertificate.
+	WithInsecure bool `env:"OTEL_EXPORTER_WITH_INSECURE" envDefault:"true"`
+
+	// ServerName is used to verify the hostname on the returned
+	// certificates unless InsecureSkipVerify is given. It is also included
+	// in the client's handshake to support virtual hosting unless it is
+	// an IP address.
+	// Disable WithInsecure option if set
+	ServerName string `env:"OTEL_COLLECTOR_TLS_SERVER_NAME"`
+
+	// Raw parses a public/private key pair from a pair of
+	// PEM encoded data. On successful return, Certificate.Leaf will be nil because
+	// the parsed form of the certificate is not retained.
+	Raw struct {
+		CA   []byte `env:"OTEL_COLLECTOR_TLS_CA_CERT"`
+		Cert []byte `env:"OTEL_COLLECTOR_TLS_CLIENT_CERT"`
+		Key  []byte `env:"OTEL_COLLECTOR_TLS_CLIENT_KEY"`
+	}
 }
 
 type MonitorConfig struct {
@@ -129,24 +166,22 @@ func GetConfigFromEnv() Config {
 	str(evnOtel, &c.OtelConfig.Addr)
 
 	bl(envOtelInsec, &c.OtelConfig.WithInsecure)
+	str(envOtelTlsServerName, &c.OtelConfig.ServerName)
+
+	// ServerName provided assume insecure disabled
+	if len(c.OtelConfig.ServerName) > 0 {
+		c.OtelConfig.WithInsecure = false
+	}
+
+	c.Raw.CA = bt(envOtelTlsCA)
+	c.Raw.Cert = bt(envOtelCert)
+	c.Raw.Key = bt(envOtelKey)
 
 	bl(envDebug, &c.Debug)
 	bl(envOtelEnable, &c.OtelConfig.Enable)
 	bl(envMonEnable, &c.MonitorConfig.Enable)
 
 	return c
-}
-
-func str(env string, v *string) {
-	if val, ok := os.LookupEnv(env); ok {
-		*v = val
-	}
-}
-
-func bl(env string, v *bool) {
-	if val, err := strconv.ParseBool(os.Getenv(env)); err == nil {
-		*v = val
-	}
 }
 
 // WithHealthCheckers provide checkers to monitoring system for check health status of service
@@ -189,4 +224,58 @@ func (c *Config) Level() zapcore.Level {
 	handleErr(lvl.Set(c.LogLevel), fmt.Sprintf("zap set log lever %q", c.LogLevel))
 
 	return lvl
+}
+
+func (c *OtelConfig) IsTLS() bool {
+	return (len(c.Raw.Cert) > 0 && len(c.Raw.Key) > 0) || len(c.Raw.CA) > 0
+}
+
+// createClientTLSCredentials up to otel-collector
+func (c *OtelConfig) createClientTLSCredentials() (credentials.TransportCredentials, error) {
+	if !c.IsTLS() {
+		return nil, ErrNoTLS
+	}
+
+	cfg := &tls.Config{
+		ServerName: c.ServerName,
+	}
+
+	if len(c.Raw.Cert) > 0 && len(c.Raw.Key) > 0 {
+		cert, err := tls.X509KeyPair(c.Raw.Cert, c.Raw.Key)
+		if err != nil {
+			return nil, errors.WithMessage(err, "load key/pair")
+		}
+
+		cfg.Certificates = []tls.Certificate{cert}
+	}
+
+	if len(c.Raw.CA) > 0 {
+		cfg.RootCAs = x509.NewCertPool()
+
+		if !cfg.RootCAs.AppendCertsFromPEM(c.Raw.CA) {
+			return nil, ErrCaAppend
+		}
+	}
+
+	return credentials.NewTLS(cfg), nil
+}
+
+func bt(env string) []byte {
+	if val, ok := os.LookupEnv(env); ok {
+		return []byte(val)
+	}
+
+	return nil
+}
+
+func str(env string, v *string) {
+	if val, ok := os.LookupEnv(env); ok {
+		*v = val
+	}
+}
+
+func bl(env string, v *bool) {
+	if val, err := strconv.ParseBool(os.Getenv(env)); err == nil {
+		*v = val
+	}
 }

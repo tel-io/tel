@@ -1,0 +1,158 @@
+= Transport security
+
+We describe a little how we should setup opentelemetry-collector and tel client
+
+NOTE: TLS or mTLS script https://github.com/open-telemetry/opentelemetry-collector/blob/main/internal/buildscripts/gen-certs.sh applicable for development and not only
+
+== noTLS
+=== opentelemetry collector
+Collector configuration could be left blank:
+[source,yaml]
+----
+receivers:
+  otlp:
+    protocols:
+      grpc:
+
+processors:
+  nop:
+
+exporters:
+  nop:
+
+service:
+  pipelines:
+    traces:
+     receivers: [otlp]
+     processors: [nop]
+     exporters: [nop]
+----
+== tel
+
+In this case we should configure tel with insecure options.
+Env: `OTEL_EXPORTER_WITH_INSECURE`
+
+
+== TLS
+Both client and server required ca certificate. In addition, server and client should get personal certificates signed with CA mentioned ahead.
+
+WARNING: dont don't share CA key file anyone
+
+=== opentelemetry collector
+Otel collector config `receivers.otlp.protocols.grpc.tls` should set `ca_file`, `cert_file` and `key_file` with server certificates and CA
+
+
+[source,yaml]
+----
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        tls:
+          ca_file: /certs/ca.crt
+          cert_file: /certs/server.crt
+          key_file: /certs/server.key
+
+processors:
+  nop:
+
+exporters:
+  nop:
+
+service:
+  pipelines:
+    traces:
+     receivers: [otlp]
+     processors: [nop]
+     exporters: [nop]
+----
+
+=== tel
+Thus, tel client should obtain: ca either with own clients certificates. Furthermore, tls configuration should set DNS host which used to  sign servers certificate
+
+For that purpose we should provide following env:
+* `OTEL_COLLECTOR_TLS_SERVER_NAME` which point to certificate used by server. Otherwise, set OTEL_EXPORTER_WITH_INSECURE and ignore validation, but it not secure
+* `OTEL_COLLECTOR_TLS_CA_CERT`
+* public key/pair signed with CA `OTEL_COLLECTOR_TLS_CLIENT_CERT`, `OTEL_COLLECTOR_TLS_CLIENT_KEY`
+
+=== test struct
+[source,go]
+----
+		{
+			name: "TLS",
+			tlsServerCreds: &configtls.TLSServerSetting{
+				TLSSetting: configtls.TLSSetting{
+					CAFile:   filepath.Join("testdata", "ca.crt"),
+					CertFile: filepath.Join("testdata", "server.crt"),
+					KeyFile:  filepath.Join("testdata", "server.key"),
+				},
+			},
+			tlsClientCreds: &configtls.TLSClientSetting{
+				TLSSetting: configtls.TLSSetting{
+					CAFile: filepath.Join("testdata", "ca.crt"),
+				},
+				ServerName: "localhost",
+			},
+		},
+----
+
+== mTLS
+
+=== opentelemetry collector
+mTLS in addition to TLS configuration required also client CA append.
+
+Configuration for `ca_file`, `cert_file` and `key_file` stay the same as for TLS configuration, but we should set `client_ca_file` - by whom would sigh client certificate
+
+On the other hand clints should use cert which signed with it
+
+WARNING: clint should not require client CA. They still as in TLS flow require server CA cert. file.
+
+[source,yaml]
+----
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        tls:
+          client_ca_file: /certs/clients
+          ca_file: /certs/server_ca.crt
+          cert_file: /certs/server.crt
+          key_file: /certs/server.key
+
+processors:
+  nop:
+
+exporters:
+  nop:
+
+service:
+  pipelines:
+    traces:
+     receivers: [otlp]
+     processors: [nop]
+     exporters: [nop]
+----
+
+=== test struct
+[source,go]
+----
+{
+			name: "mTLS",
+			tlsServerCreds: &configtls.TLSServerSetting{
+				TLSSetting: configtls.TLSSetting{
+					CAFile:   filepath.Join("testdata", "ca.crt"),
+					CertFile: filepath.Join("testdata", "server.crt"),
+					KeyFile:  filepath.Join("testdata", "server.key"),
+				},
+				ClientCAFile: filepath.Join("testdata", "ca.crt"),
+			},
+			tlsClientCreds: &configtls.TLSClientSetting{
+				TLSSetting: configtls.TLSSetting{
+					CAFile:   filepath.Join("testdata", "ca.crt"),
+					CertFile: filepath.Join("testdata", "client.crt"),
+					KeyFile:  filepath.Join("testdata", "client.key"),
+				},
+				ServerName: "localhost",
+			},
+}
+----

@@ -242,6 +242,20 @@ Address to otel collector server via GRPC protocol
 .OTEL_EXPORTER_WITH_INSECURE
 With insecure ...
 
+.OTEL_COLLECTOR_TLS_SERVER_NAME
+Check server certificate DNS name given from server.
+
+Disable `OTEL_EXPORTER_WITH_INSECURE` if set
+
+.OTEL_COLLECTOR_TLS_CA_CERT
+TLS CA certificate body
+
+.OTEL_COLLECTOR_TLS_CLIENT_CERT
+TLS client certificate
+
+.OTEL_COLLECTOR_TLS_CLIENT_KEY
+TLS client key
+
 .OTEL_RESOURCE_ATTRIBUTES
 This optional variable, handled by open-telemetry SDK.
 Separator is semicolon.

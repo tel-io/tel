@@ -16,6 +16,7 @@ package connection // import "go.opentelemetry.io/otel/exporters/otlp/otlptrace/
 
 import (
 	"context"
+	"google.golang.org/grpc/credentials/insecure"
 	"math/rand"
 	"sync"
 	"sync/atomic"
@@ -229,7 +230,7 @@ func (c *Connection) dialToCollector(ctx context.Context) (*grpc.ClientConn, err
 	if c.SCfg.GRPCCredentials != nil {
 		dialOpts = append(dialOpts, grpc.WithTransportCredentials(c.SCfg.GRPCCredentials))
 	} else if c.SCfg.Insecure {
-		dialOpts = append(dialOpts, grpc.WithInsecure())
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 	if c.SCfg.Compression == otlpconfig.GzipCompression {
 		dialOpts = append(dialOpts, grpc.WithDefaultCallOptions(grpc.UseCompressor(gzip.Name)))

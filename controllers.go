@@ -3,6 +3,7 @@ package tel
 import (
 	"context"
 	"github.com/tel-io/tel/v2/monitoring"
+	"github.com/tel-io/tel/v2/pkg/otelerr"
 	"time"
 
 	"github.com/tel-io/tel/v2/otlplog/logskd"
@@ -49,9 +50,21 @@ func withOteLog(res *resource.Resource) controllers {
 func (o *oLog) apply(ctx context.Context, t *Telemetry) func(context.Context) {
 	// exporter part
 	// this initiation controversy SRP, but right now we just speed up our development
-	opts := []otlploggrpc.Option{otlploggrpc.WithEndpoint(t.cfg.OtelConfig.Addr)}
+	opts := []otlploggrpc.Option{
+		otlploggrpc.WithEndpoint(t.cfg.OtelConfig.Addr),
+	}
+
 	if t.cfg.WithInsecure {
 		opts = append(opts, otlploggrpc.WithInsecure())
+	}
+
+	if t.cfg.OtelConfig.IsTLS() {
+		cred, err := t.cfg.OtelConfig.createClientTLSCredentials()
+		handleErr(err, "Failed init TLS certificate")
+
+		if err == nil {
+			opts = append(opts, otlploggrpc.WithTLSCredentials(cred))
+		}
 	}
 
 	logExporter, err := otlploggrpc.New(ctx, o.res, opts...)
@@ -70,7 +83,7 @@ func (o *oLog) apply(ctx context.Context, t *Telemetry) func(context.Context) {
 	//grpclog.SetLoggerV2(grpcerr.New(pl))
 
 	// otel handler also intersect logs
-	//otel.SetErrorHandler(otelerr.New(pl))
+	otel.SetErrorHandler(otelerr.New(t.Logger))
 
 	return func(cxt context.Context) {
 		_ = cc.Sync()
@@ -91,8 +104,18 @@ func withOteTrace(res *resource.Resource) controllers {
 
 func (o *oTrace) apply(ctx context.Context, t *Telemetry) func(context.Context) {
 	opts := []otlptracegrpc.Option{otlptracegrpc.WithEndpoint(t.cfg.OtelConfig.Addr)}
+
 	if t.cfg.OtelConfig.WithInsecure {
 		opts = append(opts, otlptracegrpc.WithInsecure())
+	}
+
+	if t.cfg.OtelConfig.IsTLS() {
+		cred, err := t.cfg.OtelConfig.createClientTLSCredentials()
+		handleErr(err, "Failed init TLS certificate")
+
+		if err == nil {
+			opts = append(opts, otlptracegrpc.WithTLSCredentials(cred))
+		}
 	}
 
 	traceClient := otlptracegrpc.NewClient(opts...,
@@ -136,8 +159,18 @@ func withOteMetric(res *resource.Resource) controllers {
 
 func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context) {
 	opts := []otlpmetricgrpc.Option{otlpmetricgrpc.WithEndpoint(t.cfg.OtelConfig.Addr)}
+
 	if t.cfg.OtelConfig.WithInsecure {
 		opts = append(opts, otlpmetricgrpc.WithInsecure())
+	}
+
+	if t.cfg.OtelConfig.IsTLS() {
+		cred, err := t.cfg.OtelConfig.createClientTLSCredentials()
+		handleErr(err, "Failed init TLS certificate")
+
+		if err == nil {
+			opts = append(opts, otlpmetricgrpc.WithTLSCredentials(cred))
+		}
 	}
 
 	metricClient := otlpmetricgrpc.NewClient(opts...,

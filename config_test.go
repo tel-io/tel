@@ -1,7 +1,11 @@
 package tel
 
 import (
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"os"
+	"path"
+	"runtime"
 	"testing"
 )
 
@@ -86,4 +90,32 @@ func TestBoolOverwrite(t *testing.T) {
 			t.Error("FALSE_UNDEFINED")
 		}
 	} //UNDEFINED
+}
+
+func certPath(file string) string {
+	runtime.Version()
+	return path.Join("./internal/testdata/certs", file)
+}
+
+func loadClientCerts(t *testing.T) {
+	b, err := os.ReadFile(certPath("ca.crt"))
+	require.NoError(t, err)
+	_ = os.Setenv(envOtelTlsCA, string(b))
+
+	b, err = os.ReadFile(certPath("client.crt"))
+	require.NoError(t, err)
+	_ = os.Setenv(envOtelCert, string(b))
+
+	b, err = os.ReadFile(certPath("client.key"))
+	require.NoError(t, err)
+	_ = os.Setenv(envOtelKey, string(b))
+}
+
+func Test_telemetry_TLS(t *testing.T) {
+	loadClientCerts(t)
+	cfg := GetConfigFromEnv()
+
+	assert.True(t, true, len(cfg.OtelConfig.Raw.CA) > 0)
+	assert.True(t, true, len(cfg.OtelConfig.Raw.Key) > 0)
+	assert.True(t, true, len(cfg.OtelConfig.Raw.Cert) > 0)
 }
