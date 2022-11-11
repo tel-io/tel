@@ -1,4 +1,4 @@
-//go:build xxx
+//go:build todo
 
 // Copyright The OpenTelemetry Authors
 //
@@ -29,7 +29,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/internal/otlptracetest"
 	collectortracepb "go.opentelemetry.io/proto/otlp/collector/trace/v1"
 	tracepb "go.opentelemetry.io/proto/otlp/trace/v1"
 )

@@ -2,8 +2,12 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"flag"
 	"fmt"
+	"google.golang.org/grpc/credentials"
+	"io/ioutil"
 	"os"
 	"time"
 
@@ -21,7 +25,7 @@ var addr = "0.0.0.0:4317"
 var insecure bool
 
 func load() {
-	flag.BoolVar(&insecure, "insecure", true, "do it")
+	flag.BoolVar(&insecure, "insecure", false, "do it")
 	flag.StringVar(&addr, "addr", "0.0.0.0:4317", "grpc addr")
 
 	if v, ok := os.LookupEnv("OTEL_COLLECTOR_GRPC_ADDR"); ok {
@@ -40,6 +44,8 @@ func main() {
 	opts := []otlploggrpc.Option{otlploggrpc.WithEndpoint(addr)}
 	if insecure {
 		opts = append(opts, otlploggrpc.WithInsecure())
+	} else {
+		opts = append(opts, otlploggrpc.WithTLSCredentials(createClientTLSCredentials()))
 	}
 
 	client := otlploggrpc.NewClient(opts...)
@@ -76,4 +82,27 @@ func logg() logskd.Log {
 		LoggerName: "XXX",
 		Message:    "XXX",
 	}, []byte("HELLO=WORLD"))
+}
+
+func createClientTLSCredentials() credentials.TransportCredentials {
+	cert, err := tls.LoadX509KeyPair("x509/client1.crt", "x509/client1.key")
+	if err != nil {
+		tel.Global().Fatal("tls.LoadX509KeyPair(x509/client1_cert.pem, x509/client1_key.pem)", tel.Error(err))
+	}
+
+	roots := x509.NewCertPool()
+	b, err := ioutil.ReadFile("x509/ca.crt")
+	if err != nil {
+		tel.Global().Fatal("ioutil.ReadFile(x509/ca.crt)", tel.Error(err))
+	}
+
+	if !roots.AppendCertsFromPEM(b) {
+		tel.Global().Fatal("failed to append certificates")
+	}
+
+	return credentials.NewTLS(&tls.Config{
+		Certificates: []tls.Certificate{cert},
+		RootCAs:      roots,
+		ServerName:   "localhost",
+	})
 }

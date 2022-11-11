@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/tel-io/tel/v2/monitoring"
 	"github.com/tel-io/tel/v2/pkg/otelerr"
+	"go.opentelemetry.io/otel/sdk/metric"
 	"time"
 
 	"github.com/tel-io/tel/v2/otlplog/logskd"
@@ -12,16 +13,11 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	rt "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/metric/aggregator/histogram"
-	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
-	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
-	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
@@ -173,33 +169,22 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 		}
 	}
 
-	metricClient := otlpmetricgrpc.NewClient(opts...,
-	//otlpmetricgrpc.WithDialOption(grpc.WithBlock()),
+	exp, err := otlpmetricgrpc.New(ctx, opts...)
+	handleErr(err, "Faild create grpc metric client")
+
+	reader := metric.NewPeriodicReader(exp,
+		metric.WithAggregationSelector(metric.DefaultAggregationSelector),
+		//metric.WithTimeout(30*time.Second),
+		metric.WithInterval(30*time.Second),
 	)
 
-	metricExp, err := otlpmetric.New(ctx, metricClient)
-	handleErr(err, "Failed to create the collector metric exporter")
-
-	//exporter, _ := stdout.New(stdout.WithPrettyPrint())
-
-	pusher := controller.New(
-		processor.NewFactory(
-			simple.NewWithHistogramDistribution(
-				histogram.WithExplicitBoundaries(DefaultHistogramBoundaries),
-			),
-			metricExp,
-			processor.WithMemory(true),
-		),
-		controller.WithExporter(metricExp),
-		controller.WithCollectPeriod(5*time.Second),
-		controller.WithResource(o.res),
+	pusher := metric.NewMeterProvider(
+		metric.WithReader(reader),
+		metric.WithResource(o.res),
 	)
 
 	global.SetMeterProvider(pusher)
 	t.metricProvider = pusher
-
-	err = pusher.Start(ctx)
-	handleErr(err, "Failed to start metric pusher")
 
 	// runtime exported
 	err = rt.Start(rt.WithMeterProvider(pusher))
@@ -211,7 +196,7 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 
 	return func(cxt context.Context) {
 		// pushes any last exports to the receiver
-		handleErr(pusher.Stop(cxt), "trace exporter shutdown")
+		handleErr(pusher.Shutdown(cxt), "trace exporter shutdown")
 		t.Info("OTEL trace exporter has been shutdown")
 	}
 }

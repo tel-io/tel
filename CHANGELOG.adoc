@@ -3,6 +3,7 @@
 == latest
 * TLS configuration: `OTEL_COLLECTOR_TLS_SERVER_NAME`, `OTEL_COLLECTOR_TLS_CA_CERT`, `OTEL_COLLECTOR_TLS_CLIENT_CERT`, `OTEL_COLLECTOR_TLS_CLIENT_KEY`
 * documentation: TLS usage cases: insecure, TLS and mTLS
+* migrate go.opentelemetry.io/otel/sdk v1.11.1
 
 == v2.1.1
 * critical fix: zap core not inherited level at copy
