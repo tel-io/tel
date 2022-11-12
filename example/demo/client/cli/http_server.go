@@ -24,7 +24,6 @@ func HttpServer() *cli.Command {
 		},
 		Action: func(ctx *cli.Context) error {
 			cfg := tel.GetConfigFromEnv()
-			cfg.LogEncode = "console"
 			cfg.Namespace = "TEST"
 			cfg.Service = "HTTP_SERVER"
 			cfg.MonitorConfig.Enable = false

@@ -11,8 +11,8 @@ import (
 
 	"github.com/pkg/errors"
 	grpcx "github.com/tel-io/instrumentation/middleware/grpc"
-	"github.com/tel-io/otelgrpc"
-	"github.com/tel-io/otelgrpc/example/api"
+	"github.com/tel-io/instrumentation/module/otelgrpc"
+	"github.com/tel-io/instrumentation/module/otelgrpc/example/api"
 	"go.opentelemetry.io/otel/attribute"
 
 	"google.golang.org/grpc"

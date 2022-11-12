@@ -22,7 +22,6 @@ func GRPCServer() *cli.Command {
 		},
 		Action: func(ctx *cli.Context) error {
 			cfg := tel.GetConfigFromEnv()
-			cfg.LogEncode = "console"
 			cfg.Namespace = "TEST"
 			cfg.Service = "GRPC_SERVER"
 			cfg.MonitorConfig.Enable = false

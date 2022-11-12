@@ -4,17 +4,17 @@ go 1.17
 
 require (
 	github.com/pkg/errors v0.9.1
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	go.opentelemetry.io/contrib/instrumentation/host v0.36.4
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.36.4
-	go.opentelemetry.io/otel v1.11.1
-	go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.33.0 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v0.33.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.11.1
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.11.1
-	go.opentelemetry.io/otel/metric v0.33.0
+	go.opentelemetry.io/otel v1.11.2-0.20221111171059-308d0362e6c5
+	go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.33.1-0.20221111171059-308d0362e6c5 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v0.33.1-0.20221111171059-308d0362e6c5
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.11.2-0.20221111171059-308d0362e6c5
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.11.2-0.20221111171059-308d0362e6c5
+	go.opentelemetry.io/otel/metric v0.33.1-0.20221111171059-308d0362e6c5
 	go.opentelemetry.io/otel/sdk v1.11.1
-	go.opentelemetry.io/otel/sdk/metric v0.33.0
+	go.opentelemetry.io/otel/sdk/metric v0.33.1-0.20221111171059-308d0362e6c5
 	go.opentelemetry.io/otel/trace v1.11.1
 	go.opentelemetry.io/proto/otlp v0.19.0
 	go.uber.org/zap v1.18.1
@@ -41,11 +41,11 @@ require (
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/shirou/gopsutil/v3 v3.22.9 // indirect
-	github.com/stretchr/objx v0.4.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.10 // indirect
 	github.com/tklauser/numcpus v0.4.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.11.1 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.11.2-0.20221111171059-308d0362e6c5 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect

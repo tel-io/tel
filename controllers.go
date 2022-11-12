@@ -4,14 +4,14 @@ import (
 	"context"
 	"github.com/tel-io/tel/v2/monitoring"
 	"github.com/tel-io/tel/v2/pkg/otelerr"
+	"go.opentelemetry.io/contrib/instrumentation/host"
+	rt "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"time"
 
 	"github.com/tel-io/tel/v2/otlplog/logskd"
 	"github.com/tel-io/tel/v2/otlplog/otlploggrpc"
 	"github.com/tel-io/tel/v2/pkg/zlogfmt"
-	"go.opentelemetry.io/contrib/instrumentation/host"
-	rt "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -173,9 +173,8 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 	handleErr(err, "Faild create grpc metric client")
 
 	reader := metric.NewPeriodicReader(exp,
-		metric.WithAggregationSelector(metric.DefaultAggregationSelector),
 		//metric.WithTimeout(30*time.Second),
-		metric.WithInterval(30*time.Second),
+		metric.WithInterval(3*time.Second),
 	)
 
 	pusher := metric.NewMeterProvider(

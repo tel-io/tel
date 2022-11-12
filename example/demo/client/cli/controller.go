@@ -29,7 +29,6 @@ func Controller() *cli.Command {
 		},
 		Action: func(ctx *cli.Context) error {
 			cfg := tel.GetConfigFromEnv()
-			cfg.LogEncode = "console"
 
 			t, closer := tel.New(ctx.Context, cfg,
 				tel.WithNamespace("TEST"),
