@@ -19,7 +19,7 @@ type Suite struct {
 
 func (s *Suite) SetupSuite() {
 	s.mocks = new(logprocmocks.LogProcessor)
-	s.core = NewCore(zapcore.InfoLevel, s.mocks)
+	s.core = NewCore(s.mocks)
 
 	// don't print via zap main Core
 	q := zap.NewDevelopmentConfig()

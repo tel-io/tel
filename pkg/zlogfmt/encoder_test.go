@@ -41,7 +41,7 @@ func TestObjectEncoder(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			e := New(nil)
+			e := New(NewDefaultConfig(), nil)
 
 			buf, err := e.EncodeEntry(zapcore.Entry{}, test.in)
 			assert.NoError(t, err)

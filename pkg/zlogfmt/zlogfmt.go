@@ -2,7 +2,7 @@ package zlogfmt
 
 import (
 	"context"
-
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/tel-io/tel/v2/otlplog/logskd"
 	"go.opentelemetry.io/otel/attribute"
@@ -15,7 +15,7 @@ import (
 type Core struct {
 	batch logskd.LogProcessor
 	buf   *ObjectEncoder
-	lvl   zapcore.Level
+	cfg   *Config
 }
 
 const (
@@ -28,11 +28,16 @@ const (
 var _ zapcore.Core = new(Core)
 
 // NewCore create zap Core instance which transcede logfmt for Grafana Loki
-func NewCore(lvl zapcore.Level, ex logskd.LogProcessor) *Core {
+func NewCore(ex logskd.LogProcessor, opts ...Option) *Core {
+	cfg := NewDefaultConfig()
+	for _, opt := range opts {
+		opt.apply(cfg)
+	}
+
 	c := &Core{
 		batch: ex,
-		buf:   New(nil),
-		lvl:   lvl,
+		buf:   New(cfg, nil),
+		cfg:   cfg,
 	}
 
 	return c
@@ -40,13 +45,13 @@ func NewCore(lvl zapcore.Level, ex logskd.LogProcessor) *Core {
 
 // Enabled always returns true, because that we always protected from basic root
 // so, this should implement only if we use that Core as main
-func (c *Core) Enabled(lvl zapcore.Level) bool { return lvl >= c.lvl }
+func (c *Core) Enabled(lvl zapcore.Level) bool { return lvl >= c.cfg.Lvl }
 
 func (c *Core) With(fields []zapcore.Field) zapcore.Core {
 	clone := &Core{
 		batch: c.batch,
 		buf:   c.buf.Clone(fields),
-		lvl:   c.lvl,
+		cfg:   c.cfg,
 	}
 
 	return clone
@@ -64,6 +69,14 @@ func (c *Core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
 	buf, err := c.buf.EncodeEntry(entry, fields)
 	if err != nil {
 		return errors.WithStack(err)
+	}
+
+	if len(buf) > c.cfg.MsgLimit {
+		e := fmt.Errorf("zlogfmt big msg size %d with limit %d", len(buf), c.cfg.MsgLimit)
+		//otel.Handle(e)
+
+		buf = buf[:c.cfg.MsgLimit]
+		buf = append(buf, []byte(`" otel="`+e.Error()+`"`)...)
 	}
 
 	lg := logskd.NewLog(entry, buf, attribute.String(LevelKey, entry.Level.String()))

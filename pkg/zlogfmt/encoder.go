@@ -22,6 +22,8 @@ var (
 
 // ObjectEncoder used only for loki export
 type ObjectEncoder struct {
+	cfg *Config
+
 	*logfmt.Encoder
 	buf *buffer.Buffer
 
@@ -30,7 +32,7 @@ type ObjectEncoder struct {
 	reflectEnc *json.Encoder
 }
 
-func New(buf []byte) *ObjectEncoder {
+func New(cfg *Config, buf []byte) *ObjectEncoder {
 	p := Get()
 	p.Reset()
 
@@ -43,11 +45,12 @@ func New(buf []byte) *ObjectEncoder {
 	return &ObjectEncoder{
 		buf:     p,
 		Encoder: logfmt.NewEncoder(p),
+		cfg:     cfg,
 	}
 }
 
 func (o *ObjectEncoder) Clone(fields []zapcore.Field) *ObjectEncoder {
-	oe := New(o.buf.Bytes())
+	oe := New(o.cfg, o.buf.Bytes())
 
 	for _, field := range fields {
 		lokiKeyMutator(&field.Key)
@@ -64,7 +67,7 @@ func (o *ObjectEncoder) EncodeEntry(entry zapcore.Entry, fields []zapcore.Field)
 	}
 
 	if len(entry.Stack) > 0 {
-		fields = append(fields, zap.String(StacktraceKey, entry.Stack))
+		fields = append(fields, zap.String(StacktraceKey, o.trimStack(entry.Stack)))
 	}
 
 	w := o.Clone(
@@ -215,4 +218,17 @@ func (o *ObjectEncoder) AddReflected(key string, value interface{}) error {
 
 func (o *ObjectEncoder) OpenNamespace(key string) {
 	_ = o.EndRecord()
+}
+
+func (o *ObjectEncoder) trimStack(stack string) string {
+	if len(stack) < stackLimitKB {
+		return stack
+	}
+
+	sp := strings.Split(stack, "\n")
+	if len(sp) > stackLineLimit {
+		stack = strings.Join(sp[:stackLineLimit], "\n")
+	}
+
+	return stack
 }

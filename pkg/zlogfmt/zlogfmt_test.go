@@ -1,7 +1,10 @@
 package zlogfmt
 
 import (
+	"crypto/rand"
+	"fmt"
 	"github.com/stretchr/testify/mock"
+	"github.com/tel-io/tel/v2/otlplog/logskd"
 	"github.com/tel-io/tel/v2/otlplog/logskd/logprocmocks"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -64,7 +67,7 @@ func (s *Suite) TestLogLevelCheck() {
 			x := &logprocmocks.LogProcessor{}
 			x.On("Write", mock.Anything, mock.Anything).Return(nil)
 
-			c := NewCore(tt.lvl, x)
+			c := NewCore(x, WithLogLvl(tt.lvl))
 
 			ll, _ := zap.NewDevelopment()
 			ll = ll.WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
@@ -77,4 +80,38 @@ func (s *Suite) TestLogLevelCheck() {
 			x.AssertNumberOfCalls(s.T(), "Write", tt.expecte)
 		})
 	}
+}
+
+func (s *Suite) TestRecursion() {
+	//
+	var countdown func(n uint) uint
+	countdown = func(n uint) uint {
+		if n == 0 {
+			s.logger.Error("end of trip")
+			return 0
+		}
+
+		return countdown(n - 1)
+	}
+
+	s.mocks.On("Write", mock.MatchedBy(func(l logskd.Log) bool {
+		s.True(len(l.Body()) < stackLimitKB)
+		s.True(len(l.Body()) > 0)
+		return true
+	}))
+
+	countdown(1000)
+}
+
+func (s *Suite) TestBigMessage() {
+	x := make([]byte, 1<<20) // 1MB
+	_, _ = rand.Read(x)
+
+	s.mocks.On("Write", mock.MatchedBy(func(l logskd.Log) bool {
+		limit := msgLimitKB + 100
+		s.True(len(l.Body()) < limit, fmt.Sprintf("has:%d limit:%d", len(l.Body()), limit))
+		return true
+	}))
+
+	s.logger.Error("big msg", zap.Any("big", x))
 }

@@ -5,6 +5,7 @@
 * documentation: TLS usage cases: insecure, TLS and mTLS
 * migrate go.opentelemetry.io/otel/sdk v1.11.1
 * because of https://github.com/open-telemetry/opentelemetry-go/commit/d091ba88e456dfd0140368bdb37beb20c7f6ed6f update migration
+* zlogfmt create limits. We should protect transport from sending cumbersome msg. Currently limits hardcoded, but with possibility add them further to tel configuration
 
 == v2.1.1
 * critical fix: zap core not inherited level at copy

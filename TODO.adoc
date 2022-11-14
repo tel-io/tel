@@ -8,4 +8,5 @@
 * common health checkers: http && tcp which should be default part???
 
 == crit
+* When someone create MW and not understand copy approach he is able to create infinite key-value message
 * Metrics not exported: prod Service[3902377]: 2022/11/07 15:54:14 log exporter is disconnected from the server 10.10.10.117:4317: max retry time elapsed: rpc error: code = ResourceExhausted desc = grpc: received message larger than max (13118502 vs. 4194304)
