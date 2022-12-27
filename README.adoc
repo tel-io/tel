@@ -233,6 +233,10 @@ address where `health`, `prometheus` would be listen
 
 NOTE: address logic represented in net.Listen description
 
+.COMPRESSION
+values: "gzip", ""
+
+
 .OTEL_ENABLE
 default: `true`
 

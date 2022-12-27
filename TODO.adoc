@@ -3,6 +3,8 @@
 * protect library from miss usage:
 **  not copy in MT thread
 ** MT usage checks
+* during close - crash because of ctx already closed
+* panic and fatal approach for correct send logs to otel collector
 ** os.exit or panic should send correctly all gathered logs or at least we should pring some solutions
 * race detection fixes and prevention
 * common health checkers: http && tcp which should be default part???
