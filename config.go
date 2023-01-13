@@ -31,11 +31,14 @@ const (
 	envLogLevel          = "LOG_LEVEL"
 	envLogEncode         = "LOG_ENCODE"
 
-	envDebug      = "DEBUG"
-	envMonEnable  = "MONITOR_ENABLE"
-	envMon        = "MONITOR_ADDR"
-	envOtelEnable = "OTEL_ENABLE"
-	evnOtel       = "OTEL_COLLECTOR_GRPC_ADDR"
+	envDebug            = "DEBUG"
+	envMonEnable        = "MONITOR_ENABLE"
+	envMon              = "MONITOR_ADDR"
+	envOtelEnable       = "OTEL_ENABLE"
+	envLogOtelProcessor = "LOGGING_OTEL_PROCESSOR"
+	envLogOtelClient    = "LOGGING_OTEL_CLIENT"
+
+	evnOtel = "OTEL_COLLECTOR_GRPC_ADDR"
 
 	envOtelInsec         = "OTEL_EXPORTER_WITH_INSECURE"
 	envOtelTlsServerName = "OTEL_COLLECTOR_TLS_SERVER_NAME"
@@ -76,6 +79,11 @@ type OtelConfig struct {
 	// an IP address.
 	// Disable WithInsecure option if set
 	ServerName string `env:"OTEL_COLLECTOR_TLS_SERVER_NAME"`
+
+	Logs struct {
+		OtelClient    bool `env:"LOGGING_OTEL_CLIENT"`
+		OtelProcessor bool `env:"LOGGING_OTEL_PROCESSOR"`
+	}
 
 	// Raw parses a public/private key pair from a pair of
 	// PEM encoded data. On successful return, Certificate.Leaf will be nil because
@@ -180,6 +188,8 @@ func GetConfigFromEnv() Config {
 	bl(envDebug, &c.Debug)
 	bl(envOtelEnable, &c.OtelConfig.Enable)
 	bl(envMonEnable, &c.MonitorConfig.Enable)
+	bl(envLogOtelProcessor, &c.Logs.OtelProcessor)
+	bl(envLogOtelClient, &c.Logs.OtelClient)
 
 	return c
 }

@@ -75,6 +75,14 @@ func New(ctx context.Context, cfg Config, options ...Option) (Telemetry, func())
 
 		// we're afraid that someone double this or miss something - that's why none exported options
 		controls = append(controls, withOteLog(res), withOteTrace(res), withOteMetric(res))
+
+		if cfg.Logs.OtelClient {
+			controls = append(controls, withOtelClientLog())
+		}
+
+		if cfg.Logs.OtelProcessor {
+			controls = append(controls, withOtelProcessor())
+		}
 	}
 
 	if cfg.MonitorConfig.Enable {

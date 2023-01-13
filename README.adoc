@@ -240,6 +240,20 @@ values: "gzip", ""
 .OTEL_ENABLE
 default: `true`
 
+.LOGGING_OTEL_CLIENT
+default: `false`
+
+required `OTEL_ENABLE` = true
+
+Inject logger adapter to otel library related to grpc client and get log information related to this transport
+
+.LOGGING_OTEL_PROCESSOR
+default: `false`
+
+required `OTEL_ENABLE` = true
+
+Inject logger adapter to otel processor library related to collectors behaviour
+
 .OTEL_COLLECTOR_GRPC_ADDR
 Address to otel collector server via GRPC protocol
 

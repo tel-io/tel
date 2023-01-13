@@ -2,11 +2,14 @@ package tel
 
 import (
 	"context"
+	"github.com/go-logr/logr"
 	"github.com/tel-io/tel/v2/monitoring"
+	"github.com/tel-io/tel/v2/pkg/grpcerr"
 	"github.com/tel-io/tel/v2/pkg/otelerr"
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	rt "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel/sdk/metric"
+	"google.golang.org/grpc/grpclog"
 	"time"
 
 	"github.com/tel-io/tel/v2/otlplog/logskd"
@@ -75,12 +78,6 @@ func (o *oLog) apply(ctx context.Context, t *Telemetry) func(context.Context) {
 
 	zap.ReplaceGlobals(t.Logger)
 
-	// grpc error logger, we use it for debug connection to collector at least
-	//grpclog.SetLoggerV2(grpcerr.New(pl))
-
-	// otel handler also intersect logs
-	otel.SetErrorHandler(otelerr.New(t.Logger))
-
 	return func(cxt context.Context) {
 		_ = cc.Sync()
 
@@ -89,7 +86,7 @@ func (o *oLog) apply(ctx context.Context, t *Telemetry) func(context.Context) {
 	}
 }
 
-//user otel.GetTracerProvider() to reach trace
+// user otel.GetTracerProvider() to reach trace
 type oTrace struct {
 	res *resource.Resource
 }
@@ -232,4 +229,27 @@ func (o *oMonitor) apply(ctx context.Context, t *Telemetry) func(context.Context
 			t.Error("stop monitoring", Error(err))
 		}
 	}
+}
+
+// log wrapper
+type logGrpc struct{}
+
+func withOtelClientLog() controllers { return &logGrpc{} }
+
+func (o *logGrpc) apply(_ context.Context, t *Telemetry) func(context.Context) {
+	grpclog.SetLoggerV2(grpcerr.New(t.Logger))
+	return func(context.Context) {}
+}
+
+// loggerOtel wrapper
+type loggerOtel struct{}
+
+func withOtelProcessor() controllers { return &loggerOtel{} }
+
+func (o *loggerOtel) apply(_ context.Context, t *Telemetry) func(context.Context) {
+	adapterLog := otelerr.New(t.Logger)
+	otel.SetErrorHandler(adapterLog)
+	otel.SetLogger(logr.New(adapterLog))
+
+	return func(context.Context) {}
 }

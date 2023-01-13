@@ -1,5 +1,6 @@
 = ToDo
 
+* otel.SetLogger(logr.New()) implement
 * protect library from miss usage:
 **  not copy in MT thread
 ** MT usage checks
