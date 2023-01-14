@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"flag"
 	"fmt"
+	"go.opentelemetry.io/otel/attribute"
 	"google.golang.org/grpc/credentials"
 	"io/ioutil"
 	"os"
@@ -81,7 +82,7 @@ func logg() logskd.Log {
 		Time:       time.Now(),
 		LoggerName: "XXX",
 		Message:    "XXX",
-	}, []byte("HELLO=WORLD"))
+	}, attribute.Key("HELLO").String("WORLD"))
 }
 
 func createClientTLSCredentials() credentials.TransportCredentials {

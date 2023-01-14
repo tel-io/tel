@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"math/rand"
 
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"go.uber.org/zap"
@@ -18,14 +17,6 @@ const (
 	instrumentationName = "github.com/d7561985/tel"
 )
 
-// GenerateInstanceID how to generate instanceID
-// function open for changes
-var instanceGenerator = genInstanceID
-
-// SetInstanceIDGenerator set generator for instance name
-func SetInstanceIDGenerator(fn func(string) string) {
-	instanceGenerator = fn
-}
 
 func CreateRes(ctx context.Context, l Config) *resource.Resource {
 	res, _ := resource.New(ctx,
@@ -37,16 +28,8 @@ func CreateRes(ctx context.Context, l Config) *resource.Resource {
 			// the service name used to display traces in backends + tempo UI by this field perform service selection
 			// key: service.name
 			semconv.ServiceNameKey.String(l.Service),
-			// we use tempo->loki reference in Grafana, but loki not support dots as it's in ServiceNameKey
-			// in addition, we can't use service_name as it conflict with transformation to prometheus
-			// key: service
-			attribute.Key("service").String(l.Service),
-			// key: service.namespace
-			semconv.ServiceNamespaceKey.String(l.Namespace),
 			// key: service.version
 			semconv.ServiceVersionKey.String(l.Version),
-			semconv.DeploymentEnvironmentKey.String(l.Environment),
-			semconv.ServiceInstanceIDKey.String(instanceGenerator(l.Service)),
 		),
 	)
 
@@ -71,7 +54,6 @@ func newLogger(l Config) *zap.Logger {
 	if zapconfig.Encoding == DisableLog {
 		zapconfig.Encoding = "console"
 		zapconfig.OutputPaths = nil
-		zapconfig.ErrorOutputPaths = nil
 	}
 
 	pl, err := zapconfig.Build(

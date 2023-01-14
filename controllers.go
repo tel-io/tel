@@ -6,6 +6,7 @@ import (
 	"github.com/tel-io/tel/v2/monitoring"
 	"github.com/tel-io/tel/v2/pkg/grpcerr"
 	"github.com/tel-io/tel/v2/pkg/otelerr"
+	"github.com/tel-io/tel/v2/pkg/zcore"
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	rt "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel/sdk/metric"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/tel-io/tel/v2/otlplog/logskd"
 	"github.com/tel-io/tel/v2/otlplog/otlploggrpc"
-	"github.com/tel-io/tel/v2/pkg/zlogfmt"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -70,16 +70,24 @@ func (o *oLog) apply(ctx context.Context, t *Telemetry) func(context.Context) {
 	handleErr(err, "Failed to create the collector log exporter")
 
 	batcher := logskd.NewBatchLogProcessor(logExporter)
-	cc := zlogfmt.NewCore(batcher, zlogfmt.WithLogLvl(t.cfg.Level()))
 
-	t.Logger = zap.L().WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
-		return zapcore.NewTee(core, cc)
-	}))
+	cc := zcore.NewBodyCore(batcher, zap.NewAtomicLevelAt(t.cfg.Level()))
+
+	if t.cfg.LogEncode == DisableLog {
+		t.Logger = zap.New(cc,
+			zap.WithCaller(true),
+			zap.AddStacktrace(zapcore.ErrorLevel),
+		)
+	} else {
+		t.Logger = zap.L().WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+			return zapcore.NewTee(core, cc)
+		}))
+	}
 
 	zap.ReplaceGlobals(t.Logger)
 
 	return func(cxt context.Context) {
-		_ = cc.Sync()
+		_ = batcher.ForceFlush(ctx)
 
 		handleErr(batcher.Shutdown(cxt), "batched shutdown")
 		t.Info("OTEL log batch controller has been shutdown")

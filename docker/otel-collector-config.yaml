@@ -1,4 +1,13 @@
 receivers:
+  syslog:
+    tcp:
+      listen_address: "0.0.0.0:54527"
+    protocol: rfc3164
+    location: UTC
+    operators:
+      - type: move
+        from: attributes.message
+        to: body
   fluentforward:
     endpoint: 0.0.0.0:24224
   otlp:
@@ -25,7 +34,7 @@ exporters:
     tls:
       insecure: true
   loki:
-    format: body
+    format: json
     endpoint: "http://loki:3100/loki/api/v1/push"
     sending_queue:
       # Enabled indicates whether to not enqueue batches before sending to the consumerSender.
@@ -34,21 +43,41 @@ exporters:
       num_consumers: 100
       # QueueSize is the maximum number of batches allowed in queue at a given time.
       queue_size: 10000
-    tenant_id: LICENSE_MY_NAMESPACE
-    # Labels defines how labels should be applied to log streams sent to Loki.
-    labels:
-      # ResourceAttributes are the resource attributes that are allowed to be added as labels on a log stream.
-      #  Label names must match ^[a-zA-Z_][a-zA-Z0-9_]*$
-      resource:
-        "service.namespace": "namespace" # without loki hack
-        service_namespace: "namespace" #
-        "deployment.environment": "deployment_environment"
-        "deployment_environment": "deployment_environment"
-        service: ""                            # tracesToLogs feature
-      # Attributes are the log record attributes that are allowed to be added as labels on a log stream.
-      attributes:
-        level: ""
+
 processors:
+  attributes:
+    actions:
+      - action: insert
+        key: loki.attribute.labels
+        value: level
+
+  resource:
+    attributes:
+      - action: upsert
+        key: namespace
+        value: "demo" # <<<<< REPLACE
+      - action: upsert
+        key: license
+        value: 'com' # <<<<< REPLACE
+      - action: upsert
+        key: deployment_environment
+        value: 'dev' # <<<<< REPLACE
+      - action: insert
+        key: loki.format
+        value: logfmt
+      - action: insert
+        key: loki.resource.labels
+        value: service, namespace, license, deployment_environment
+
+  transform:
+    log_statements:
+      - context: resource
+        statements:
+          - replace_all_patterns(attributes, "key", "\\.", "_")
+      - context: log
+        statements:
+          #          - delete_key(attributes, "log.file.path")
+          #- replace_all_patterns(attributes, "key", "\\.", "_")
   batch:
     send_batch_size: 150
     timeout: 15s
@@ -86,6 +115,6 @@ service:
       processors: [ batch ]
       exporters: [ logging, prometheusremotewrite]
     logs:
-      receivers: [ fluentforward, otlp ]
-      processors: [ memory_limiter, batch ]
+      receivers: [ syslog, fluentforward, otlp ]
+      processors: [  attributes, resource, memory_limiter, batch ]
       exporters: [ logging, loki ]

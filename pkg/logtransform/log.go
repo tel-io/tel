@@ -15,25 +15,16 @@ func Trans(res *resource.Resource, in []logskd.Log) *tracepb.ResourceLogs {
 	ss := make([]*tracepb.LogRecord, 0, len(in))
 
 	for _, log := range in {
+		body := &v1.AnyValue_KvlistValue{KvlistValue: &v1.KeyValueList{
+			Values: tracetransform.KeyValues(log.KV()),
+		}}
+
 		v := &tracepb.LogRecord{
 			TimeUnixNano: log.Time(),
 			//SeverityNumber: log.Severity(),
-			//SeverityText:   log.Severity().String(),
-			//Name:           log.Name(),
-			Body: &v1.AnyValue{Value: &v1.AnyValue_StringValue{
-				StringValue: log.Body(),
-			}},
-			// AnyValue only json decoder supported
-			//Body: &v1.AnyValue{Value: &v1.AnyValue_KvlistValue{
-			//	KvlistValue: &v1.KeyValueList{
-			//		Values: []*v1.KeyValue{
-			//			{
-			//				Key:   "BODY",
-			//				Value: &v1.AnyValue{Value: &v1.AnyValue_StringValue{StringValue: "log.Body()"}}},
-			//		},
-			//	},
-			//}},
-			Attributes: tracetransform.KeyValues(log.Attributes()),
+			SeverityText: log.Severity().String(),
+			Body:         &v1.AnyValue{Value: body},
+			Attributes:   tracetransform.KeyValues(log.Attributes()),
 		}
 
 		if span := log.Span(); span != nil {

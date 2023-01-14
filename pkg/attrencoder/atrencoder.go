@@ -1,4 +1,4 @@
-package zlogfmt
+package attrencoder
 
 import (
 	"encoding/base64"
@@ -14,6 +14,20 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+const (
+	CallerKey     = "_caller"
+	StacktraceKey = "stack"
+	MsgKey        = "msg"
+)
+
+var (
+	_pool = buffer.NewPool()
+	// Get retrieves a buffer from the pool, creating one if necessary.
+	Get = _pool.Get
+
+	_ zapcore.ObjectEncoder = &AtrEncoder{}
+)
+
 type AtrEncoder struct {
 	attrs []attribute.KeyValue
 
@@ -26,32 +40,30 @@ func NewAttr(attr ...attribute.KeyValue) *AtrEncoder {
 	return &AtrEncoder{attrs: attr}
 }
 
-func (a *AtrEncoder) Clone(fields []zapcore.Field) *AtrEncoder {
+func (a *AtrEncoder) Clone() *AtrEncoder {
 	n := NewAttr(a.attrs...)
+
+	return n
+}
+
+func (a *AtrEncoder) EncodeEntry(ent zapcore.Entry, fields []zapcore.Field) ([]attribute.KeyValue, error) {
+	n := a.Clone()
+
+	if ent.Caller.Defined {
+		zap.String(CallerKey, ent.Caller.TrimmedPath()).AddTo(n)
+	}
+
+	if len(ent.Stack) > 0 {
+		zap.String(StacktraceKey, ent.Stack).AddTo(n)
+	}
+
+	zap.String(MsgKey, ent.Message).AddTo(n)
 
 	for _, field := range fields {
 		field.AddTo(n)
 	}
 
-	return n
-}
-
-func (a *AtrEncoder) EncodeEntry(entry zapcore.Entry, fields []zapcore.Field) ([]byte, []attribute.KeyValue, error) {
-	if entry.Caller.Defined {
-		fields = append(fields, zap.String(CallerKey, entry.Caller.TrimmedPath()))
-	}
-
-	if len(entry.Stack) > 0 {
-		fields = append(fields, zap.String(StacktraceKey, entry.Stack))
-	}
-
-	fields = append(fields, zap.String(LevelKey, entry.Level.String()))
-
-	body := fmt.Sprintf(`%s="%s"`, MessageKey, entry.Message)
-
-	n := a.Clone(fields)
-
-	return []byte(body), n.attrs, nil
+	return n.attrs, nil
 }
 
 func (a *AtrEncoder) AddArray(key string, arr zapcore.ArrayMarshaler) error {

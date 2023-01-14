@@ -2,7 +2,8 @@ package ztrace
 
 import (
 	"github.com/pkg/errors"
-	"github.com/tel-io/tel/v2/pkg/zlogfmt"
+	"github.com/tel-io/tel/v2/otlplog/logskd"
+	"github.com/tel-io/tel/v2/pkg/attrencoder"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap/zapcore"
@@ -14,27 +15,43 @@ var (
 
 type Core struct {
 	trace.Span
-	enc *zlogfmt.AtrEncoder
+	enc *attrencoder.AtrEncoder
 	lvl zapcore.Level
 }
 
 func New(lvl zapcore.Level, span trace.Span) zapcore.Core {
-	return &Core{lvl: lvl, Span: span, enc: zlogfmt.NewAttr()}
+	return &Core{lvl: lvl, Span: span, enc: attrencoder.NewAttr()}
 }
 
-func (c *Core) With(fields []zapcore.Field) zapcore.Core {
+func (c *Core) clone() *Core {
 	return &Core{
 		Span: c.Span,
-		enc:  c.enc.Clone(fields),
+		enc:  c.enc.Clone(),
 		lvl:  c.lvl,
 	}
 }
+
+func (c *Core) With(fields []zapcore.Field) zapcore.Core {
+	clone := c.clone()
+	//addFields(clone.enc, fields)
+
+	for i := range fields {
+		if fields[i].Key == logskd.SpanKey {
+			continue
+		}
+
+		fields[i].AddTo(c.enc)
+	}
+
+	return clone
+}
+
 func (c *Core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
 	if !c.Span.IsRecording() {
 		return errors.WithStack(ErrNotRecording)
 	}
 
-	_, e, err := c.enc.EncodeEntry(entry, fields)
+	e, err := c.enc.EncodeEntry(entry, fields)
 	if err != nil {
 		return errors.WithStack(err)
 	}

@@ -2,6 +2,8 @@ package tel
 
 import (
 	"context"
+	"github.com/tel-io/tel/v2/otlplog/logskd"
+	"go.uber.org/zap"
 
 	"go.opentelemetry.io/otel/trace"
 )
@@ -45,7 +47,7 @@ func UpdateTraceFields(ctx context.Context) {
 
 	if span.SpanContext().HasTraceID() {
 		FromCtx(ctx).Logger = FromCtx(ctx).Logger.With(
-			String("traceID", span.SpanContext().TraceID().String()),
+			zap.Any(logskd.SpanKey, span),
 		)
 	}
 }

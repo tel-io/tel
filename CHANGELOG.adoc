@@ -1,6 +1,13 @@
 = Changelog
 == latest
 * `LOGGING_OTEL_PROCESSOR`, `LOGGING_OTEL_CLIENT` extend logs from otel libraries
+* otel: panic,fatal instantly sends to otel collector
+* zlogfmt - obsolete core - we no more need to use internal logfmt. Instead try to use otelcollector attribute: loki.format with logfmt or json, just check out out docker example  file: otel-collector-config.yaml
+* remove resources: `service.namespace`, "deployment.environment", "service.instance.id" - moved to collector
+* remove resource: service - as it was hack for tempo referance, moved to collector
+* log protocol passes correctly trace + span IDs. NOTE: this is quite unsafe implementation
+* LogEncode: none not disable stderr output because this output actually if logger was not able to work properly
+* LogEncode: none with OtelLog create new zap core this reduces overhead none shown strout encoder
 
 == v2.1.2
 * TLS configuration: `OTEL_COLLECTOR_TLS_SERVER_NAME`, `OTEL_COLLECTOR_TLS_CA_CERT`, `OTEL_COLLECTOR_TLS_CLIENT_CERT`, `OTEL_COLLECTOR_TLS_CLIENT_KEY`

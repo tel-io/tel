@@ -60,7 +60,7 @@ Also, you can send not only logs and also encroach `trace events`
 	span, ctx := tel.StartSpanFromContext(req.Context(), "my trace")
 	defer span.End()
 
-	tel.FromCtx(ctx).Info("this message will be saved both in log and trace",
+	tel.FromCtx(ctx).Info("this message will be saved both in LogInstance and trace",
 		// and this will come to the trace as attribute
 		tel.Int("code", errCode))
 ----
