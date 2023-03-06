@@ -17,7 +17,6 @@ const (
 	instrumentationName = "github.com/d7561985/tel"
 )
 
-
 func CreateRes(ctx context.Context, l Config) *resource.Resource {
 	res, _ := resource.New(ctx,
 		resource.WithFromEnv(),

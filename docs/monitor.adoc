@@ -39,11 +39,11 @@ Developer should set option `tel.WithHealthCheckers(...)` with required checkers
 
 [source,go]
 ----
-_,_ = tel.New(ctx, cfg, tel.WithMonitor(
-	    // example simple checker which report what service is DOWN
-        health.CheckerFunc(func(context.Context) health.WithHealthCheckers {
-                return health.NewReport("down-checker", false)
-            })
+_,_ = tel.New(ctx, cfg,
+	tel.WithMonitorEnable(true),
+    tel.WithHealthCheckers(health.CheckerFunc(func(ctx context.Context) health.ReportDocument {
+            return health.NewReport("CONTROLLER", true, attribute.Key("ke").Bool(true))
+        })),
 	))
 ----
 

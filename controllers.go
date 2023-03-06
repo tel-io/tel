@@ -2,6 +2,8 @@ package tel
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-logr/logr"
 	"github.com/tel-io/tel/v2/monitoring"
 	"github.com/tel-io/tel/v2/pkg/grpcerr"
@@ -10,8 +12,9 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	rt "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/aggregation"
+	"go.opentelemetry.io/otel/sdk/metric/view"
 	"google.golang.org/grpc/grpclog"
-	"time"
 
 	"github.com/tel-io/tel/v2/otlplog/logskd"
 	"github.com/tel-io/tel/v2/otlplog/otlploggrpc"
@@ -182,9 +185,36 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 		metric.WithInterval(3*time.Second),
 	)
 
+	var views []view.View
+
+	for _, opt := range t.cfg.OtelConfig.bucketView {
+		// View to customize histogram buckets and rename a single histogram instrument.
+		customBucketsView, err := view.New(
+			// Match* to match instruments
+			view.MatchInstrumentName(opt.MetricName),
+			//view.MatchInstrumentationScope(instrumentation.Scope{Name: meterName}),
+
+			// With* to modify instruments
+			view.WithSetAggregation(aggregation.ExplicitBucketHistogram{
+				Boundaries: opt.Bucket,
+			}),
+			//view.WithRename("bar"),
+		)
+
+		handleErr(err, "creation histogram view")
+
+		views = append(views, customBucketsView)
+	}
+
+	// Default view to keep all instruments
+	defaultView, err := view.New(view.MatchInstrumentName("*"))
+	handleErr(err, "creation default view")
+	views = append(views, defaultView)
+
 	pusher := metric.NewMeterProvider(
 		metric.WithReader(reader),
 		metric.WithResource(o.res),
+		metric.WithView(views...),
 	)
 
 	global.SetMeterProvider(pusher)

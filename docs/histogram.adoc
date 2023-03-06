@@ -1,0 +1,33 @@
+= Histogram custom buckets
+
+Configuration option `WithHistogram` allows to specify custom bucket form specific metric name during telemetry instantiation
+
+
+NOTE: You should specify custom bucket per metric name
+
+For example, we need metric "histogram_1" with `100, 5_000, 100_000, 1_000_000` bucket, and "histogram_2" with  `0.1, 0.2, 0.3, 1`
+
+For achieve this you need set this information op `WithHistogram` tel configuration
+[source,go]
+----
+    // we need metric:
+	//"histogram_1" with `100, 5_000, 100_000, 1_000_000` bucket, and
+	//"histogram_2" with  `0.1, 0.2, 0.3, 1`
+	tele, closer := tel.New(context.Background(), tel.GetConfigFromEnv(),
+		tel.WithHistogram(tel.HistogramOpt{
+			MetricName: "histogram_1",
+			Bucket:     []float64{100, 5_000, 100_000, 1_000_000},
+		},
+			tel.HistogramOpt{
+				MetricName: "histogram_2",
+				Bucket:     []float64{0.1, 0.2, 0.3, 1},
+			}))
+	defer closer()
+	...
+	// Usage:
+	// just create histogram metric with given name and use it
+	m, _ := tele.Meter("test").SyncFloat64().Histogram("histogram_1")
+    h1, _ := tele.Meter("test").SyncFloat64().Histogram("histogram_2")
+----
+
+

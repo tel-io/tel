@@ -4,13 +4,14 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"os"
+	"strconv"
+	"strings"
+
 	"github.com/pkg/errors"
 	health "github.com/tel-io/tel/v2/monitoring/heallth"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/credentials"
-	"os"
-	"strconv"
-	"strings"
 )
 
 var (
@@ -93,6 +94,8 @@ type OtelConfig struct {
 		Cert []byte `env:"OTEL_COLLECTOR_TLS_CLIENT_CERT"`
 		Key  []byte `env:"OTEL_COLLECTOR_TLS_CLIENT_KEY"`
 	}
+
+	bucketView []HistogramOpt
 }
 
 type MonitorConfig struct {
@@ -114,6 +117,12 @@ type Config struct {
 
 	MonitorConfig
 	OtelConfig
+}
+
+// HistogramOpt represent histogram bucket configuration for specific metric
+type HistogramOpt struct {
+	MetricName string
+	Bucket     []float64
 }
 
 func DefaultConfig() Config {
@@ -226,6 +235,13 @@ func WithMonitorEnable(enable bool) Option {
 func WithMonitoringAddr(addr string) Option {
 	return optionFunc(func(config *Config) {
 		config.MonitorConfig.MonitorAddr = addr
+	})
+}
+
+// WithHistogram register metrics with custom bucket list
+func WithHistogram(list ...HistogramOpt) Option {
+	return optionFunc(func(config *Config) {
+		config.OtelConfig.bucketView = append(config.OtelConfig.bucketView, list...)
 	})
 }
 
