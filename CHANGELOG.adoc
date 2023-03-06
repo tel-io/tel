@@ -1,5 +1,5 @@
 = Changelog
-== latest
+== v2.2.0
 * `LOGGING_OTEL_PROCESSOR`, `LOGGING_OTEL_CLIENT` extend logs from otel libraries
 * otel: panic,fatal instantly sends to otel collector
 * zlogfmt - obsolete core - we no more need to use internal logfmt. Instead try to use otelcollector attribute: loki.format with logfmt or json, just check out out docker example  file: otel-collector-config.yaml
