@@ -1,0 +1,39 @@
+receivers:
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector'
+          scrape_interval: 5s
+          static_configs:
+            - targets: ['0.0.0.0:8888']
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    const_labels:
+    resource_to_telemetry_conversion:
+      enabled: true
+  logging:
+      loglevel: debug
+processors:
+  batch:
+    send_batch_max_size: 1000
+    send_batch_size: 300
+    timeout: 15s
+  memory_limiter:
+    check_interval: 2s
+    limit_mib: 1000
+    spike_limit_mib: 200
+
+extensions:
+  health_check:
+  pprof:
+    endpoint: :1888
+  zpages:
+    endpoint: :55679
+service:
+  extensions: [ pprof, zpages, health_check ]
+  pipelines:
+    metrics:
+      receivers: [  prometheus ]
+      processors: [memory_limiter, batch]
+      exporters: [ logging, prometheus ]
