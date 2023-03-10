@@ -2,6 +2,7 @@ receivers:
   otlp:
     protocols:
       grpc:
+        max_recv_msg_size_mib: 8 # for collector it would be better get 4
   prometheus:
     config:
       scrape_configs:
@@ -10,6 +11,8 @@ receivers:
           honor_labels: true
           static_configs:
             - targets: ['0.0.0.0:8888']
+              labels:
+                domain: XXXXXXXXXX
 exporters:
   logging:
     loglevel: info
@@ -17,20 +20,32 @@ exporters:
     sampling_thereafter: 50
   prometheusremotewrite:
     endpoint: http://mimir:9009/api/v1/push
+    remote_write_queue:
+      enabled: true
+      num_consumers: 30
+    retry_on_failure:
+      enabled: false
     resource_to_telemetry_conversion:
       enabled: true
   otlp/tempo:
     compression: snappy
     endpoint: tempo:4317
+    sending_queue:
+      enabled: true
+      num_consumers: 30
+    retry_on_failure:
+      enabled: false
     tls:
       insecure: true
   loki:
     endpoint: "http://loki:3100/loki/api/v1/push"
+    retry_on_failure:
+      enabled: false
     sending_queue:
       # Enabled indicates whether to not enqueue batches before sending to the consumerSender.
       enabled: false
       # NumConsumers is the number of consumers from the queue.
-      num_consumers: 100
+      num_consumers: 30
       # QueueSize is the maximum number of batches allowed in queue at a given time.
       queue_size: 10000
 
@@ -50,9 +65,9 @@ processors:
         value: service, namespace, license, deployment_environment
 
   batch:
-    send_batch_max_size: 1000
+    send_batch_max_size: 150
     send_batch_size: 300
-    timeout: 15s
+    timeout: 500ms
   memory_limiter:
     check_interval: 2s
     limit_mib: 2000
