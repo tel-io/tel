@@ -2,6 +2,7 @@
 
 == latest
 * rename service.name => `service`
+* fix LOGGING_OTEL_PROCESSOR logging with test coverage
 
 == v2.2.0
 * `LOGGING_OTEL_PROCESSOR`, `LOGGING_OTEL_CLIENT` extend logs from otel libraries

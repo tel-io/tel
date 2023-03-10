@@ -64,12 +64,15 @@ func (h logger) WithName(name string) logr.LogSink {
 }
 
 func conv(v []interface{}) []zap.Field {
-	fields := make([]zap.Field, len(v))
+	fields := make([]zap.Field, 0, len(v))
 
 	for i := 0; (i + 1) < len(v); i += 2 {
 		switch v[i].(type) {
 		case string:
-			fields = append(fields, zap.Any(v[i].(string), v[i+1]))
+			if val, ok := v[i+1].(string); ok {
+				fields = append(fields, zap.String(v[i].(string), val))
+			}
+
 		default:
 			continue
 		}
