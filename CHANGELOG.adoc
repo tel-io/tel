@@ -1,5 +1,8 @@
 = Changelog
 
+== latest
+* rename service.name => `service`
+
 == v2.2.0
 * `LOGGING_OTEL_PROCESSOR`, `LOGGING_OTEL_CLIENT` extend logs from otel libraries
 * otel: panic,fatal instantly sends to otel collector

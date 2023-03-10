@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/rand"
 
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"go.uber.org/zap"
@@ -15,6 +16,7 @@ import (
 
 const (
 	instrumentationName = "github.com/d7561985/tel"
+	ServiceNameKey = attribute.Key("service")
 )
 
 func CreateRes(ctx context.Context, l Config) *resource.Resource {
@@ -26,7 +28,7 @@ func CreateRes(ctx context.Context, l Config) *resource.Resource {
 		resource.WithAttributes(
 			// the service name used to display traces in backends + tempo UI by this field perform service selection
 			// key: service.name
-			semconv.ServiceNameKey.String(l.Service),
+			ServiceNameKey.String(l.Service),
 			// key: service.version
 			semconv.ServiceVersionKey.String(l.Version),
 		),
