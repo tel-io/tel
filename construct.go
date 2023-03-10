@@ -15,9 +15,14 @@ import (
 )
 
 const (
-	instrumentationName = "github.com/d7561985/tel"
-	ServiceNameKey = attribute.Key("service")
+	instrumentationName  = "github.com/d7561985/tel"
+	ServiceNameKey       = attribute.Key("service")
+	ServiceInstanceIDKey = attribute.Key("service_instance_id")
 )
+
+// GenerateInstanceID how to generate instanceID
+// function open for changes
+var instanceGenerator = genInstanceID
 
 func CreateRes(ctx context.Context, l Config) *resource.Resource {
 	res, _ := resource.New(ctx,
@@ -31,6 +36,7 @@ func CreateRes(ctx context.Context, l Config) *resource.Resource {
 			ServiceNameKey.String(l.Service),
 			// key: service.version
 			semconv.ServiceVersionKey.String(l.Version),
+			ServiceInstanceIDKey.String(instanceGenerator(l.Service)),
 		),
 	)
 
