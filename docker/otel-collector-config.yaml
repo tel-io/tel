@@ -65,7 +65,7 @@ processors:
         value: service, namespace, license, deployment_environment
 
   batch:
-    send_batch_max_size: 150
+    send_batch_max_size: 500
     send_batch_size: 300
     timeout: 500ms
   memory_limiter:
