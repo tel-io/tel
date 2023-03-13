@@ -49,6 +49,8 @@ services:
       - "24224:24224" # fluentforwarder
       - "24224:24224/udp" # fluentforwarder
       - "4433:4433" # awsfirehose
+      - "54527:54527" #syslog
+#      - "10514:10514/udp" #syslog
     logging:
       options:
         max-size: 100m
