@@ -27,6 +27,12 @@ created by testing.(*T).Run
 	/Users/dzmitryharupa/SDK/go1.17/src/testing/testing.go:1306 +0x328`
 )
 
+type testStruct struct {
+	demo string
+	Num  int
+	Some bool
+}
+
 func TestEncodeEntry(t *testing.T) {
 	tests := []struct {
 		name  string // without spaces plz
@@ -47,6 +53,17 @@ func TestEncodeEntry(t *testing.T) {
 			[]attribute.KeyValue{
 				attribute.Bool("bool", false),
 				attribute.String("d1", dumpExample),
+			},
+		},
+		{
+			"with obj",
+			[]zap.Field{zap.Any("obj", &testStruct{
+				demo: "demo",
+				Num:  1,
+				Some: true,
+			})},
+			[]attribute.KeyValue{
+				attribute.String("obj", "{\"Num\":1,\"Some\":true}"),
 			},
 		},
 	}
