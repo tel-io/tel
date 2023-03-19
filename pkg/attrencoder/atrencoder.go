@@ -41,7 +41,10 @@ func NewAttr(attr ...attribute.KeyValue) *AtrEncoder {
 }
 
 func (a *AtrEncoder) Clone() *AtrEncoder {
-	n := NewAttr(a.attrs...)
+	v := make([]attribute.KeyValue, len(a.attrs))
+	copy(v, a.attrs)
+
+	n := NewAttr(v...)
 
 	return n
 }
