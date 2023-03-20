@@ -1,9 +1,11 @@
 = Changelog
 
-== latest
+== v2.2.2
+* fix loosing some logs
+
+== v2.2.1
 * rename service.name => `service`
 * fix LOGGING_OTEL_PROCESSOR logging with test coverage
-* fix loosing some logs
 
 == v2.2.0
 * `LOGGING_OTEL_PROCESSOR`, `LOGGING_OTEL_CLIENT` extend logs from otel libraries
