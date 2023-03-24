@@ -75,6 +75,9 @@ processors:
   resource:
     attributes:
       - action: upsert
+        key: host.name
+        value: "XXXXX_XXXXX-XXXXX"
+      - action: upsert
         key: namespace
         value: "DEMO"
       - action: upsert

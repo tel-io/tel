@@ -24,6 +24,9 @@ type Telemetry struct {
 
 	trace trace.Tracer
 
+	// current span
+	span trace.Span
+
 	cfg *Config
 
 	traceProvider  trace.TracerProvider
@@ -145,6 +148,16 @@ func (t Telemetry) T() trace.Tracer {
 	return t.trace
 }
 
+// Span last created span
+func (t Telemetry) Span() trace.Span {
+	return t.span
+}
+
+// PutSpan ...
+func (t *Telemetry) PutSpan(in trace.Span) {
+	t.span = in
+}
+
 // MetricProvider used in constructor creation
 func (t Telemetry) MetricProvider() metric.MeterProvider {
 	return t.metricProvider
@@ -188,12 +201,23 @@ func (t *Telemetry) PutAttr(attr ...attribute.KeyValue) *Telemetry {
 // in case if ctx contains embed trace it will continue chain
 // keep in mind than that function don't continue any trace, only create new
 // for continue span use StartSpanFromContext
+// In addition: register new root span in new ctx instance
 //
 // return context where embed telemetry with span writer
 func (t *Telemetry) StartSpan(ctx context.Context, name string, opts ...trace.SpanStartOption) (trace.Span, context.Context) {
+	// In case current instance contains active span
+	// we would like to continue it
+	if !trace.SpanContextFromContext(ctx).IsValid() && t.Span() != nil && t.Span().IsRecording() {
+		ctx = trace.ContextWithSpan(ctx, t.Span())
+	}
+
 	cxt, s := t.trace.Start(ctx, name, opts...)
 
-	ccx := WrapContext(cxt, t.WithSpan(s))
+	tele := t.WithSpan(s)
+	tele.PutSpan(s)
+
+	ccx := WrapContext(cxt, tele)
+
 	UpdateTraceFields(ccx)
 
 	return s, ccx

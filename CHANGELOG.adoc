@@ -1,5 +1,8 @@
 = Changelog
 
+== latest
+* Preserve span instance in telemetry during span creation - this should help us to continue traces when it's not possible pass context of it
+
 == v2.2.2
 * fix loosing some logs
 
