@@ -247,6 +247,11 @@ required `OTEL_ENABLE` = true
 
 Inject logger adapter to otel library related to grpc client and get log information related to this transport
 
+.OTEL_ENABLE_COMPRESSION
+default: `true`
+
+Enables gzip compression for grpc connections
+
 .LOGGING_OTEL_PROCESSOR
 default: `false`
 

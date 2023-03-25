@@ -34,6 +34,7 @@ const (
 
 	envDebug            = "DEBUG"
 	envMonEnable        = "MONITOR_ENABLE"
+	envOtelCompression  = "OTEL_ENABLE_COMPRESSION"
 	envMon              = "MONITOR_ADDR"
 	envOtelEnable       = "OTEL_ENABLE"
 	envLogOtelProcessor = "LOGGING_OTEL_PROCESSOR"
@@ -73,6 +74,9 @@ type OtelConfig struct {
 	// attacks unless custom verification is used. This should be used only for
 	// testing or in combination with VerifyConnection or VerifyPeerCertificate.
 	WithInsecure bool `env:"OTEL_EXPORTER_WITH_INSECURE" envDefault:"true"`
+
+	// WithCompression enables gzip compression for all connections: logs, traces, metrics
+	WithCompression bool `env:"OTEL_ENABLE_COMPRESSION" envDefault:"true"`
 
 	// ServerName is used to verify the hostname on the returned
 	// certificates unless InsecureSkipVerify is given. It is also included
@@ -141,9 +145,10 @@ func DefaultConfig() Config {
 			MonitorAddr: "0.0.0.0:8011",
 		},
 		OtelConfig: OtelConfig{
-			Addr:         "127.0.0.1:4317",
-			WithInsecure: true,
-			Enable:       true,
+			Addr:            "127.0.0.1:4317",
+			WithInsecure:    true,
+			Enable:          true,
+			WithCompression: true,
 		},
 	}
 }
@@ -196,6 +201,7 @@ func GetConfigFromEnv() Config {
 
 	bl(envDebug, &c.Debug)
 	bl(envOtelEnable, &c.OtelConfig.Enable)
+	bl(envOtelCompression, &c.OtelConfig.WithCompression)
 	bl(envMonEnable, &c.MonitorConfig.Enable)
 	bl(envLogOtelProcessor, &c.Logs.OtelProcessor)
 	bl(envLogOtelClient, &c.Logs.OtelClient)

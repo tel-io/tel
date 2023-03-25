@@ -60,6 +60,10 @@ func (o *oLog) apply(ctx context.Context, t *Telemetry) func(context.Context) {
 		opts = append(opts, otlploggrpc.WithInsecure())
 	}
 
+	if t.cfg.OtelConfig.WithCompression {
+		opts = append(opts, otlploggrpc.WithCompressor("gzip"))
+	}
+
 	if t.cfg.OtelConfig.IsTLS() {
 		cred, err := t.cfg.OtelConfig.createClientTLSCredentials()
 		handleErr(err, "Failed init TLS certificate")
@@ -111,6 +115,10 @@ func (o *oTrace) apply(ctx context.Context, t *Telemetry) func(context.Context) 
 
 	if t.cfg.OtelConfig.WithInsecure {
 		opts = append(opts, otlptracegrpc.WithInsecure())
+	}
+
+	if t.cfg.OtelConfig.WithCompression {
+		opts = append(opts, otlptracegrpc.WithCompressor("gzip"))
 	}
 
 	if t.cfg.OtelConfig.IsTLS() {
@@ -166,6 +174,10 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 
 	if t.cfg.OtelConfig.WithInsecure {
 		opts = append(opts, otlpmetricgrpc.WithInsecure())
+	}
+
+	if t.cfg.OtelConfig.WithCompression {
+		opts = append(opts, otlpmetricgrpc.WithCompressor("gzip"))
 	}
 
 	if t.cfg.OtelConfig.IsTLS() {
