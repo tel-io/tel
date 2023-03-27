@@ -259,6 +259,11 @@ required `OTEL_ENABLE` = true
 
 Inject logger adapter to otel processor library related to collectors behaviour
 
+.OTEL_METRIC_PERIODIC_INTERVAL_SEC
+default: "15"
+
+Interval metrics gathered
+
 .OTEL_COLLECTOR_GRPC_ADDR
 Address to otel collector server via GRPC protocol
 

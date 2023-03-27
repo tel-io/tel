@@ -39,6 +39,7 @@ const (
 	envOtelEnable       = "OTEL_ENABLE"
 	envLogOtelProcessor = "LOGGING_OTEL_PROCESSOR"
 	envLogOtelClient    = "LOGGING_OTEL_CLIENT"
+	envMetricPeriodInterval = "OTEL_METRIC_PERIODIC_INTERVAL_SEC"
 
 	evnOtel = "OTEL_COLLECTOR_GRPC_ADDR"
 
@@ -77,6 +78,8 @@ type OtelConfig struct {
 
 	// WithCompression enables gzip compression for all connections: logs, traces, metrics
 	WithCompression bool `env:"OTEL_ENABLE_COMPRESSION" envDefault:"true"`
+
+	MetricsPeriodicIntervalSec int `env:"OTEL_METRIC_PERIODIC_INTERVAL_SEC" envDefault:"10"`
 
 	// ServerName is used to verify the hostname on the returned
 	// certificates unless InsecureSkipVerify is given. It is also included
@@ -145,10 +148,11 @@ func DefaultConfig() Config {
 			MonitorAddr: "0.0.0.0:8011",
 		},
 		OtelConfig: OtelConfig{
-			Addr:            "127.0.0.1:4317",
-			WithInsecure:    true,
-			Enable:          true,
-			WithCompression: true,
+			Addr:                       "127.0.0.1:4317",
+			WithInsecure:               true,
+			Enable:                     true,
+			WithCompression:            true,
+			MetricsPeriodicIntervalSec: 15,
 		},
 	}
 }
@@ -202,6 +206,7 @@ func GetConfigFromEnv() Config {
 	bl(envDebug, &c.Debug)
 	bl(envOtelEnable, &c.OtelConfig.Enable)
 	bl(envOtelCompression, &c.OtelConfig.WithCompression)
+	it(envMetricPeriodInterval, &c.OtelConfig.MetricsPeriodicIntervalSec)
 	bl(envMonEnable, &c.MonitorConfig.Enable)
 	bl(envLogOtelProcessor, &c.Logs.OtelProcessor)
 	bl(envLogOtelClient, &c.Logs.OtelClient)
@@ -309,5 +314,11 @@ func str(env string, v *string) {
 func bl(env string, v *bool) {
 	if val, err := strconv.ParseBool(os.Getenv(env)); err == nil {
 		*v = val
+	}
+}
+
+func it(env string, v *int) {
+	if val, err := strconv.ParseInt(os.Getenv(env), 10, 64); err == nil {
+		*v = int(val)
 	}
 }

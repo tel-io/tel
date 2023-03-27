@@ -9,6 +9,7 @@ overrides:
   max_search_bytes_per_trace: 30_000
   max_bytes_per_trace: 20_000_000
   block_retention: 168h
+  max_traces_per_user: 1_000_000
 
 distributor:
   receivers:                           # this configuration will listen on all ports and protocols that tempo is capable of.

@@ -194,7 +194,7 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 
 	reader := metric.NewPeriodicReader(exp,
 		//metric.WithTimeout(30*time.Second),
-		metric.WithInterval(3*time.Second),
+		metric.WithInterval(time.Duration(t.cfg.OtelConfig.MetricsPeriodicIntervalSec)*time.Second),
 	)
 
 	var views []view.View
