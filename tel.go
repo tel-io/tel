@@ -133,9 +133,15 @@ func (t Telemetry) WithContext(ctx context.Context) context.Context {
 	return WithContext(ctx, t)
 }
 
-// Ctx initiate new ctx with Telemetry
+// Ctx initiate new ctx with Telemetry and span instance if occured
 func (t Telemetry) Ctx() context.Context {
-	return WithContext(context.Background(), t)
+	ctx := WithContext(context.Background(), t)
+
+	if t.Span() != nil {
+		return trace.ContextWithSpan(ctx, t.Span())
+	}
+
+	return ctx
 }
 
 // Copy resiver instance and give us more convenient way to use pipelines
