@@ -10,6 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 	health "github.com/tel-io/tel/v2/monitoring/heallth"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/credentials"
 )
@@ -32,13 +33,13 @@ const (
 	envLogLevel          = "LOG_LEVEL"
 	envLogEncode         = "LOG_ENCODE"
 
-	envDebug            = "DEBUG"
-	envMonEnable        = "MONITOR_ENABLE"
-	envOtelCompression  = "OTEL_ENABLE_COMPRESSION"
-	envMon              = "MONITOR_ADDR"
-	envOtelEnable       = "OTEL_ENABLE"
-	envLogOtelProcessor = "LOGGING_OTEL_PROCESSOR"
-	envLogOtelClient    = "LOGGING_OTEL_CLIENT"
+	envDebug                = "DEBUG"
+	envMonEnable            = "MONITOR_ENABLE"
+	envOtelCompression      = "OTEL_ENABLE_COMPRESSION"
+	envMon                  = "MONITOR_ADDR"
+	envOtelEnable           = "OTEL_ENABLE"
+	envLogOtelProcessor     = "LOGGING_OTEL_PROCESSOR"
+	envLogOtelClient        = "LOGGING_OTEL_CLIENT"
 	envMetricPeriodInterval = "OTEL_METRIC_PERIODIC_INTERVAL_SEC"
 
 	evnOtel = "OTEL_COLLECTOR_GRPC_ADDR"
@@ -61,6 +62,10 @@ type optionFunc func(*Config)
 
 func (o optionFunc) apply(c *Config) {
 	o(c)
+}
+
+type traceConfiguration struct {
+	sampler sdktrace.Sampler
 }
 
 type OtelConfig struct {
@@ -89,9 +94,14 @@ type OtelConfig struct {
 	ServerName string `env:"OTEL_COLLECTOR_TLS_SERVER_NAME"`
 
 	Logs struct {
-		OtelClient    bool `env:"LOGGING_OTEL_CLIENT"`
+		// OtelClient is logger of otel clients
+		OtelClient bool `env:"LOGGING_OTEL_CLIENT"`
+
+		// OtelProcessor is logger of otel processor
 		OtelProcessor bool `env:"LOGGING_OTEL_PROCESSOR"`
 	}
+
+	Traces traceConfiguration
 
 	// Raw parses a public/private key pair from a pair of
 	// PEM encoded data. On successful return, Certificate.Leaf will be nil because
@@ -153,6 +163,9 @@ func DefaultConfig() Config {
 			Enable:                     true,
 			WithCompression:            true,
 			MetricsPeriodicIntervalSec: 15,
+			Traces: traceConfiguration{
+				sampler: sdktrace.NeverSample(),
+			},
 		},
 	}
 }
@@ -253,6 +266,13 @@ func WithMonitoringAddr(addr string) Option {
 func WithHistogram(list ...HistogramOpt) Option {
 	return optionFunc(func(config *Config) {
 		config.OtelConfig.bucketView = append(config.OtelConfig.bucketView, list...)
+	})
+}
+
+// WithTraceSampler allow use own sampling strategy for scrapping traces
+func WithTraceSampler(sampler sdktrace.Sampler) Option {
+	return optionFunc(func(config *Config) {
+		config.OtelConfig.Traces.sampler = sampler
 	})
 }
 

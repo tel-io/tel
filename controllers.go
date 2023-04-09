@@ -139,7 +139,7 @@ func (o *oTrace) apply(ctx context.Context, t *Telemetry) func(context.Context) 
 
 	bsp := sdktrace.NewBatchSpanProcessor(traceExp)
 	tracerProvider := sdktrace.NewTracerProvider(
-		sdktrace.WithSampler(sdktrace.AlwaysSample()),
+		sdktrace.WithSampler(t.cfg.OtelConfig.Traces.sampler),
 		sdktrace.WithResource(o.res),
 		sdktrace.WithSpanProcessor(bsp),
 	)
