@@ -164,7 +164,7 @@ func DefaultConfig() Config {
 			WithCompression:            true,
 			MetricsPeriodicIntervalSec: 15,
 			Traces: traceConfiguration{
-				sampler: sdktrace.NeverSample(),
+				sampler: sdktrace.AlwaysSample(),
 			},
 		},
 	}

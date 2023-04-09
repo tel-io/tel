@@ -5,6 +5,7 @@
 * `OTEL_ENABLE_COMPRESSION` - enable compression for logs, traces and metrics for grpc connections
 * `OTEL_METRIC_PERIODIC_INTERVAL_SEC` - metrics interval default = 15sec
 * Ctx function should return span ctx already wrapped either, UpdateTraceFields function should putSet in telemetry
+* trace sampler option: WithTraceSampler allow implement own sampling strategies
 
 == v2.2.2
 * fix loosing some logs
