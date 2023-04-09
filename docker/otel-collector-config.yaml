@@ -3,19 +3,26 @@ receivers:
     protocols:
       grpc:
         max_recv_msg_size_mib: 8 # for collector it would be better get 4
+  syslog:
+    tcp:
+      listen_address: "0.0.0.0:54527"
+    protocol: rfc3164
+    location: UTC
+#    operators:
+#      - type: move
+#        from: attributes.message
+#        to: body
   prometheus:
     config:
       scrape_configs:
         - job_name: 'otel-collector'
-          scrape_interval: 5s
-          honor_labels: true
+          scrape_interval: 15s
+          honor_labels: false
           static_configs:
-            - targets: ['0.0.0.0:8888']
-              labels:
-                domain: XXXXXXXXXX
+            - targets: ['127.0.0.1:8888']
 exporters:
   logging:
-    loglevel: info
+    verbosity: Basic
     sampling_initial: 10
     sampling_thereafter: 50
   prometheusremotewrite:
@@ -30,11 +37,16 @@ exporters:
   otlp/tempo:
     compression: snappy
     endpoint: tempo:4317
+    timeout: 1s
     sending_queue:
       enabled: true
       num_consumers: 30
+      queue_size: 500
     retry_on_failure:
       enabled: false
+      initial_interval: 1s
+      max_interval: 10s
+      max_elapsed_time: 20s
     tls:
       insecure: true
   loki:
@@ -50,6 +62,13 @@ exporters:
       queue_size: 10000
 
 processors:
+  # fix duplicated with receiver prometheus
+  attributes/metrics:
+    actions:
+      - action: delete
+        key: service.namespace
+      - action: delete
+        key: deployment.environment
   attributes/loki:
     actions:
       - action: insert
@@ -57,13 +76,14 @@ processors:
         value: level
   resource/loki:
     attributes:
-      - action: insert
-        key: loki.format
-        value: logfmt
+#  loki.format default is json
+# we override via transform
+#      - action: insert
+#        key: loki.format
+#        value: json #logfmt
       - action: insert
         key: loki.resource.labels
         value: service, namespace, license, deployment_environment
-
   batch:
     send_batch_max_size: 500
     send_batch_size: 300
@@ -74,6 +94,9 @@ processors:
     spike_limit_mib: 200
   resource:
     attributes:
+      - action: insert
+        key: resource
+        value: "service" # <<<<< REPLACE https://wiki.time2go.tech/pages/viewpage.action?pageId=107735386
       - action: upsert
         key: host.name
         value: "XXXXX_XXXXX-XXXXX"
@@ -90,9 +113,18 @@ processors:
         key: http.scheme
       - action: delete
         key: net.host.port
-      - action: upsert
-        from_attribute: host.name
-        key: host
+      - action: insert
+        from_attribute: service.name
+        key: service
+#      - action: upsert
+#        from_attribute: host.name
+#        key: host
+#      - action: upsert
+#        from_attribute: service
+#        key: service.name
+#      - action: upsert
+#        from_attribute: namespace
+#        key: service.namespace
   resource/tempo:
     attributes:
       - action: insert
@@ -100,43 +132,36 @@ processors:
         key: service.name
       - action: delete
         key: service
-  transform:
-# Loki not supported key with dot, resently we use this transformation - but not new loki export module use control
-# commands with dots and they not work because of this
-#
-# So, dont use this transformation or you break loki.attribute.labels, loki.resource.labels features
-#
-#    log_statements:
-#      - context: resource
-#        statements:
-#          - replace_all_patterns(attributes, "key", "\\.", "_")
-#      - context: log
-#        statements:
-#          - replace_all_patterns(attributes, "key", "\\.", "_")
-#    metric_statements:
-#      - context: resource
-#        statements:
-#          - set(attributes["job"], attributes["service.name"])
+  transform/log:
+    # backport compatibility tel < 2.2.0
+    log_statements:
+      - context: log
+        statements:
+          - set(resource.attributes["loki.format"], "logfmt") where severity_text != ""
 
 extensions:
   health_check:
+    endpoint: 127.0.0.1:13133
   pprof:
-    endpoint: :1888
+    endpoint: 127.0.0.1:1888
   zpages:
-    endpoint: :55679
+    endpoint: 127.0.0.1:55679
 
 service:
   extensions: [ pprof, zpages, health_check ]
+  telemetry:
+    metrics:
+      address: "127.0.0.1:8888"
   pipelines:
     traces:
       receivers: [ otlp ]
       processors: [resource, resource/tempo, memory_limiter, batch]
       exporters: [ logging, otlp/tempo ]
     metrics:
-      receivers: [ prometheus, otlp ]
-      processors: [resource, transform, memory_limiter, batch]
+      receivers: [  prometheus, otlp ]
+      processors: [resource, memory_limiter] #batch
       exporters: [ logging, prometheusremotewrite]
     logs:
       receivers: [  otlp ]
-      processors: [resource, attributes/loki, resource/loki, transform, memory_limiter, batch]
+      processors: [resource, attributes/loki, resource/loki, transform/log, memory_limiter, batch]
       exporters: [ logging, loki ]

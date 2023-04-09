@@ -15,7 +15,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "9.0.7"
+      "version": "9.3.1"
     },
     {
       "type": "panel",
@@ -203,7 +203,7 @@
         },
         "showHeader": true
       },
-      "pluginVersion": "9.0.7",
+      "pluginVersion": "9.3.1",
       "targets": [
         {
           "datasource": {
@@ -465,7 +465,7 @@
           }
         ]
       },
-      "pluginVersion": "9.0.7",
+      "pluginVersion": "9.3.1",
       "repeat": "license",
       "repeatDirection": "v",
       "targets": [
@@ -524,6 +524,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -583,7 +585,8 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -655,7 +658,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "9.0.7",
+      "pluginVersion": "9.3.1",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -761,7 +764,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "9.0.7",
+      "pluginVersion": "9.3.1",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -830,6 +833,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -902,7 +907,8 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -1016,7 +1022,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "9.0.7",
+      "pluginVersion": "9.3.1",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1138,6 +1144,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "left",
             "axisSoftMin": -2,
@@ -1198,7 +1206,8 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -1456,7 +1465,7 @@
         },
         "showHeader": true
       },
-      "pluginVersion": "9.0.7",
+      "pluginVersion": "9.3.1",
       "repeatDirection": "h",
       "targets": [
         {
@@ -1525,6 +1534,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1582,8 +1593,9 @@
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "hidden",
-          "placement": "bottom"
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
         },
         "tooltip": {
           "mode": "multi",
@@ -1676,7 +1688,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "9.0.7",
+      "pluginVersion": "9.3.1",
       "targets": [
         {
           "datasource": {
@@ -1765,7 +1777,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "9.0.7",
+      "pluginVersion": "9.3.1",
       "targets": [
         {
           "datasource": {
@@ -1797,6 +1809,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1858,7 +1872,8 @@
             "lastNotNull"
           ],
           "displayMode": "table",
-          "placement": "right"
+          "placement": "right",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -1930,7 +1945,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "9.0.7",
+      "pluginVersion": "9.3.1",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1998,6 +2013,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2060,7 +2077,8 @@
             "max"
           ],
           "displayMode": "table",
-          "placement": "right"
+          "placement": "right",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -2097,6 +2115,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2156,7 +2176,8 @@
         "legend": {
           "calcs": [],
           "displayMode": "table",
-          "placement": "right"
+          "placement": "right",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -2195,6 +2216,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2257,7 +2280,8 @@
             "min"
           ],
           "displayMode": "table",
-          "placement": "right"
+          "placement": "right",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -2330,7 +2354,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "9.0.7",
+      "pluginVersion": "9.3.1",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -2399,6 +2423,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2462,7 +2488,8 @@
         "legend": {
           "calcs": [],
           "displayMode": "table",
-          "placement": "right"
+          "placement": "right",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -2559,7 +2586,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "9.0.7",
+      "pluginVersion": "9.3.1",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -2639,6 +2666,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2698,7 +2727,8 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -2766,7 +2796,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "9.0.7",
+      "pluginVersion": "9.3.1",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -2824,7 +2854,7 @@
     }
   ],
   "refresh": "5s",
-  "schemaVersion": 36,
+  "schemaVersion": 37,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -3040,7 +3070,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {
@@ -3071,6 +3101,6 @@
   "timezone": "",
   "title": "SQL",
   "uid": "HnenA2MVz",
-  "version": 19,
+  "version": 1,
   "weekStart": ""
 }
