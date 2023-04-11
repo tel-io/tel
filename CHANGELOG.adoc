@@ -1,6 +1,6 @@
 = Changelog
 
-== latest
+== v2.2.3
 * Preserve span instance in telemetry during span creation - this should help us to continue traces when it's not possible pass context of it
 * `OTEL_ENABLE_COMPRESSION` - enable compression for logs, traces and metrics for grpc connections
 * `OTEL_METRIC_PERIODIC_INTERVAL_SEC` - metrics interval default = 15sec
