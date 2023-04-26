@@ -30,8 +30,8 @@ With DEBUG:
 * /debug/pprof/trace/
 
 === Metrics
-* up
-* up.status
+* service.health
+* service.health.status
 
 === Usage
 Developer should set option `tel.WithHealthCheckers(...)` with required checkers

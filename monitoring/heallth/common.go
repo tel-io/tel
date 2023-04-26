@@ -3,10 +3,10 @@ package health
 import "go.opentelemetry.io/otel"
 
 const (
-	instrumentationName = "go.opentelemetry.io/otel/metric"
+	instrumentationName = "github.com/tel-io/tel/health/metric"
 
-	MetricOnline = "up" // current status
-	MetricStatus = "up.status"
+	MetricOnline = "service.health" // current status
+	MetricStatus = "service.health.status"
 )
 
 func handleErr(err error) {

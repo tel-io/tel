@@ -2,10 +2,12 @@ package health
 
 import (
 	"context"
+	"time"
+
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/instrument"
 	"go.opentelemetry.io/otel/metric/instrument/asyncint64"
-	"time"
 )
 
 var (
@@ -43,17 +45,8 @@ func (m *Metrics) createMeasures() {
 	handleErr(err)
 
 	m.counters[MetricStatus] = counter
-}
 
-// Run too sensitive
-func (m *Metrics) Run(ctx context.Context) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-time.After(timer):
-		}
-
+	err = m.meter.RegisterCallback([]instrument.Asynchronous{m.counters[MetricOnline], m.counters[MetricStatus]}, func(ctx context.Context) {
 		check := m.check(ctx)
 
 		m.counters[MetricOnline].Observe(ctx, cv(check.IsOnline()))
@@ -66,8 +59,9 @@ func (m *Metrics) Run(ctx context.Context) {
 				m.counters[MetricStatus].Observe(ctx, cv(conv.IsOnline()), conv.GetAttr()...)
 			}
 		}
-	}
+	})
 
+	handleErr(err)
 }
 
 func cv(v bool) int64 {

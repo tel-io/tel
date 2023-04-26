@@ -1,5 +1,9 @@
 = Changelog
 
+== latest
+* health check fix metrics exposure
+* change health check metrics names: `up` => `service.health`, `up.status` => `service.health.status`
+
 == v2.2.3
 * Preserve span instance in telemetry during span creation - this should help us to continue traces when it's not possible pass context of it
 * `OTEL_ENABLE_COMPRESSION` - enable compression for logs, traces and metrics for grpc connections

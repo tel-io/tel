@@ -70,8 +70,6 @@ func (m *Monitor) Start(ctx context.Context) error {
 
 	m.route()
 
-	go m.metric.Run(ctx)
-
 	err := m.server.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return err
