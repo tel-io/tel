@@ -2,6 +2,8 @@ package tel
 
 import (
 	"context"
+	"fmt"
+	"runtime"
 
 	"github.com/tel-io/tel/v2/otlplog/logskd"
 	"go.uber.org/zap"
@@ -33,7 +35,14 @@ func FromCtx(ctx context.Context) *Telemetry {
 
 	v := Global().Copy()
 	v.Warn("use null Telemetry")
-	v.PutFields(String("warn", "use null Telemetry"))
+ 
+	// Getting the previous call to detect where FromCtx was called instead of Warn overridden
+	_, file, line, _ := runtime.Caller(1)
+	v.PutFields(
+		String("warn", "use null Telemetry"),
+		String("_prev_caller", fmt.Sprintf("%s:%d", file, line)),
+	)
+	
 
 	return &v
 }
