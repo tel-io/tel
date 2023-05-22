@@ -43,7 +43,7 @@ func FromCtx(ctx context.Context) *Telemetry {
 		}
 		t = append(t, fmt.Sprintf("%s:%d", file, line))
 	}
-	vNullWarn.PutFields(Any("null_callers", t))
+	vNullWarn.PutFields(Strings("null_callers", t))
 	vNullWarn.Warn("use null Telemetry")
 
 	v := Global().Copy()
