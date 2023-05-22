@@ -33,15 +33,20 @@ func FromCtx(ctx context.Context) *Telemetry {
 		return t
 	}
 
+	// Getting the previous call to detect where FromCtx was called instead vNullWarn.Warn
+	vNullWarn := Global().Copy()
+	var t = make([]string, 0, 10)
+	for c := 1; c <= 10; c++ {
+		_, file, line, ok := runtime.Caller(c)
+		if !ok {
+			break
+		}
+		t = append(t, fmt.Sprintf("%s:%d", file, line))
+	}
+	vNullWarn.PutFields(Any("null_callers", t))
+	vNullWarn.Warn("use null Telemetry")
+
 	v := Global().Copy()
-	
-	// Getting the previous call to detect where FromCtx was called
-	_, file, line, _ := runtime.Caller(1)
-	v.PutFields(String("_prev_caller", fmt.Sprintf("%s:%d", file, line)))
-	v.Warn("use null Telemetry")
-	
-	// It is not always possible to track across the field.
-	// For example tel.FromCtx(context.Background()).Debug() in production generate Warn but Debug will been hiding
 	v.PutFields(String("warn", "use null Telemetry"))
 
 	return &v
