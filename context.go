@@ -38,9 +38,10 @@ func callers() []string {
 		t = append(t, fmt.Sprintf("%s:%d", file, line))
 	}
 
-	//big trace, get first 100
-	if n > 50 {
-		t = t[n-50:]
+	const depth = 50
+	//big trace, trim by depth
+	if n > depth {
+		t = t[n-depth:]
 	}
 
 	return t
