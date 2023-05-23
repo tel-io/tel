@@ -28,14 +28,21 @@ func WrapContext(ctx context.Context, l *Telemetry) context.Context {
 }
 
 func callers() []string {
-	var pcs [100]uintptr
-	n := runtime.Callers(1, pcs[:])
+	//big buffer for full trace (with packages)
+	var pcs [1000]uintptr
+	n := runtime.Callers(3, pcs[:])
 	var t = make([]string, 0, n)
 	for _, pc := range pcs[0:n] {
 		fn := runtime.FuncForPC(pc)
 		file, line := fn.FileLine(pc)
 		t = append(t, fmt.Sprintf("%s:%d", file, line))
 	}
+
+	//big trace, get first 100
+	if n > 50 {
+		t = t[n-50:]
+	}
+
 	return t
 }
 
