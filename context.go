@@ -50,6 +50,7 @@ func FromCtx(ctx context.Context) *Telemetry {
 	vNullWarn.PutFields(Strings("null_callers", callers()))
 	vNullWarn.Warn("use null Telemetry")
 
+	//Original message without callers stack
 	v := Global().Copy()
 	v.PutFields(String("warn", "use null Telemetry"))
 
