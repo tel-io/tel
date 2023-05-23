@@ -28,7 +28,7 @@ func WrapContext(ctx context.Context, l *Telemetry) context.Context {
 }
 
 func callers() []string {
-	var pcs [100]uintptr
+	var pcs [1000]uintptr
 	n := runtime.Callers(1, pcs[:])
 	var t = make([]string, 0, n)
 	for _, pc := range pcs[0:n] {
