@@ -27,6 +27,18 @@ func WrapContext(ctx context.Context, l *Telemetry) context.Context {
 	return context.WithValue(ctx, tKey{}, l)
 }
 
+func callers() []string {
+	var pcs [100]uintptr
+	n := runtime.Callers(1, pcs[:])
+	var t = make([]string, 0, n)
+	for _, pc := range pcs[0:n] {
+		fn := runtime.FuncForPC(pc)
+		file, line := fn.FileLine(pc)
+		t = append(t, fmt.Sprintf("%s:%d", file, line))
+	}
+	return t
+}
+
 // FromCtx retrieves from ctx tel object
 func FromCtx(ctx context.Context) *Telemetry {
 	if t, ok := ctx.Value(tKey{}).(*Telemetry); ok {
@@ -35,15 +47,7 @@ func FromCtx(ctx context.Context) *Telemetry {
 
 	// Getting the previous call to detect where FromCtx was called instead vNullWarn.Warn
 	vNullWarn := Global().Copy()
-	var t = make([]string, 0, 10)
-	for c := 1; c <= 10; c++ {
-		_, file, line, ok := runtime.Caller(c)
-		if !ok {
-			break
-		}
-		t = append(t, fmt.Sprintf("%s:%d", file, line))
-	}
-	vNullWarn.PutFields(Strings("null_callers", t))
+	vNullWarn.PutFields(Strings("null_callers", callers()))
 	vNullWarn.Warn("use null Telemetry")
 
 	v := Global().Copy()
