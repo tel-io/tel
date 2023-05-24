@@ -25,6 +25,7 @@ func WrapContext(ctx context.Context, l *Telemetry) context.Context {
 	return context.WithValue(ctx, tKey{}, l)
 }
 
+// Deprecated: CtxContains - use only for temporary check of missing telemetry in context
 func CtxContains(ctx context.Context) (t *Telemetry, ok bool) {
 	t, ok = ctx.Value(tKey{}).(*Telemetry)
 	return
