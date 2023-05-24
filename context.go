@@ -2,8 +2,6 @@ package tel
 
 import (
 	"context"
-	"fmt"
-	"runtime"
 
 	"github.com/tel-io/tel/v2/otlplog/logskd"
 	"go.uber.org/zap"
@@ -27,39 +25,19 @@ func WrapContext(ctx context.Context, l *Telemetry) context.Context {
 	return context.WithValue(ctx, tKey{}, l)
 }
 
-func callers() []string {
-	//big buffer for full trace (with packages)
-	var pcs [1000]uintptr
-	n := runtime.Callers(3, pcs[:])
-	var t = make([]string, 0, n)
-	for _, pc := range pcs[0:n] {
-		fn := runtime.FuncForPC(pc)
-		file, line := fn.FileLine(pc)
-		t = append(t, fmt.Sprintf("%s:%d", file, line))
-	}
-
-	const depth = 50
-	//big trace, trim by depth
-	if n > depth {
-		t = t[n-depth:]
-	}
-
-	return t
+func CtxContains(ctx context.Context) (t *Telemetry, ok bool) {
+	t, ok = ctx.Value(tKey{}).(*Telemetry)
+	return
 }
 
 // FromCtx retrieves from ctx tel object
 func FromCtx(ctx context.Context) *Telemetry {
-	if t, ok := ctx.Value(tKey{}).(*Telemetry); ok {
+	if t, ok := CtxContains(ctx); ok {
 		return t
 	}
 
-	// Getting the previous call to detect where FromCtx was called instead vNullWarn.Warn
-	vNullWarn := Global().Copy()
-	vNullWarn.PutFields(Strings("null_callers", callers()))
-	vNullWarn.Warn("use null Telemetry")
-
-	//Original message without callers stack
 	v := Global().Copy()
+	v.Warn("use null Telemetry", zap.Stack("callers"))
 	v.PutFields(String("warn", "use null Telemetry"))
 
 	return &v
