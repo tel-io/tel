@@ -2,16 +2,11 @@ package health
 
 import (
 	"context"
-	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/instrument"
 	"go.opentelemetry.io/otel/metric/instrument/asyncint64"
-)
-
-var (
-	timer = time.Second * 15
 )
 
 type Metrics struct {

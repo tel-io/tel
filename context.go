@@ -5,6 +5,7 @@ import (
 
 	"github.com/tel-io/tel/v2/otlplog/logskd"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"go.opentelemetry.io/otel/trace"
 )
@@ -32,7 +33,13 @@ func FromCtx(ctx context.Context) *Telemetry {
 	}
 
 	v := Global().Copy()
-	v.Warn("use null Telemetry")
+
+	v.Logger.WithOptions(
+		zap.WithCaller(true),
+		zap.AddCallerSkip(1),
+		zap.AddStacktrace(zapcore.WarnLevel),
+	).Warn("use null Telemetry")
+
 	v.PutFields(String("warn", "use null Telemetry"))
 
 	return &v
