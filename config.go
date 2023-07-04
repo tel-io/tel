@@ -5,11 +5,15 @@ import (
 	"crypto/x509"
 	"fmt"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/caarlos0/env/v9"
 	"github.com/pkg/errors"
 	health "github.com/tel-io/tel/v2/monitoring/heallth"
+	"github.com/tel-io/tel/v2/pkg/samplers"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/credentials"
@@ -26,32 +30,16 @@ const (
 	envBackPortProject = "PROJECT"
 	//
 	envServiceName = "OTEL_SERVICE_NAME"
-
-	envNamespace         = "NAMESPACE"
-	envDeployEnvironment = "DEPLOY_ENVIRONMENT"
-	envVersion           = "VERSION"
-	envLogLevel          = "LOG_LEVEL"
-	envLogEncode         = "LOG_ENCODE"
-
-	envDebug                = "DEBUG"
-	envMonEnable            = "MONITOR_ENABLE"
-	envOtelCompression      = "OTEL_ENABLE_COMPRESSION"
-	envMon                  = "MONITOR_ADDR"
-	envOtelEnable           = "OTEL_ENABLE"
-	envLogOtelProcessor     = "LOGGING_OTEL_PROCESSOR"
-	envLogOtelClient        = "LOGGING_OTEL_CLIENT"
-	envMetricPeriodInterval = "OTEL_METRIC_PERIODIC_INTERVAL_SEC"
-
-	evnOtel = "OTEL_COLLECTOR_GRPC_ADDR"
-
-	envOtelInsec         = "OTEL_EXPORTER_WITH_INSECURE"
-	envOtelTlsServerName = "OTEL_COLLECTOR_TLS_SERVER_NAME"
-	envOtelTlsCA         = "OTEL_COLLECTOR_TLS_CA_CERT"
-	envOtelCert          = "OTEL_COLLECTOR_TLS_CLIENT_CERT"
-	envOtelKey           = "OTEL_COLLECTOR_TLS_CLIENT_KEY"
 )
 
 const DisableLog = "none"
+
+const (
+	neverSampler              = "never"
+	alwaysSampler             = "always"
+	traceIDRatioSampler       = "traceidratio"
+	statusTraceIDRatioSampler = "statustraceidratio"
+)
 
 // Option interface used for setting optional config properties.
 type Option interface {
@@ -64,15 +52,21 @@ func (o optionFunc) apply(c *Config) {
 	o(c)
 }
 
-type traceConfiguration struct {
-	sampler sdktrace.Sampler
+type tracesConfig struct {
+	EnableRetry               bool   `env:"TRACES_ENABLE_RETRY" envDefault:"false"`
+	Sampler                   string `env:"TRACES_SAMPLER" envDefault:"never"`
+	EnableSpanTrackLogMessage bool   `env:"TRACES_ENABLE_SPAN_TRACK_LOG_MESSAGE" envDefault:"false"`
+	EnableSpanTrackLogFields  bool   `env:"TRACES_ENABLE_SPAN_TRACK_LOG_FIELDS" envDefault:"false"`
+	sampler                   sdktrace.Sampler
 }
 
+// TODO: Review overlapping options (WthInsecure, WithCompression, etc).
+// TODO: Add TEL_ prefix to avoid env conflicts
 type OtelConfig struct {
 	Enable bool `env:"OTEL_ENABLE" envDefault:"true"`
 
 	// OtelAddr address where grpc open-telemetry exporter serve
-	Addr string `env:"OTEL_COLLECTOR_GRPC_ADDR" envDefault:"0.0.0.0:4317"`
+	Addr string `env:"OTEL_COLLECTOR_GRPC_ADDR" envDefault:"127.0.0.1:4317"`
 	// WithInsecure controls whether a client verifies the server's
 	// certificate chain and host name. If InsecureSkipVerify is true, crypto/tls
 	// accepts any certificate presented by the server and any host name in that
@@ -84,7 +78,7 @@ type OtelConfig struct {
 	// WithCompression enables gzip compression for all connections: logs, traces, metrics
 	WithCompression bool `env:"OTEL_ENABLE_COMPRESSION" envDefault:"true"`
 
-	MetricsPeriodicIntervalSec int `env:"OTEL_METRIC_PERIODIC_INTERVAL_SEC" envDefault:"10"`
+	MetricsPeriodicIntervalSec int `env:"OTEL_METRIC_PERIODIC_INTERVAL_SEC" envDefault:"15"`
 
 	// ServerName is used to verify the hostname on the returned
 	// certificates unless InsecureSkipVerify is given. It is also included
@@ -99,9 +93,17 @@ type OtelConfig struct {
 
 		// OtelProcessor is logger of otel processor
 		OtelProcessor bool `env:"LOGGING_OTEL_PROCESSOR"`
+
+		EnableRetry    bool          `env:"LOGS_ENABLE_RETRY" envDefault:"false"`
+		SyncInterval   time.Duration `env:"LOGS_SYNC_INTERVAL" envDefault:"1s"`
+		MaxMessageSize int           `env:"LOGS_MAX_MESSAGE_SIZE" envDefault:"256"`
 	}
 
-	Traces traceConfiguration
+	Traces tracesConfig
+
+	Metrics struct {
+		EnableRetry bool `env:"METRICS_ENABLE_RETRY" envDefault:"false"`
+	}
 
 	// Raw parses a public/private key pair from a pair of
 	// PEM encoded data. On successful return, Certificate.Leaf will be nil because
@@ -124,9 +126,9 @@ type MonitorConfig struct {
 
 type Config struct {
 	Service     string `env:"OTEL_SERVICE_NAME"`
-	Namespace   string `env:"NAMESPACE"`
-	Environment string `env:"DEPLOY_ENVIRONMENT"`
-	Version     string `env:"VERSION"`
+	Namespace   string `env:"NAMESPACE" envDefault:"default"`
+	Environment string `env:"DEPLOY_ENVIRONMENT" envDefault:"dev"`
+	Version     string `env:"VERSION" envDefault:"dev"`
 	LogLevel    string `env:"LOG_LEVEL" envDefault:"info"`
 	// Valid values are "json", "console" or "none"
 	LogEncode string `env:"LOG_ENCODE" envDefault:"json"`
@@ -146,6 +148,7 @@ func DefaultConfig() Config {
 	host, _ := os.Hostname()
 	host = strings.ToLower(strings.ReplaceAll(host, "-", "_"))
 
+	// Please keep in sync with envDefault in struct
 	return Config{
 		Service:     host,
 		Version:     "dev",
@@ -163,8 +166,9 @@ func DefaultConfig() Config {
 			Enable:                     true,
 			WithCompression:            true,
 			MetricsPeriodicIntervalSec: 15,
-			Traces: traceConfiguration{
-				sampler: sdktrace.AlwaysSample(),
+			Traces: tracesConfig{
+				Sampler: neverSampler,
+				sampler: sdktrace.NeverSample(),
 			},
 		},
 	}
@@ -184,47 +188,56 @@ func DefaultDebugConfig() Config {
 func GetConfigFromEnv() Config {
 	c := DefaultConfig()
 
+	env.ParseWithOptions(&c, env.Options{
+		FuncMap: map[reflect.Type]env.ParserFunc{
+			reflect.TypeOf([]byte{}): func(v string) (interface{}, error) {
+				return []byte(v), nil
+			},
+		},
+	})
+
 	if val, ok := os.LookupEnv(envServiceName); ok {
 		c.Service = val
-	} else {
-		str(envBackPortProject, &c.Service)
+	} else if val, ok := os.LookupEnv(envBackPortProject); ok {
+		c.Service = val
 	}
-
-	str(envVersion, &c.Version)
-	str(envNamespace, &c.Namespace)
-	str(envDeployEnvironment, &c.Environment)
-	str(envLogLevel, &c.LogLevel)
-	str(envLogEncode, &c.LogEncode)
 
 	// if none console opt - use always json by default
 	if c.LogEncode != "console" && c.LogEncode != DisableLog {
 		c.LogEncode = "json"
 	}
 
-	str(envMon, &c.MonitorAddr)
-	str(evnOtel, &c.OtelConfig.Addr)
-
-	bl(envOtelInsec, &c.OtelConfig.WithInsecure)
-	str(envOtelTlsServerName, &c.OtelConfig.ServerName)
-
 	// ServerName provided assume insecure disabled
 	if len(c.OtelConfig.ServerName) > 0 {
 		c.OtelConfig.WithInsecure = false
 	}
 
-	c.Raw.CA = bt(envOtelTlsCA)
-	c.Raw.Cert = bt(envOtelCert)
-	c.Raw.Key = bt(envOtelKey)
-
-	bl(envDebug, &c.Debug)
-	bl(envOtelEnable, &c.OtelConfig.Enable)
-	bl(envOtelCompression, &c.OtelConfig.WithCompression)
-	it(envMetricPeriodInterval, &c.OtelConfig.MetricsPeriodicIntervalSec)
-	bl(envMonEnable, &c.MonitorConfig.Enable)
-	bl(envLogOtelProcessor, &c.Logs.OtelProcessor)
-	bl(envLogOtelClient, &c.Logs.OtelClient)
+	if c.Traces.Sampler == neverSampler {
+		c.Traces.sampler = sdktrace.NeverSample()
+	} else if c.Traces.Sampler == alwaysSampler {
+		c.Traces.sampler = sdktrace.AlwaysSample()
+	} else if strings.HasPrefix(c.Traces.Sampler, traceIDRatioSampler) {
+		fraction := parseSamplerFraction(c.Traces.Sampler)
+		c.Traces.sampler = sdktrace.TraceIDRatioBased(fraction)
+	} else if strings.HasPrefix(c.Traces.Sampler, statusTraceIDRatioSampler) {
+		fraction := parseSamplerFraction(c.Traces.Sampler)
+		c.Traces.sampler = samplers.StatusTraceIDRatioBased(fraction)
+	}
 
 	return c
+}
+
+func parseSamplerFraction(s string) float64 {
+	var fraction float64 = 0
+
+	parts := strings.Split(s, ":")
+	if len(parts) == 2 {
+		if v, err := strconv.ParseFloat(parts[1], 64); err == nil {
+			fraction = v
+		}
+	}
+
+	return fraction
 }
 
 // WithHealthCheckers provide checkers to monitoring system for check health status of service
@@ -315,30 +328,4 @@ func (c *OtelConfig) createClientTLSCredentials() (credentials.TransportCredenti
 	}
 
 	return credentials.NewTLS(cfg), nil
-}
-
-func bt(env string) []byte {
-	if val, ok := os.LookupEnv(env); ok {
-		return []byte(val)
-	}
-
-	return nil
-}
-
-func str(env string, v *string) {
-	if val, ok := os.LookupEnv(env); ok {
-		*v = val
-	}
-}
-
-func bl(env string, v *bool) {
-	if val, err := strconv.ParseBool(os.Getenv(env)); err == nil {
-		*v = val
-	}
-}
-
-func it(env string, v *int) {
-	if val, err := strconv.ParseInt(os.Getenv(env), 10, 64); err == nil {
-		*v = int(val)
-	}
 }

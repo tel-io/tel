@@ -77,7 +77,7 @@ func New(ctx context.Context, cfg Config, options ...Option) (Telemetry, func())
 		res := CreateRes(ctx, cfg)
 
 		// we're afraid that someone double this or miss something - that's why none exported options
-		controls = append(controls, withOteLog(res), withOteTrace(res), withOteMetric(res))
+		controls = append(controls, withOtelLog(res), withOtelTrace(res), withOtelMetric(res))
 
 		if cfg.Logs.OtelClient {
 			controls = append(controls, withOtelClientLog())
@@ -189,16 +189,21 @@ func (t Telemetry) Tracer(name string, opts ...trace.TracerOption) Telemetry {
 // PutFields update current logger instance with new fields,
 // which would affect only on nest write log call for current tele instance
 // Because reference it also affect context and this approach is covered in Test_telemetry_With
+// WARN: NON THREAD SAFE
 func (t *Telemetry) PutFields(fields ...zap.Field) *Telemetry {
 	t.Logger = t.Logger.With(fields...)
 	return t
 }
 
 // PutAttr opentelemetry attr
+// WARN: NON THREAD SAFE
 func (t *Telemetry) PutAttr(attr ...attribute.KeyValue) *Telemetry {
-	for _, value := range attr {
-		t.Logger = t.Logger.With(String(string(value.Key), value.Value.Emit()))
+	var fields []zap.Field
+	for _, kv := range attr {
+		fields = append(fields, String(string(kv.Key), kv.Value.Emit()))
 	}
+
+	t.PutFields(fields...)
 
 	return t
 }
@@ -217,24 +222,33 @@ func (t *Telemetry) StartSpan(ctx context.Context, name string, opts ...trace.Sp
 		ctx = trace.ContextWithSpan(ctx, t.Span())
 	}
 
-	cxt, s := t.trace.Start(ctx, name, opts...)
+	ctx, span := t.trace.Start(ctx, name, opts...)
 
-	tele := t.WithSpan(s)
-	tele.PutSpan(s)
+	tele := t.WithSpan(span)
+	tele.PutSpan(span)
 
-	ccx := WrapContext(cxt, tele)
+	ctx = WrapContext(ctx, tele)
 
-	UpdateTraceFields(ccx)
+	UpdateTraceFields(ctx)
 
-	return s, ccx
+	return span, ctx
 }
 
 // WithSpan create span logger where we can duplicate messages both tracer and logger
 // Furthermore we create new log instance with trace fields
 func (t Telemetry) WithSpan(s trace.Span) *Telemetry {
-	t.Logger = t.Logger.WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
-		return zapcore.NewTee(core, ztrace.New(t.LogLevel(), s))
-	}))
+	t.Logger = t.Logger.WithOptions(
+		zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+			traceCore := ztrace.New(
+				t.LogLevel(),
+				s,
+				ztrace.WithTrackLogFields(t.cfg.Traces.EnableSpanTrackLogFields),
+				ztrace.WithTrackLogMessage(t.cfg.Traces.EnableSpanTrackLogMessage),
+			)
+
+			return zapcore.NewTee(core, traceCore)
+		}),
+	)
 
 	return &t
 }
@@ -248,6 +262,7 @@ func Global() Telemetry {
 	return globalTelemetry
 }
 
+// WARN: NON THREAD SAFE
 func SetGlobal(t Telemetry) {
 	globalTelemetry = t
 }

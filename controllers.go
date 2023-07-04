@@ -45,7 +45,7 @@ type oLog struct {
 	res *resource.Resource
 }
 
-func withOteLog(res *resource.Resource) controllers {
+func withOtelLog(res *resource.Resource) controllers {
 	return &oLog{res: res}
 }
 
@@ -73,12 +73,22 @@ func (o *oLog) apply(ctx context.Context, t *Telemetry) func(context.Context) {
 		}
 	}
 
+	if !t.cfg.Logs.EnableRetry {
+		logRetryOffOpt := otlploggrpc.WithRetry(otlploggrpc.RetryConfig{})
+		opts = append([]otlploggrpc.Option{logRetryOffOpt}, opts...)
+	}
+
 	logExporter, err := otlploggrpc.New(ctx, o.res, opts...)
 	handleErr(err, "Failed to create the collector log exporter")
 
 	batcher := logskd.NewBatchLogProcessor(logExporter)
 
-	cc := zcore.NewBodyCore(batcher, zap.NewAtomicLevelAt(t.cfg.Level()))
+	cc := zcore.NewBodyCore(
+		batcher,
+		zap.NewAtomicLevelAt(t.cfg.Level()),
+		zcore.WithMaxMessageSize(t.cfg.Logs.MaxMessageSize),
+		zcore.WithSyncInterval(t.cfg.Logs.SyncInterval),
+	)
 
 	if t.cfg.LogEncode == DisableLog {
 		t.Logger = zap.New(cc,
@@ -106,7 +116,7 @@ type oTrace struct {
 	res *resource.Resource
 }
 
-func withOteTrace(res *resource.Resource) controllers {
+func withOtelTrace(res *resource.Resource) controllers {
 	return &oTrace{res: res}
 }
 
@@ -130,9 +140,12 @@ func (o *oTrace) apply(ctx context.Context, t *Telemetry) func(context.Context) 
 		}
 	}
 
-	traceClient := otlptracegrpc.NewClient(opts...,
-	//otlptracegrpc.WithDialOption(grpc.WithBlock()),
-	)
+	if !t.cfg.Traces.EnableRetry {
+		traceRetryOffOpt := otlptracegrpc.WithRetry(otlptracegrpc.RetryConfig{})
+		opts = append([]otlptracegrpc.Option{traceRetryOffOpt}, opts...)
+	}
+
+	traceClient := otlptracegrpc.NewClient(opts...)
 
 	traceExp, err := otlptrace.New(ctx, traceClient)
 	handleErr(err, "Failed to create the collector trace exporter")
@@ -165,7 +178,7 @@ type oMetric struct {
 	res *resource.Resource
 }
 
-func withOteMetric(res *resource.Resource) controllers {
+func withOtelMetric(res *resource.Resource) controllers {
 	return &oMetric{res: res}
 }
 
@@ -187,6 +200,11 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 		if err == nil {
 			opts = append(opts, otlpmetricgrpc.WithTLSCredentials(cred))
 		}
+	}
+
+	if !t.cfg.Metrics.EnableRetry {
+		metricRetryOff := otlpmetricgrpc.WithRetry(otlpmetricgrpc.RetryConfig{})
+		opts = append([]otlpmetricgrpc.Option{metricRetryOff}, opts...)
 	}
 
 	exp, err := otlpmetricgrpc.New(ctx, opts...)

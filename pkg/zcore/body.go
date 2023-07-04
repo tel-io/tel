@@ -12,32 +12,51 @@ import (
 )
 
 // NewBodyCore creates a Core that writes logs to a WriteSyncer.
-func NewBodyCore(batch logskd.LogProcessor, enab zapcore.LevelEnabler) zapcore.Core {
+func NewBodyCore(batch logskd.LogProcessor, enab zapcore.LevelEnabler, opts ...Option) zapcore.Core {
+	c := &config{}
+	for _, opt := range opts {
+		opt.apply(c)
+	}
+
 	return &bodyCore{
-		out:          batch,
 		LevelEnabler: enab,
 		enc:          attrencoder.NewAttr(),
+		out:          batch,
+		config:       c,
+		limiter:      newSyncLimiter(c.SyncInterval),
 	}
 }
 
 type bodyCore struct {
 	zapcore.LevelEnabler
-	enc   *attrencoder.AtrEncoder
-	out   logskd.LogProcessor
-	trace trace.Span
+	enc        *attrencoder.AtrEncoder
+	out        logskd.LogProcessor
+	config     *config
+	limiter    *syncLimiter
+	traceID    []byte
+	spanID     []byte
+	traceFlags byte
 }
 
 func (c *bodyCore) With(fields []zapcore.Field) zapcore.Core {
 	clone := c.clone()
-	//addFields(clone.enc, fields)
 
-	for i := range fields {
-		if fields[i].Key == logskd.SpanKey {
-			clone.trace = fields[i].Interface.(trace.Span)
+	for _, field := range fields {
+		if field.Key == logskd.SpanKey {
+			span := field.Interface.(trace.Span)
+
+			spanCtx := span.SpanContext()
+			traceID := spanCtx.TraceID()
+			spanID := spanCtx.SpanID()
+
+			clone.traceID = traceID[:]
+			clone.spanID = spanID[:]
+			clone.traceFlags = byte(spanCtx.TraceFlags())
+
 			continue
 		}
 
-		fields[i].AddTo(clone.enc)
+		field.AddTo(clone.enc)
 	}
 
 	return clone
@@ -45,6 +64,10 @@ func (c *bodyCore) With(fields []zapcore.Field) zapcore.Core {
 
 func (c *bodyCore) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
 	if c.Enabled(ent.Level) {
+		if len(ent.Message) > c.config.MaxMessageSize {
+			ent.Message = ent.Message[:c.config.MaxMessageSize] + "..."
+		}
+
 		return ce.AddCore(ent, c)
 	}
 	return ce
@@ -56,11 +79,17 @@ func (c *bodyCore) Write(ent zapcore.Entry, fields []zapcore.Field) error {
 		return err
 	}
 
-	lg := logskd.NewLog(ent, attrs...)
-	lg.SetSpan(c.trace)
+	lg := logskd.NewLogWithTracing(
+		ent,
+		c.traceID,
+		c.spanID,
+		c.traceFlags,
+		attrs...,
+	)
+
 	c.out.Write(lg)
 
-	if ent.Level > zapcore.ErrorLevel {
+	if ent.Level > zapcore.ErrorLevel && c.limiter.CanSync() {
 		// Since we may be crashing the program, sync the output. Ignore Sync
 		// errors, pending a clean solution to issue #370.
 		if err = c.Sync(); err != nil {
@@ -83,7 +112,11 @@ func (c *bodyCore) clone() *bodyCore {
 		LevelEnabler: c.LevelEnabler,
 		enc:          c.enc.Clone(),
 		out:          c.out,
-		trace:        c.trace,
+		config:       c.config,
+		limiter:      c.limiter,
+		traceID:      c.traceID,
+		spanID:       c.spanID,
+		traceFlags:   c.traceFlags,
 	}
 }
 
