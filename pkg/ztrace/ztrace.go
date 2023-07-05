@@ -10,10 +10,6 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var (
-	ErrNotRecording = errors.New("span is not recording")
-)
-
 type Core struct {
 	trace.Span
 	enc    *attrencoder.AtrEncoder
@@ -60,7 +56,7 @@ func (c *Core) With(fields []zapcore.Field) zapcore.Core {
 
 func (c *Core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
 	if !c.Span.IsRecording() {
-		return errors.WithStack(ErrNotRecording)
+		return nil
 	}
 
 	if c.config.TrackLogFields {
