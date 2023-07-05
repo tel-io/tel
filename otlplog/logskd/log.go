@@ -1,3 +1,4 @@
+// TODO: Fix type: s/logskd/logsdk
 package logskd
 
 import (
@@ -29,12 +30,19 @@ type Log interface {
 	Span() trace.Span
 
 	SetSpan(in trace.Span)
+
+	TraceID() []byte
+	SpanID() []byte
+	TraceFlags() byte
 }
 
 type LogInstance struct {
-	entry zapcore.Entry
-	kv    []attribute.KeyValue
-	span  trace.Span
+	entry      zapcore.Entry
+	kv         []attribute.KeyValue
+	span       trace.Span
+	traceID    []byte
+	spanID     []byte
+	traceFlags byte
 }
 
 func (l LogInstance) Name() string             { return l.entry.LoggerName }
@@ -47,10 +55,50 @@ func (l LogInstance) Span() trace.Span                 { return l.span }
 func (l LogInstance) Severity() tracepb.SeverityNumber { return ConvLvl(l.entry.Level) }
 func (l *LogInstance) SetSpan(in trace.Span)           { l.span = in }
 
+func (l *LogInstance) TraceID() []byte {
+	if l.span != nil {
+		traceID := l.span.SpanContext().TraceID()
+		return traceID[:16]
+	}
+
+	return l.traceID
+}
+func (l *LogInstance) SpanID() []byte {
+	if l.span != nil {
+		spanID := l.span.SpanContext().SpanID()
+		return spanID[:8]
+	}
+
+	return l.spanID
+}
+func (l *LogInstance) TraceFlags() byte {
+	if l.span != nil {
+		return byte(l.span.SpanContext().TraceFlags())
+	}
+
+	return l.traceFlags
+}
+
 func NewLog(entry zapcore.Entry, kv ...attribute.KeyValue) *LogInstance {
 	return &LogInstance{
 		entry: entry,
 		kv:    kv,
+	}
+}
+
+func NewLogWithTracing(
+	entry zapcore.Entry,
+	traceID []byte,
+	spanID []byte,
+	traceFlags byte,
+	kv ...attribute.KeyValue,
+) *LogInstance {
+	return &LogInstance{
+		entry:      entry,
+		kv:         kv,
+		traceID:    traceID,
+		spanID:     spanID,
+		traceFlags: traceFlags,
 	}
 }
 

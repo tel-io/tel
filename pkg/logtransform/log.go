@@ -27,14 +27,9 @@ func Trans(res *resource.Resource, in []logskd.Log) *tracepb.ResourceLogs {
 			Attributes:   tracetransform.KeyValues(log.Attributes()),
 		}
 
-		if span := log.Span(); span != nil {
-			trID := span.SpanContext().TraceID()
-			spanID := span.SpanContext().SpanID()
-
-			v.Flags = uint32(span.SpanContext().TraceFlags())
-			v.TraceId = trID[:16]
-			v.SpanId = spanID[:8]
-		}
+		v.Flags = uint32(log.TraceFlags())
+		v.TraceId = log.TraceID()
+		v.SpanId = log.SpanID()
 
 		ss = append(ss, v)
 	}

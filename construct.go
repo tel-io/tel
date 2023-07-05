@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	instrumentationName  = "github.com/d7561985/tel"
+	instrumentationName  = "github.com/tel-io/tel"
 	ServiceNameKey       = attribute.Key("service")
 	ServiceInstanceIDKey = attribute.Key("service_instance_id")
 )
