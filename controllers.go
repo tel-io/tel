@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/tel-io/tel/v2/monitoring"
+	"github.com/tel-io/tel/v2/pkg/cardinalitydetector"
 	"github.com/tel-io/tel/v2/pkg/grpcerr"
 	"github.com/tel-io/tel/v2/pkg/otelerr"
 	"github.com/tel-io/tel/v2/pkg/zcore"
@@ -28,6 +29,9 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	metricsdktel "github.com/tel-io/tel/v2/sdk/metric"
+	tracesdktel "github.com/tel-io/tel/v2/sdk/trace"
 )
 
 // DefaultHistogramBoundaries have been copied from prometheus.DefBuckets.
@@ -81,10 +85,10 @@ func (o *oLog) apply(ctx context.Context, t *Telemetry) func(context.Context) {
 	logExporter, err := otlploggrpc.New(ctx, o.res, opts...)
 	handleErr(err, "Failed to create the collector log exporter")
 
-	batcher := logskd.NewBatchLogProcessor(logExporter)
+	logProvider := logskd.NewBatchLogProcessor(logExporter)
 
 	cc := zcore.NewBodyCore(
-		batcher,
+		logProvider,
 		zap.NewAtomicLevelAt(t.cfg.Level()),
 		zcore.WithMaxMessageSize(t.cfg.Logs.MaxMessageSize),
 		zcore.WithSyncInterval(t.cfg.Logs.SyncInterval),
@@ -104,10 +108,10 @@ func (o *oLog) apply(ctx context.Context, t *Telemetry) func(context.Context) {
 	zap.ReplaceGlobals(t.Logger)
 
 	return func(cxt context.Context) {
-		_ = batcher.ForceFlush(ctx)
+		_ = logProvider.ForceFlush(ctx)
 
-		handleErr(batcher.Shutdown(cxt), "batched shutdown")
-		t.Info("OTEL log batch controller has been shutdown")
+		handleErr(logProvider.Shutdown(cxt), "log provider shutdown")
+		t.Info("OTEL log provider has been shutdown")
 	}
 }
 
@@ -151,7 +155,13 @@ func (o *oTrace) apply(ctx context.Context, t *Telemetry) func(context.Context) 
 	handleErr(err, "Failed to create the collector trace exporter")
 
 	bsp := sdktrace.NewBatchSpanProcessor(traceExp)
-	tracerProvider := sdktrace.NewTracerProvider(
+	tracerProvider := tracesdktel.NewTracerProvider(
+		cardinalitydetector.NewConfig(
+			cardinalitydetector.WithEnable(t.cfg.Traces.CardinalityDetector.Enable),
+			cardinalitydetector.WithMaxCardinality(t.cfg.Traces.CardinalityDetector.MaxCardinality),
+			cardinalitydetector.WithMaxInstruments(t.cfg.Traces.CardinalityDetector.MaxInstruments),
+			cardinalitydetector.WithDiagnosticInterval(t.cfg.Traces.CardinalityDetector.DiagnosticInterval),
+		),
 		sdktrace.WithSampler(t.cfg.OtelConfig.Traces.sampler),
 		sdktrace.WithResource(o.res),
 		sdktrace.WithSpanProcessor(bsp),
@@ -169,8 +179,8 @@ func (o *oTrace) apply(ctx context.Context, t *Telemetry) func(context.Context) 
 	t.trace = otel.Tracer(GenServiceName(t.cfg.Namespace, t.cfg.Service) + "_tracer")
 
 	return func(cxt context.Context) {
-		handleErr(traceExp.Shutdown(cxt), "trace exporter shutdown")
-		t.Info("OTEL trace exporter has been shutdown")
+		handleErr(tracerProvider.Shutdown(cxt), "trace provider shutdown")
+		t.Info("OTEL trace provider has been shutdown")
 	}
 }
 
@@ -241,27 +251,33 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 	handleErr(err, "creation default view")
 	views = append(views, defaultView)
 
-	pusher := metric.NewMeterProvider(
+	meterProvider := metricsdktel.NewMeterProvider(
+		cardinalitydetector.NewConfig(
+			cardinalitydetector.WithEnable(t.cfg.Metrics.CardinalityDetector.Enable),
+			cardinalitydetector.WithMaxCardinality(t.cfg.Metrics.CardinalityDetector.MaxCardinality),
+			cardinalitydetector.WithMaxInstruments(t.cfg.Metrics.CardinalityDetector.MaxInstruments),
+			cardinalitydetector.WithDiagnosticInterval(t.cfg.Metrics.CardinalityDetector.DiagnosticInterval),
+		),
 		metric.WithReader(reader),
 		metric.WithResource(o.res),
 		metric.WithView(views...),
 	)
 
-	global.SetMeterProvider(pusher)
-	t.metricProvider = pusher
+	global.SetMeterProvider(meterProvider)
+	t.metricProvider = meterProvider
 
 	// runtime exported
-	err = rt.Start(rt.WithMeterProvider(pusher))
+	err = rt.Start(rt.WithMeterProvider(meterProvider))
 	handleErr(err, "Failed to start runtime metric")
 
 	// host metrics exporter
-	err = host.Start(host.WithMeterProvider(pusher))
+	err = host.Start(host.WithMeterProvider(meterProvider))
 	handleErr(err, "Failed to start host metric")
 
 	return func(cxt context.Context) {
 		// pushes any last exports to the receiver
-		handleErr(pusher.Shutdown(cxt), "trace exporter shutdown")
-		t.Info("OTEL trace exporter has been shutdown")
+		handleErr(meterProvider.Shutdown(cxt), "metric provider shutdown")
+		t.Info("OTEL metric provider has been shutdown")
 	}
 }
 
