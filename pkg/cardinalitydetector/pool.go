@@ -26,7 +26,7 @@ func NewPool(instrumentationName string, config *Config) CardinalityDetectorPool
 	}
 
 	if config.DiagnosticInterval > 0 {
-		p.diagnosticTimer = time.NewTimer(config.DiagnosticInterval)
+		p.diagnosticTicker = time.NewTicker(config.DiagnosticInterval)
 		go p.diagnosticLoop()
 	}
 
@@ -38,14 +38,14 @@ type cardinalityDetectorPool struct {
 	instrumentationName string
 	config              *Config
 	names               map[string]struct{}
-	diagnosticTimer     *time.Timer
+	diagnosticTicker    *time.Ticker
 	limitDetected       bool
 
 	mu sync.Mutex
 }
 
 func (p *cardinalityDetectorPool) diagnosticLoop() {
-	for range p.diagnosticTimer.C {
+	for range p.diagnosticTicker.C {
 		p.mu.Lock()
 		detected := p.limitDetected
 		p.mu.Unlock()
@@ -114,8 +114,8 @@ func (p *cardinalityDetectorPool) lookup(name string) (CardinalityDetector, bool
 }
 
 func (p *cardinalityDetectorPool) Shutdown() {
-	if p.diagnosticTimer != nil {
-		p.diagnosticTimer.Stop()
+	if p.diagnosticTicker != nil {
+		p.diagnosticTicker.Stop()
 	}
 
 	p.pool.Range(func(_, detector interface{}) bool {

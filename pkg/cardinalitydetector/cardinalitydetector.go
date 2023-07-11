@@ -31,7 +31,7 @@ func New(name string, config *Config) CardinalityDetector {
 	}
 
 	if config.DiagnosticInterval > 0 {
-		d.diagnosticTimer = time.NewTimer(config.DiagnosticInterval)
+		d.diagnosticTicker = time.NewTicker(config.DiagnosticInterval)
 		go d.diagnosticLoop()
 	}
 
@@ -39,17 +39,17 @@ func New(name string, config *Config) CardinalityDetector {
 }
 
 type cardinalityDetector struct {
-	config          *Config
-	name            string
-	attrs           map[string]map[string]struct{}
-	highCardinality map[string]struct{}
-	diagnosticTimer *time.Timer
+	config           *Config
+	name             string
+	attrs            map[string]map[string]struct{}
+	highCardinality  map[string]struct{}
+	diagnosticTicker *time.Ticker
 
 	mu sync.Mutex
 }
 
 func (d *cardinalityDetector) diagnosticLoop() {
-	for range d.diagnosticTimer.C {
+	for range d.diagnosticTicker.C {
 		d.mu.Lock()
 		attrsLn := len(d.attrs)
 		highCardinalityAttrs := make([]string, 0, len(d.highCardinality))
@@ -104,7 +104,6 @@ func (d *cardinalityDetector) check(key string, value string) (bool, string) {
 		ok := len(vs) < d.config.MaxCardinality
 		reason := ""
 		if ok {
-			fmt.Println(3)
 			vs[value] = struct{}{}
 		} else if !hasHighCardinality {
 			d.highCardinality[key] = struct{}{}
@@ -129,8 +128,8 @@ func (d *cardinalityDetector) check(key string, value string) (bool, string) {
 
 // Shutdown implements CardinalityDetector.
 func (d *cardinalityDetector) Shutdown() {
-	if d.diagnosticTimer != nil {
-		d.diagnosticTimer.Stop()
+	if d.diagnosticTicker != nil {
+		d.diagnosticTicker.Stop()
 	}
 }
 
