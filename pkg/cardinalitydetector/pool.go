@@ -1,9 +1,10 @@
 package cardinalitydetector
 
 import (
-	"fmt"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 var noopCardinalityDetectorPoolInstance = &noopCardinalityDetectorPool{}
@@ -54,43 +55,46 @@ func (p *cardinalityDetectorPool) diagnosticLoop() {
 			continue
 		}
 
-		p.config.Logger().Sugar().Warnf(
-			"%s has a lot of instruments, max size: %d",
-			p.instrumentationName,
-			p.config.MaxInstruments,
+		p.config.Logger().Warn(
+			"detected a lot of instruments",
+			zap.String("instrumentation_name", p.instrumentationName),
+			zap.Int("instruments_size", p.config.MaxInstruments),
 		)
 	}
 }
 
 func (p *cardinalityDetectorPool) Lookup(name string) (CardinalityDetector, bool) {
-	detector, ok, reason := p.lookup(name)
-	if len(reason) > 0 {
-		p.config.Logger().Sugar().Warn(reason)
+	detector, ok, details := p.lookup(name)
+	if len(details) > 0 {
+		p.config.Logger().Warn(
+			"detected a lot of instruments",
+			details...,
+		)
 	}
 
 	return detector, ok
 }
 
-func (p *cardinalityDetectorPool) lookup(name string) (CardinalityDetector, bool, string) {
+func (p *cardinalityDetectorPool) lookup(name string) (CardinalityDetector, bool, []zap.Field) {
 	p.mu.Lock()
 	limitDetected := p.limitDetected
 	_, nameFound := p.names[name]
 	p.mu.Unlock()
 
 	if limitDetected && !nameFound {
-		return nil, false, ""
+		return nil, false, nil
 	}
 
 	detectorName := p.instrumentationName + "/" + name
 	if limitDetected && nameFound {
 		detector, _ := p.pool.Load(detectorName)
-		return detector.(CardinalityDetector), true, ""
+		return detector.(CardinalityDetector), true, nil
 	}
 
 	detectorNew := New(detectorName, p.config)
 	detector, loaded := p.pool.LoadOrStore(detectorName, detectorNew)
 
-	reason := ""
+	var details []zap.Field = nil
 	if loaded {
 		detectorNew.Shutdown()
 	} else {
@@ -99,18 +103,17 @@ func (p *cardinalityDetectorPool) lookup(name string) (CardinalityDetector, bool
 			p.names[name] = struct{}{}
 			if len(p.names) >= p.config.MaxInstruments {
 				p.limitDetected = true
-				reason = fmt.Sprintf(
-					"%s has a lot of instruments, max size: %d, last value: %s",
-					p.instrumentationName,
-					p.config.MaxInstruments,
-					name,
-				)
+				details = []zap.Field{
+					zap.String("instrumentation_name", p.instrumentationName),
+					zap.Int("instruments_size", p.config.MaxInstruments),
+					zap.String("last_value", name),
+				}
 			}
 		}
 		p.mu.Unlock()
 	}
 
-	return detector.(CardinalityDetector), true, reason
+	return detector.(CardinalityDetector), true, details
 }
 
 func (p *cardinalityDetectorPool) Shutdown() {

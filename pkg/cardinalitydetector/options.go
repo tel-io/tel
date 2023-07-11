@@ -19,7 +19,7 @@ func (o optionFunc) apply(c *Config) {
 func NewConfig(opts ...Option) *Config {
 
 	c := &Config{
-		MaxCardinality:     50,
+		MaxCardinality:     100,
 		MaxInstruments:     500,
 		DiagnosticInterval: 10 * time.Minute,
 		Logger:             func() *zap.Logger { return zap.L() },

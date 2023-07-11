@@ -1,11 +1,11 @@
 package cardinalitydetector
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
 	"go.opentelemetry.io/otel/attribute"
+	"go.uber.org/zap"
 )
 
 var _ CardinalityDetector = (*cardinalityDetector)(nil)
@@ -59,12 +59,12 @@ func (d *cardinalityDetector) diagnosticLoop() {
 		d.mu.Unlock()
 
 		for _, attr := range highCardinalityAttrs {
-			d.config.Logger().Sugar().Warnf(
-				"instrument %s has high cardinality for attribute %s, max size %d, attributes size: %d",
-				d.name,
-				attr,
-				d.config.MaxCardinality,
-				attrsLn,
+			d.config.Logger().Warn(
+				"instrument has high cardinality for attribute",
+				zap.String("instrument_name", d.name),
+				zap.String("attribute_name", attr),
+				zap.Int("max_cardinality", d.config.MaxCardinality),
+				zap.Int("attributes_size", attrsLn),
 			)
 		}
 	}
@@ -74,56 +74,58 @@ func (d *cardinalityDetector) diagnosticLoop() {
 func (d *cardinalityDetector) CheckAttrs(attrs []attribute.KeyValue) bool {
 	d.mu.Lock()
 	ok := true
-	reason := ""
+	var details []zap.Field = nil
 	for _, attr := range attrs {
-		if ok, reason = d.check(string(attr.Key), attr.Value.Emit()); !ok {
+		if ok, details = d.check(string(attr.Key), attr.Value.Emit()); !ok {
 			break
 		}
 	}
 	d.mu.Unlock()
 
-	if len(reason) > 0 {
-		d.config.Logger().Sugar().Warn(reason)
+	if len(details) > 0 {
+		d.config.Logger().Warn(
+			"instrument has high cardinality for attribute",
+			details...,
+		)
 	}
 
 	return ok
 }
 
 // Check implements HighCardinalityDetector.
-func (d *cardinalityDetector) check(key string, value string) (bool, string) {
+func (d *cardinalityDetector) check(key string, value string) (bool, []zap.Field) {
 	if vs, ok := d.attrs[key]; ok {
 		if _, ok := vs[value]; ok {
-			return true, ""
+			return true, nil
 		}
 
 		_, hasHighCardinality := d.highCardinality[key]
 		if hasHighCardinality {
-			return false, ""
+			return false, nil
 		}
 
 		ok := len(vs) < d.config.MaxCardinality
-		reason := ""
+		var details []zap.Field = nil
 		if ok {
 			vs[value] = struct{}{}
 		} else if !hasHighCardinality {
 			d.highCardinality[key] = struct{}{}
 
-			reason = fmt.Sprintf(
-				"instrument %s has high cardinality for attribute %s, max size: %d, attributes size: %d, last value: %s",
-				d.name,
-				key,
-				d.config.MaxCardinality,
-				len(d.attrs),
-				value,
-			)
+			details = []zap.Field{
+				zap.String("instrument_name", d.name),
+				zap.String("attribute_name", key),
+				zap.Int("max_cardinality", d.config.MaxCardinality),
+				zap.Int("attributes_size", len(d.attrs)),
+				zap.String("last_value", value),
+			}
 		}
 
-		return ok, reason
+		return ok, details
 	}
 
 	d.attrs[key] = map[string]struct{}{value: {}}
 
-	return true, ""
+	return true, nil
 }
 
 // Shutdown implements CardinalityDetector.

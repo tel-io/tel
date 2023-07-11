@@ -5,6 +5,7 @@
 * change health check metrics names: `up` => `service.health`, `up.status` => `service.health.status`
 * Help figure out where "use null Telemetry" usage. Like tel.FromCtx(context.Background()).Debug()
 * add options to decrease load on collector (log message size, duplication of information for span and log, rate of flush, etc.)
+* add cardinality detector for metrics (check uniqueness of label values) and traces (check uniqueness of span names)
 
 == v2.2.3
 * Preserve span instance in telemetry during span creation - this should help us to continue traces when it's not possible pass context of it
