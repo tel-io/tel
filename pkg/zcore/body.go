@@ -2,11 +2,12 @@ package zcore
 
 import (
 	"context"
+	"time"
+
 	"github.com/tel-io/tel/v2/otlplog/logskd"
 	"github.com/tel-io/tel/v2/pkg/attrencoder"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap/zapcore"
-	"time"
 
 	sdk "go.opentelemetry.io/otel/sdk/trace"
 )
@@ -66,6 +67,9 @@ func (c *bodyCore) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.C
 	if c.Enabled(ent.Level) {
 		if len(ent.Message) > c.config.MaxMessageSize {
 			ent.Message = ent.Message[:c.config.MaxMessageSize] + "..."
+			if ce != nil {
+				ce.Entry.Message = ce.Entry.Message[:c.config.MaxMessageSize] + "..."
+			}
 		}
 
 		return ce.AddCore(ent, c)

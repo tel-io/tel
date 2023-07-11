@@ -160,6 +160,8 @@ func (t Telemetry) Span() trace.Span {
 }
 
 // PutSpan ...
+// WARN: NON THREAD SAFE
+// Be careful using this method with tel.Global()
 func (t *Telemetry) PutSpan(in trace.Span) {
 	t.span = in
 }
@@ -190,6 +192,7 @@ func (t Telemetry) Tracer(name string, opts ...trace.TracerOption) Telemetry {
 // which would affect only on nest write log call for current tele instance
 // Because reference it also affect context and this approach is covered in Test_telemetry_With
 // WARN: NON THREAD SAFE
+// Be careful using this method with tel.Global()
 func (t *Telemetry) PutFields(fields ...zap.Field) *Telemetry {
 	t.Logger = t.Logger.With(fields...)
 	return t
@@ -197,6 +200,7 @@ func (t *Telemetry) PutFields(fields ...zap.Field) *Telemetry {
 
 // PutAttr opentelemetry attr
 // WARN: NON THREAD SAFE
+// Be careful using this method with tel.Global()
 func (t *Telemetry) PutAttr(attr ...attribute.KeyValue) *Telemetry {
 	var fields []zap.Field
 	for _, kv := range attr {

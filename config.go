@@ -54,10 +54,16 @@ func (o optionFunc) apply(c *Config) {
 
 type tracesConfig struct {
 	EnableRetry               bool   `env:"TRACES_ENABLE_RETRY" envDefault:"false"`
-	Sampler                   string `env:"TRACES_SAMPLER" envDefault:"never"`
+	Sampler                   string `env:"TRACES_SAMPLER" envDefault:"statustraceidratio:0.1"`
 	EnableSpanTrackLogMessage bool   `env:"TRACES_ENABLE_SPAN_TRACK_LOG_MESSAGE" envDefault:"false"`
-	EnableSpanTrackLogFields  bool   `env:"TRACES_ENABLE_SPAN_TRACK_LOG_FIELDS" envDefault:"false"`
-	sampler                   sdktrace.Sampler
+	EnableSpanTrackLogFields  bool   `env:"TRACES_ENABLE_SPAN_TRACK_LOG_FIELDS" envDefault:"true"`
+	CardinalityDetector       struct {
+		Enable             bool          `env:"TRACES_CARDINALITY_DETECTOR_ENABLE" envDefault:"true"`
+		MaxCardinality     int           `env:"TRACES_CARDINALITY_DETECTOR_MAX_CARDINALITY" envDefault:"0"`
+		MaxInstruments     int           `env:"TRACES_CARDINALITY_DETECTOR_MAX_INSTRUMENTS" envDefault:"500"`
+		DiagnosticInterval time.Duration `env:"TRACES_CARDINALITY_DETECTOR_DIAGNOSTIC_INTERVAL" envDefault:"10m"`
+	}
+	sampler sdktrace.Sampler
 }
 
 // TODO: Review overlapping options (WthInsecure, WithCompression, etc).
@@ -102,7 +108,13 @@ type OtelConfig struct {
 	Traces tracesConfig
 
 	Metrics struct {
-		EnableRetry bool `env:"METRICS_ENABLE_RETRY" envDefault:"false"`
+		EnableRetry         bool `env:"METRICS_ENABLE_RETRY" envDefault:"false"`
+		CardinalityDetector struct {
+			Enable             bool          `env:"METRICS_CARDINALITY_DETECTOR_ENABLE" envDefault:"true"`
+			MaxCardinality     int           `env:"METRICS_CARDINALITY_DETECTOR_MAX_CARDINALITY" envDefault:"100"`
+			MaxInstruments     int           `env:"METRICS_CARDINALITY_DETECTOR_MAX_INSTRUMENTS" envDefault:"500"`
+			DiagnosticInterval time.Duration `env:"METRICS_CARDINALITY_DETECTOR_DIAGNOSTIC_INTERVAL" envDefault:"10m"`
+		}
 	}
 
 	// Raw parses a public/private key pair from a pair of
@@ -167,7 +179,7 @@ func DefaultConfig() Config {
 			WithCompression:            true,
 			MetricsPeriodicIntervalSec: 15,
 			Traces: tracesConfig{
-				Sampler: neverSampler,
+				Sampler: statusTraceIDRatioSampler + ":0.1",
 				sampler: sdktrace.NeverSample(),
 			},
 		},

@@ -54,10 +54,9 @@ func UpdateTraceFields(ctx context.Context) {
 	}
 
 	if span.SpanContext().HasTraceID() {
-		FromCtx(ctx).PutSpan(span)
-		FromCtx(ctx).Logger = FromCtx(ctx).Logger.With(
-			zap.Any(logskd.SpanKey, span),
-		)
+		tele := FromCtx(ctx)
+		tele.PutSpan(span)
+		tele.PutFields(zap.Any(logskd.SpanKey, span))
 	}
 }
 

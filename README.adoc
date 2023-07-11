@@ -233,12 +233,29 @@ address where `health`, `prometheus` would be listen
 
 NOTE: address logic represented in net.Listen description
 
-.COMPRESSION
-values: "gzip", ""
-
-
 .OTEL_ENABLE
 default: `true`
+
+.OTEL_COLLECTOR_GRPC_ADDR
+Address to otel collector server via GRPC protocol
+
+.OTEL_EXPORTER_WITH_INSECURE
+With insecure ...
+
+.OTEL_ENABLE_COMPRESSION
+default: `true`
+
+Enables gzip compression for grpc connections
+
+.OTEL_METRIC_PERIODIC_INTERVAL_SEC
+default: "15"
+
+Interval metrics gathered
+
+.OTEL_COLLECTOR_TLS_SERVER_NAME
+Check server certificate DNS name given from server.
+
+Disable `OTEL_EXPORTER_WITH_INSECURE` if set
 
 .LOGGING_OTEL_CLIENT
 default: `false`
@@ -247,11 +264,6 @@ required `OTEL_ENABLE` = true
 
 Inject logger adapter to otel library related to grpc client and get log information related to this transport
 
-.OTEL_ENABLE_COMPRESSION
-default: `true`
-
-Enables gzip compression for grpc connections
-
 .LOGGING_OTEL_PROCESSOR
 default: `false`
 
@@ -259,21 +271,97 @@ required `OTEL_ENABLE` = true
 
 Inject logger adapter to otel processor library related to collectors behaviour
 
-.OTEL_METRIC_PERIODIC_INTERVAL_SEC
-default: "15"
+.LOGS_ENABLE_RETRY
+default: `false`
 
-Interval metrics gathered
+Enable retrying to send logs to collector.
 
-.OTEL_COLLECTOR_GRPC_ADDR
-Address to otel collector server via GRPC protocol
+.LOGS_SYNC_INTERVAL
+default: `1s`
 
-.OTEL_EXPORTER_WITH_INSECURE
-With insecure ...
+Limit how often logs are flushed with level.Error.
 
-.OTEL_COLLECTOR_TLS_SERVER_NAME
-Check server certificate DNS name given from server.
+Example: 1s means allowed 1 flush per second if logs have level.Error.
 
-Disable `OTEL_EXPORTER_WITH_INSECURE` if set
+.LOGS_MAX_MESSAGE_SIZE
+default: `256`
+
+Limit message size. If limit is exceeded, message is truncated.
+
+.TRACES_ENABLE_RETRY
+default: `false`
+
+Enable retrying to send traces to collector.
+
+.TRACES_SAMPLER
+default: `statustraceidratio:0.1`
+
+Set sampling strategy. There are options:
+- never
+- always
+- traceidratio:<float64>
+- statustraceidratio:<float64>
+
+where <float64> is required and valid floating point number from 0.0 to 1.0
+
+.TRACES_ENABLE_SPAN_TRACK_LOG_MESSAGE
+default: `false`
+
+Enable adding all log messages to active span as event.
+
+.TRACES_ENABLE_SPAN_TRACK_LOG_FIELDS
+default: `true`
+
+Enable adding all log fields to active span as attributes.
+
+.TRACES_CARDINALITY_DETECTOR_ENABLE
+default: `true`
+
+Enable cardinality check for span names.
+
+.TRACES_CARDINALITY_DETECTOR_MAX_CARDINALITY
+default: `0`
+
+Limit cardinality of span's attributes. Not used, so default value is 0.
+
+.TRACES_CARDINALITY_DETECTOR_MAX_INSTRUMENTS
+default: `500`
+
+Limit the number of unique span names.
+
+.TRACES_CARDINALITY_DETECTOR_DIAGNOSTIC_INTERVAL
+default: `10m`
+
+Enable diagnostic loop that checks for cardinality violations and logs a warning.
+
+You can disable it by setting the value to 0.
+
+.METRICS_ENABLE_RETRY
+default: `false`
+
+Enable retrying to send metrics to collector.
+
+.METRICS_CARDINALITY_DETECTOR_ENABLE
+default: `true`
+
+Enable cardinality check for metrics' labels.
+
+.METRICS_CARDINALITY_DETECTOR_MAX_CARDINALITY
+default: `100`
+
+Limit cardinality of metric's labels. If limit is exceeded, metric is ignored, but the previous metrics work as before
+
+.METRICS_CARDINALITY_DETECTOR_MAX_INSTRUMENTS
+default: `500`
+
+Limit the number of unique metric names (without labels. only name).
+
+.METRICS_CARDINALITY_DETECTOR_DIAGNOSTIC_INTERVAL
+default: `10m`
+
+Enable diagnostic loop that checks for cardinality violations and logs a warning.
+
+You can disable it by setting the value to 0.
 
 .OTEL_COLLECTOR_TLS_CA_CERT
 TLS CA certificate body
