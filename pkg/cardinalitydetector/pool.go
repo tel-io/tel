@@ -28,6 +28,7 @@ func NewPool(instrumentationName string, config *Config) CardinalityDetectorPool
 
 	if config.DiagnosticInterval > 0 {
 		p.diagnosticTicker = time.NewTicker(config.DiagnosticInterval)
+		p.diagnosticDone = make(chan struct{})
 		go p.diagnosticLoop()
 	}
 
@@ -40,26 +41,34 @@ type cardinalityDetectorPool struct {
 	config              *Config
 	names               map[string]struct{}
 	diagnosticTicker    *time.Ticker
+	diagnosticDone      chan struct{}
 	limitDetected       bool
+
+	closed bool
 
 	mu sync.Mutex
 }
 
 func (p *cardinalityDetectorPool) diagnosticLoop() {
-	for range p.diagnosticTicker.C {
-		p.mu.Lock()
-		detected := p.limitDetected
-		p.mu.Unlock()
+	for {
+		select {
+		case <-p.diagnosticTicker.C:
+			p.mu.Lock()
+			detected := p.limitDetected
+			p.mu.Unlock()
 
-		if !detected {
-			continue
+			if !detected {
+				continue
+			}
+
+			p.config.Logger().Warn(
+				"detected a lot of instruments",
+				zap.String("instrumentation_name", p.instrumentationName),
+				zap.Int("instruments_size", p.config.MaxInstruments),
+			)
+		case <-p.diagnosticDone:
+			return
 		}
-
-		p.config.Logger().Warn(
-			"detected a lot of instruments",
-			zap.String("instrumentation_name", p.instrumentationName),
-			zap.Int("instruments_size", p.config.MaxInstruments),
-		)
 	}
 }
 
@@ -117,8 +126,17 @@ func (p *cardinalityDetectorPool) lookup(name string) (CardinalityDetector, bool
 }
 
 func (p *cardinalityDetectorPool) Shutdown() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	if p.closed {
+		return
+	}
+	p.closed = true
+
 	if p.diagnosticTicker != nil {
 		p.diagnosticTicker.Stop()
+		close(p.diagnosticDone)
 	}
 
 	p.pool.Range(func(_, detector interface{}) bool {
@@ -136,5 +154,5 @@ func (*noopCardinalityDetectorPool) Shutdown() {}
 
 // CheckAttrs implements HighCardinalityDetector.
 func (*noopCardinalityDetectorPool) Lookup(string) (CardinalityDetector, bool) {
-	return &noopCardinalityDetector{}, true
+	return noopCardinalityDetectorInstance, true
 }
