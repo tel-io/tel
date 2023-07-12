@@ -10,6 +10,8 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
+var _ LogProcessor = (*batchProcessor)(nil)
+
 // batchProcessor is a LogProcessor that batches asynchronously-received
 // logs and sends them to the otlplog.Exporter when complete.
 //
