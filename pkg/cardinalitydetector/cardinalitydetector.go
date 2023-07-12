@@ -32,6 +32,7 @@ func New(name string, config *Config) CardinalityDetector {
 
 	if config.DiagnosticInterval > 0 {
 		d.diagnosticTicker = time.NewTicker(config.DiagnosticInterval)
+		d.diagnosticDone = make(chan struct{})
 		go d.diagnosticLoop()
 	}
 
@@ -44,28 +45,36 @@ type cardinalityDetector struct {
 	attrs            map[string]map[string]struct{}
 	highCardinality  map[string]struct{}
 	diagnosticTicker *time.Ticker
+	diagnosticDone   chan struct{}
+
+	closed bool
 
 	mu sync.Mutex
 }
 
 func (d *cardinalityDetector) diagnosticLoop() {
-	for range d.diagnosticTicker.C {
-		d.mu.Lock()
-		attrsLn := len(d.attrs)
-		highCardinalityAttrs := make([]string, 0, len(d.highCardinality))
-		for attr := range d.highCardinality {
-			highCardinalityAttrs = append(highCardinalityAttrs, attr)
-		}
-		d.mu.Unlock()
+	for {
+		select {
+		case <-d.diagnosticTicker.C:
+			d.mu.Lock()
+			attrsLn := len(d.attrs)
+			highCardinalityAttrs := make([]string, 0, len(d.highCardinality))
+			for attr := range d.highCardinality {
+				highCardinalityAttrs = append(highCardinalityAttrs, attr)
+			}
+			d.mu.Unlock()
 
-		for _, attr := range highCardinalityAttrs {
-			d.config.Logger().Warn(
-				"instrument has high cardinality for attribute",
-				zap.String("instrument_name", d.name),
-				zap.String("attribute_name", attr),
-				zap.Int("max_cardinality", d.config.MaxCardinality),
-				zap.Int("attributes_size", attrsLn),
-			)
+			for _, attr := range highCardinalityAttrs {
+				d.config.Logger().Warn(
+					"instrument has high cardinality for attribute",
+					zap.String("instrument_name", d.name),
+					zap.String("attribute_name", attr),
+					zap.Int("max_cardinality", d.config.MaxCardinality),
+					zap.Int("attributes_size", attrsLn),
+				)
+			}
+		case <-d.diagnosticDone:
+			return
 		}
 	}
 }
@@ -130,8 +139,17 @@ func (d *cardinalityDetector) check(key string, value string) (bool, []zap.Field
 
 // Shutdown implements CardinalityDetector.
 func (d *cardinalityDetector) Shutdown() {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	if d.closed {
+		return
+	}
+	d.closed = true
+
 	if d.diagnosticTicker != nil {
 		d.diagnosticTicker.Stop()
+		close(d.diagnosticDone)
 	}
 }
 
