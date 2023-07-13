@@ -1,6 +1,6 @@
 = Changelog
 
-== latest
+== v2.3.0
 * health check fix metrics exposure
 * change health check metrics names: `up` => `service.health`, `up.status` => `service.health.status`
 * Help figure out where "use null Telemetry" usage. Like tel.FromCtx(context.Background()).Debug()
