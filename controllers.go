@@ -176,7 +176,7 @@ func (o *oTrace) apply(ctx context.Context, t *Telemetry) func(context.Context) 
 	otel.SetTracerProvider(tracerProvider)
 
 	t.traceProvider = tracerProvider
-	t.trace = otel.Tracer(GenServiceName(t.cfg.Namespace, t.cfg.Service) + "_tracer")
+	t.trace = tracerProvider.Tracer(GenServiceName(t.cfg.Namespace, t.cfg.Service) + "_tracer")
 
 	return func(cxt context.Context) {
 		handleErr(tracerProvider.Shutdown(cxt), "trace provider shutdown")
@@ -267,11 +267,11 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 	t.metricProvider = meterProvider
 
 	// runtime exported
-	err = rt.Start(rt.WithMeterProvider(meterProvider))
+	err = rt.Start()
 	handleErr(err, "Failed to start runtime metric")
 
 	// host metrics exporter
-	err = host.Start(host.WithMeterProvider(meterProvider))
+	err = host.Start()
 	handleErr(err, "Failed to start host metric")
 
 	return func(cxt context.Context) {
