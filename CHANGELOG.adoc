@@ -1,5 +1,8 @@
 = Changelog
 
+== v2.3.1
+* HotFix: `OTEL_ENABLE`  in case of disabling - nothing should gathered at all
+
 == v2.3.0
 * add options to decrease load on collector (log message size, duplication of information for span and log, rate of flush, etc.)
 * add cardinality detector for metrics (check uniqueness of label values) and traces (check uniqueness of span names)
@@ -108,3 +111,4 @@ http.Flusher, http.Hijacker, http.Pusher, io.ReaderFrom) and update gin, echo an
 * `NewSimple` constructor without OTEL
 * Implement options more gracefully OTEL initialization
 * Monitor uses options flow for setup and add as composition to Telemetry for `AddHealthChecker` health attach
+
