@@ -22,7 +22,7 @@ const (
 )
 
 const (
-	placeholderInvalidUTF8 = "<invalid_utf8>"
+	substInvalidUTF8 = "<invalid_utf8>"
 )
 
 var (
@@ -90,7 +90,7 @@ func (a *AtrEncoder) AddBinary(key string, value []byte) {
 
 func (a *AtrEncoder) AddByteString(key string, value []byte) {
 	if !utf8.Valid(value) {
-		a.attrs = append(a.attrs, attribute.String(key, placeholderInvalidUTF8))
+		a.attrs = append(a.attrs, attribute.String(key, substInvalidUTF8))
 		return
 	}
 
@@ -150,7 +150,7 @@ func (a *AtrEncoder) AddString(key, value string) {
 	//}
 
 	if !utf8.ValidString(value) {
-		a.attrs = append(a.attrs, attribute.String(key, placeholderInvalidUTF8))
+		a.attrs = append(a.attrs, attribute.String(key, substInvalidUTF8))
 		return
 	}
 
