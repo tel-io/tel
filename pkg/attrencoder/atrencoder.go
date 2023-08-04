@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+	"unicode/utf8"
 
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/attribute"
@@ -18,6 +19,10 @@ const (
 	CallerKey     = "_caller"
 	StacktraceKey = "stack"
 	MsgKey        = "msg"
+)
+
+const (
+	substInvalidUTF8 = "<invalid_utf8>"
 )
 
 var (
@@ -84,6 +89,11 @@ func (a *AtrEncoder) AddBinary(key string, value []byte) {
 }
 
 func (a *AtrEncoder) AddByteString(key string, value []byte) {
+	if !utf8.Valid(value) {
+		a.attrs = append(a.attrs, attribute.String(key, substInvalidUTF8))
+		return
+	}
+
 	a.attrs = append(a.attrs, attribute.String(key, string(value)))
 }
 
@@ -138,6 +148,11 @@ func (a *AtrEncoder) AddString(key, value string) {
 	//	a.attrs = append(a.attrs, attribute.String(key, fmt.Sprintf(`"%s"`, value)))
 	//	return
 	//}
+
+	if !utf8.ValidString(value) {
+		a.attrs = append(a.attrs, attribute.String(key, substInvalidUTF8))
+		return
+	}
 
 	a.attrs = append(a.attrs, attribute.String(key, value))
 }
