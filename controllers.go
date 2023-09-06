@@ -92,6 +92,7 @@ func (o *oLog) apply(ctx context.Context, t *Telemetry) func(context.Context) {
 		zap.NewAtomicLevelAt(t.cfg.Level()),
 		zcore.WithMaxMessageSize(t.cfg.Logs.MaxMessageSize),
 		zcore.WithSyncInterval(t.cfg.Logs.SyncInterval),
+		zcore.WithMaxMessagesPerSecond(t.cfg.Logs.MaxMessagesPerSecond),
 	)
 
 	if t.cfg.LogEncode == DisableLog {

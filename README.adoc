@@ -288,6 +288,11 @@ default: `256`
 
 Limit message size. If limit is exceeded, message is truncated.
 
+.LOGS_MAX_MESSAGES_PER_SECOND
+default: `100`
+
+Limit rate of messages per second. If limit is exceeded, warning is logged and messages are dropped
+
 .TRACES_ENABLE_RETRY
 default: `false`
 

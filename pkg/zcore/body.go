@@ -2,14 +2,18 @@ package zcore
 
 import (
 	"context"
+	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/tel-io/tel/v2/otlplog/logskd"
 	"github.com/tel-io/tel/v2/pkg/attrencoder"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap/zapcore"
+	"golang.org/x/time/rate"
 
-	sdk "go.opentelemetry.io/otel/sdk/trace"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
 // NewBodyCore creates a Core that writes logs to a WriteSyncer.
@@ -24,19 +28,26 @@ func NewBodyCore(batch logskd.LogProcessor, enab zapcore.LevelEnabler, opts ...O
 		enc:          attrencoder.NewAttr(),
 		out:          batch,
 		config:       c,
-		limiter:      newSyncLimiter(c.SyncInterval),
+		syncLimiter:  newSyncLimiter(c.SyncInterval),
+		msgLimiter:   rate.NewLimiter(rate.Limit(c.MaxMessagesPerSecond), 0),
 	}
 }
 
 type bodyCore struct {
 	zapcore.LevelEnabler
-	enc        *attrencoder.AtrEncoder
-	out        logskd.LogProcessor
-	config     *config
-	limiter    *syncLimiter
-	traceID    []byte
-	spanID     []byte
-	traceFlags byte
+
+	enc    *attrencoder.AtrEncoder
+	out    logskd.LogProcessor
+	config *config
+
+	syncLimiter  *syncLimiter
+	msgLimiter   *rate.Limiter
+	msgLimitSent int32
+
+	traceID      []byte
+	spanID       []byte
+	traceSampled bool
+	traceFlags   byte
 }
 
 func (c *bodyCore) With(fields []zapcore.Field) zapcore.Core {
@@ -52,6 +63,7 @@ func (c *bodyCore) With(fields []zapcore.Field) zapcore.Core {
 
 			clone.traceID = traceID[:]
 			clone.spanID = spanID[:]
+			clone.traceSampled = spanCtx.TraceFlags().IsSampled()
 			clone.traceFlags = byte(spanCtx.TraceFlags())
 
 			continue
@@ -65,6 +77,23 @@ func (c *bodyCore) With(fields []zapcore.Field) zapcore.Core {
 
 func (c *bodyCore) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
 	if c.Enabled(ent.Level) {
+		if !c.msgLimiter.Allow() {
+			if atomic.CompareAndSwapInt32(&c.msgLimitSent, 0, 1) {
+				msg := fmt.Sprintf("limit is exceeded. max allowed %d/sec", c.config.MaxMessagesPerSecond)
+				ent.Message = msg
+				ent.Level = zapcore.WarnLevel
+				if ce != nil {
+					ce.Entry.Message = msg
+					ce.Entry.Level = zapcore.WarnLevel
+				}
+
+				return ce.AddCore(ent, c)
+			}
+
+			return ce
+		}
+		atomic.CompareAndSwapInt32(&c.msgLimitSent, 1, 0)
+
 		if len(ent.Message) > c.config.MaxMessageSize {
 			ent.Message = ent.Message[:c.config.MaxMessageSize] + "..."
 			if ce != nil {
@@ -74,6 +103,7 @@ func (c *bodyCore) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.C
 
 		return ce.AddCore(ent, c)
 	}
+
 	return ce
 }
 
@@ -82,6 +112,8 @@ func (c *bodyCore) Write(ent zapcore.Entry, fields []zapcore.Field) error {
 	if err != nil {
 		return err
 	}
+
+	attrs = append(attrs, attribute.Bool("trace_sampled", c.traceSampled))
 
 	lg := logskd.NewLogWithTracing(
 		ent,
@@ -93,7 +125,7 @@ func (c *bodyCore) Write(ent zapcore.Entry, fields []zapcore.Field) error {
 
 	c.out.Write(lg)
 
-	if ent.Level > zapcore.ErrorLevel && c.limiter.CanSync() {
+	if ent.Level > zapcore.ErrorLevel && c.syncLimiter.CanSync() {
 		// Since we may be crashing the program, sync the output. Ignore Sync
 		// errors, pending a clean solution to issue #370.
 		if err = c.Sync(); err != nil {
@@ -105,7 +137,7 @@ func (c *bodyCore) Write(ent zapcore.Entry, fields []zapcore.Field) error {
 }
 
 func (c *bodyCore) Sync() error {
-	ctx, cancel := context.WithTimeout(context.Background(), sdk.DefaultScheduleDelay*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), sdktrace.DefaultScheduleDelay*time.Millisecond)
 	defer cancel()
 
 	return c.out.ForceFlush(ctx)
@@ -117,9 +149,11 @@ func (c *bodyCore) clone() *bodyCore {
 		enc:          c.enc.Clone(),
 		out:          c.out,
 		config:       c.config,
-		limiter:      c.limiter,
+		syncLimiter:  c.syncLimiter,
+		msgLimiter:   c.msgLimiter,
 		traceID:      c.traceID,
 		spanID:       c.spanID,
+		traceSampled: c.traceSampled,
 		traceFlags:   c.traceFlags,
 	}
 }
