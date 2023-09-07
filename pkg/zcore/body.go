@@ -2,8 +2,6 @@ package zcore
 
 import (
 	"context"
-	"fmt"
-	"sync/atomic"
 	"time"
 
 	"github.com/tel-io/tel/v2/otlplog/logskd"
@@ -11,7 +9,6 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap/zapcore"
-	"golang.org/x/time/rate"
 
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
@@ -29,20 +26,16 @@ func NewBodyCore(batch logskd.LogProcessor, enab zapcore.LevelEnabler, opts ...O
 		out:          batch,
 		config:       c,
 		syncLimiter:  newSyncLimiter(c.SyncInterval),
-		msgLimiter:   rate.NewLimiter(rate.Limit(c.MaxMessagesPerSecond), 0),
 	}
 }
 
 type bodyCore struct {
 	zapcore.LevelEnabler
 
-	enc    *attrencoder.AtrEncoder
-	out    logskd.LogProcessor
-	config *config
-
-	syncLimiter  *syncLimiter
-	msgLimiter   *rate.Limiter
-	msgLimitSent int32
+	enc         *attrencoder.AtrEncoder
+	out         logskd.LogProcessor
+	config      *config
+	syncLimiter *syncLimiter
 
 	traceID      []byte
 	spanID       []byte
@@ -77,23 +70,6 @@ func (c *bodyCore) With(fields []zapcore.Field) zapcore.Core {
 
 func (c *bodyCore) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
 	if c.Enabled(ent.Level) {
-		if !c.msgLimiter.Allow() {
-			if atomic.CompareAndSwapInt32(&c.msgLimitSent, 0, 1) {
-				msg := fmt.Sprintf("limit is exceeded. max allowed %d/sec", c.config.MaxMessagesPerSecond)
-				ent.Message = msg
-				ent.Level = zapcore.WarnLevel
-				if ce != nil {
-					ce.Entry.Message = msg
-					ce.Entry.Level = zapcore.WarnLevel
-				}
-
-				return ce.AddCore(ent, c)
-			}
-
-			return ce
-		}
-		atomic.CompareAndSwapInt32(&c.msgLimitSent, 1, 0)
-
 		if len(ent.Message) > c.config.MaxMessageSize {
 			ent.Message = ent.Message[:c.config.MaxMessageSize] + "..."
 			if ce != nil {
@@ -150,7 +126,6 @@ func (c *bodyCore) clone() *bodyCore {
 		out:          c.out,
 		config:       c.config,
 		syncLimiter:  c.syncLimiter,
-		msgLimiter:   c.msgLimiter,
 		traceID:      c.traceID,
 		spanID:       c.spanID,
 		traceSampled: c.traceSampled,

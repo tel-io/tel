@@ -3,9 +3,8 @@ package zcore
 import "time"
 
 type config struct {
-	SyncInterval         time.Duration
-	MaxMessageSize       int
-	MaxMessagesPerSecond int
+	SyncInterval   time.Duration
+	MaxMessageSize int
 }
 
 type Option interface {
@@ -27,11 +26,5 @@ func WithMaxMessageSize(size int) Option {
 func WithSyncInterval(interval time.Duration) Option {
 	return optionFunc(func(c *config) {
 		c.SyncInterval = interval
-	})
-}
-
-func WithMaxMessagesPerSecond(n int) Option {
-	return optionFunc(func(c *config) {
-		c.MaxMessagesPerSecond = n
 	})
 }

@@ -92,19 +92,33 @@ func (o *oLog) apply(ctx context.Context, t *Telemetry) func(context.Context) {
 		zap.NewAtomicLevelAt(t.cfg.Level()),
 		zcore.WithMaxMessageSize(t.cfg.Logs.MaxMessageSize),
 		zcore.WithSyncInterval(t.cfg.Logs.SyncInterval),
-		zcore.WithMaxMessagesPerSecond(t.cfg.Logs.MaxMessagesPerSecond),
 	)
 
+	logger := zap.L()
 	if t.cfg.LogEncode == DisableLog {
-		t.Logger = zap.New(cc,
+		logger = zap.New(
+			cc,
 			zap.WithCaller(true),
 			zap.AddStacktrace(zapcore.ErrorLevel),
 		)
 	} else {
-		t.Logger = zap.L().WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
-			return zapcore.NewTee(core, cc)
-		}))
+		logger = logger.WithOptions(
+			zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+				return zapcore.NewTee(core, cc)
+			}),
+		)
 	}
+
+	t.Logger = logger.WithOptions(
+		zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+			return zapcore.NewSamplerWithOptions(
+				core,
+				time.Second,
+				t.cfg.Logs.MaxMessagesPerSecond,
+				t.cfg.Logs.MaxMessagesPerSecond,
+			)
+		}),
+	)
 
 	zap.ReplaceGlobals(t.Logger)
 
