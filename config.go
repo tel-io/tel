@@ -100,9 +100,10 @@ type OtelConfig struct {
 		// OtelProcessor is logger of otel processor
 		OtelProcessor bool `env:"LOGGING_OTEL_PROCESSOR"`
 
-		EnableRetry    bool          `env:"LOGS_ENABLE_RETRY" envDefault:"false"`
-		SyncInterval   time.Duration `env:"LOGS_SYNC_INTERVAL" envDefault:"1s"`
-		MaxMessageSize int           `env:"LOGS_MAX_MESSAGE_SIZE" envDefault:"256"`
+		EnableRetry          bool          `env:"LOGS_ENABLE_RETRY" envDefault:"false"`
+		SyncInterval         time.Duration `env:"LOGS_SYNC_INTERVAL" envDefault:"1s"`
+		MaxMessageSize       int           `env:"LOGS_MAX_MESSAGE_SIZE" envDefault:"256"`
+		MaxMessagesPerSecond int           `env:"LOGS_MAX_MESSAGES_PER_SECOND" envDefault:"100"`
 	}
 
 	Traces tracesConfig
