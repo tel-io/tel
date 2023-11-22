@@ -291,7 +291,14 @@ Limit message size. If limit is exceeded, message is truncated.
 .LOGS_MAX_MESSAGES_PER_SECOND
 default: `100`
 
-Limit rate of messages per second. If limit is exceeded, warning is logged and messages are dropped
+Limit rate of messages per second. If limit is exceeded, warning is logged and messages are dropped. Value 0 disables limit.
+
+.LOGS_MAX_LEVEL_MESSAGES_PER_SECOND
+default: ``
+
+The same as LOGS_MAX_MESSAGES_PER_SECOND but allows to configure limit per level.
+
+Value format: <level1>=<n>,<level2>=<n>. Ex: LOGS_MAX_LEVEL_MESSAGES_PER_SECOND="error=0,info=100"
 
 .TRACES_ENABLE_RETRY
 default: `false`
