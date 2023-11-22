@@ -111,11 +111,12 @@ func (o *oLog) apply(ctx context.Context, t *Telemetry) func(context.Context) {
 
 	t.Logger = logger.WithOptions(
 		zap.WrapCore(func(core zapcore.Core) zapcore.Core {
-			return zapcore.NewSamplerWithOptions(
+			return zcore.NewSampler(
 				core,
 				time.Second,
 				t.cfg.Logs.MaxMessagesPerSecond,
-				t.cfg.Logs.MaxMessagesPerSecond,
+				0,
+				zcore.WithSamplerLevelThresholdString(t.cfg.Logs.MaxLevelMessagesPerSecond),
 			)
 		}),
 	)
