@@ -48,7 +48,7 @@ func (c *Core) With(fields []zapcore.Field) zapcore.Core {
 			continue
 		}
 
-		fields[i].AddTo(c.enc)
+		fields[i].AddTo(clone.enc)
 	}
 
 	return clone
