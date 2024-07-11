@@ -2,8 +2,8 @@ package monitoring
 
 import (
 	health "github.com/tel-io/tel/v2/monitoring/heallth"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/metric/global"
 )
 
 type config struct {
@@ -26,7 +26,7 @@ func (o optionFunc) apply(c *config) {
 }
 
 func defaultConfig() *config {
-	return &config{provider: global.MeterProvider()}
+	return &config{provider: otel.GetMeterProvider()}
 }
 
 func WithDebug(debug bool) Option {

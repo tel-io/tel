@@ -10,8 +10,9 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/metric/global"
+	metricnoop "go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/trace"
+	tracenoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -41,9 +42,9 @@ func NewNull() Telemetry {
 	return Telemetry{
 		cfg:            &cfg,
 		Logger:         zap.NewExample(),
-		trace:          trace.NewNoopTracerProvider().Tracer(instrumentationName),
-		traceProvider:  trace.NewNoopTracerProvider(),
-		metricProvider: metric.NewNoopMeterProvider(),
+		trace:          tracenoop.NewTracerProvider().Tracer(instrumentationName),
+		traceProvider:  tracenoop.NewTracerProvider(),
+		metricProvider: metricnoop.NewMeterProvider(),
 	}
 }
 
@@ -52,18 +53,18 @@ func NewSimple(cfg Config) Telemetry {
 	// required as it use for generate uid
 	rand.Seed(time.Now().Unix())
 
-	traceProvider := trace.NewNoopTracerProvider()
+	traceProvider := tracenoop.NewTracerProvider()
 	out := Telemetry{
 		cfg:            &cfg,
 		Logger:         newLogger(cfg),
 		trace:          traceProvider.Tracer(instrumentationName),
 		traceProvider:  traceProvider,
-		metricProvider: metric.NewNoopMeterProvider(),
+		metricProvider: metricnoop.NewMeterProvider(),
 	}
 
 	zap.ReplaceGlobals(out.Logger)
 	otel.SetTracerProvider(out.traceProvider)
-	global.SetMeterProvider(out.metricProvider)
+	otel.SetMeterProvider(out.metricProvider)
 
 	SetGlobal(out)
 
