@@ -8,11 +8,9 @@ import (
 	"github.com/tel-io/tel/v2/monitoring"
 	"github.com/tel-io/tel/v2/otlplog/logskd"
 	"github.com/tel-io/tel/v2/otlplog/otlploggrpc"
-	"github.com/tel-io/tel/v2/pkg/cardinalitydetector"
 	"github.com/tel-io/tel/v2/pkg/grpcerr"
 	"github.com/tel-io/tel/v2/pkg/otelerr"
 	"github.com/tel-io/tel/v2/pkg/zcore"
-	tracesdktel "github.com/tel-io/tel/v2/sdk/trace"
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	rt "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
@@ -165,13 +163,7 @@ func (o *oTrace) apply(ctx context.Context, t *Telemetry) func(context.Context) 
 	handleErr(err, "Failed to create the collector trace exporter")
 
 	bsp := sdktrace.NewBatchSpanProcessor(traceExp)
-	tracerProvider := tracesdktel.NewTracerProvider(
-		cardinalitydetector.NewConfig(
-			cardinalitydetector.WithEnable(t.cfg.Traces.CardinalityDetector.Enable),
-			cardinalitydetector.WithMaxCardinality(t.cfg.Traces.CardinalityDetector.MaxCardinality),
-			cardinalitydetector.WithMaxInstruments(t.cfg.Traces.CardinalityDetector.MaxInstruments),
-			cardinalitydetector.WithDiagnosticInterval(t.cfg.Traces.CardinalityDetector.DiagnosticInterval),
-		),
+	tracerProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(t.cfg.OtelConfig.Traces.sampler),
 		sdktrace.WithResource(o.res),
 		sdktrace.WithSpanProcessor(bsp),
