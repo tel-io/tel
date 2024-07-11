@@ -1,5 +1,16 @@
 = Changelog
 
+== v2.3.6
+* update go.opentelemetry.io/otel/* dependencies to 1.28.0
+** replacement types / methods were taken from https://github.com/open-telemetry/opentelemetry-go/blob/main/CHANGELOG.md
+* custom metric provider and tracer Provider were deleted according to Opentelemetry specs:
+** https://github.com/open-telemetry/opentelemetry-go/issues/3454
+* custom cardinality detector was removed
+* cardinality should be controlled with `OTEL_GO_X_CARDINALITY_LIMIT`:
+** https://github.com/open-telemetry/opentelemetry-go/pull/4457
+** https://github.com/open-telemetry/opentelemetry-go/blob/main/sdk/metric/internal/x/README.md#cardinality-limit
+* fixed monitoring/health test
+
 == v2.3.1
 * HotFix: `OTEL_ENABLE`  in case of disabling - nothing should gathered at all
 
