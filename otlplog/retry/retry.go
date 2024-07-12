@@ -1,18 +1,10 @@
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
-package retry // import "go.opentelemetry.io/otel/exporters/otlp/otlptrace/internal/retry"
+// Package retry provides request retry functionality that can perform
+// configurable exponential backoff for transient errors and honor any
+// explicit throttle responses received.
+package retry
 
 import (
 	"context"
@@ -54,8 +46,18 @@ type RequestFunc func(context.Context, func(context.Context) error) error
 
 // EvaluateFunc returns if an error is retry-able and if an explicit throttle
 // duration should be honored that was included in the error.
+//
+// The function must return true if the error argument is retry-able,
+// otherwise it must return false for the first return parameter.
+//
+// The function must return a non-zero time.Duration if the error contains
+// explicit throttle duration that should be honored, otherwise it must return
+// a zero valued time.Duration.
 type EvaluateFunc func(error) (bool, time.Duration)
 
+// RequestFunc returns a RequestFunc using the evaluate function to determine
+// if requests can be retried and based on the exponential backoff
+// configuration of c.
 func (c Config) RequestFunc(evaluate EvaluateFunc) RequestFunc {
 	if !c.Enabled {
 		return func(ctx context.Context, fn func(context.Context) error) error {
@@ -63,21 +65,21 @@ func (c Config) RequestFunc(evaluate EvaluateFunc) RequestFunc {
 		}
 	}
 
-	// Do not use NewExponentialBackOff since it calls Reset and the code here
-	// must call Reset after changing the InitialInterval (this saves an
-	// unnecessary call to Now).
-	b := &backoff.ExponentialBackOff{
-		InitialInterval:     c.InitialInterval,
-		RandomizationFactor: backoff.DefaultRandomizationFactor,
-		Multiplier:          backoff.DefaultMultiplier,
-		MaxInterval:         c.MaxInterval,
-		MaxElapsedTime:      c.MaxElapsedTime,
-		Stop:                backoff.Stop,
-		Clock:               backoff.SystemClock,
-	}
-	b.Reset()
-
 	return func(ctx context.Context, fn func(context.Context) error) error {
+		// Do not use NewExponentialBackOff since it calls Reset and the code here
+		// must call Reset after changing the InitialInterval (this saves an
+		// unnecessary call to Now).
+		b := &backoff.ExponentialBackOff{
+			InitialInterval:     c.InitialInterval,
+			RandomizationFactor: backoff.DefaultRandomizationFactor,
+			Multiplier:          backoff.DefaultMultiplier,
+			MaxInterval:         c.MaxInterval,
+			MaxElapsedTime:      c.MaxElapsedTime,
+			Stop:                backoff.Stop,
+			Clock:               backoff.SystemClock,
+		}
+		b.Reset()
+
 		for {
 			err := fn(ctx)
 			if err == nil {
@@ -106,16 +108,19 @@ func (c Config) RequestFunc(evaluate EvaluateFunc) RequestFunc {
 				delay = throttle
 			}
 
-			if err := waitFunc(ctx, delay); err != nil {
-				return err
+			if ctxErr := waitFunc(ctx, delay); ctxErr != nil {
+				return fmt.Errorf("%w: %w", ctxErr, err)
 			}
 		}
 	}
 }
 
-// Allow override for otesting.
+// Allow override for testing.
 var waitFunc = wait
 
+// wait takes the caller's context, and the amount of time to wait.  It will
+// return nil if the timer fires before or at the same time as the context's
+// deadline.  This indicates that the call can be retried.
 func wait(ctx context.Context, delay time.Duration) error {
 	timer := time.NewTimer(delay)
 	defer timer.Stop()

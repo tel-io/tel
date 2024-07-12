@@ -6,32 +6,27 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/tel-io/tel/v2/monitoring"
+	"github.com/tel-io/tel/v2/otlplog/logskd"
+	"github.com/tel-io/tel/v2/otlplog/otlploggrpc"
 	"github.com/tel-io/tel/v2/pkg/cardinalitydetector"
 	"github.com/tel-io/tel/v2/pkg/grpcerr"
 	"github.com/tel-io/tel/v2/pkg/otelerr"
 	"github.com/tel-io/tel/v2/pkg/zcore"
+	sdkmetric "github.com/tel-io/tel/v2/sdk/metric"
+	sdktrace "github.com/tel-io/tel/v2/sdk/trace"
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	rt "go.opentelemetry.io/contrib/instrumentation/runtime"
-	"go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/metric/aggregation"
-	"go.opentelemetry.io/otel/sdk/metric/view"
-	"google.golang.org/grpc/grpclog"
-
-	"github.com/tel-io/tel/v2/otlplog/logskd"
-	"github.com/tel-io/tel/v2/otlplog/otlploggrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-
-	metricsdktel "github.com/tel-io/tel/v2/sdk/metric"
-	tracesdktel "github.com/tel-io/tel/v2/sdk/trace"
+	"google.golang.org/grpc/grpclog"
 )
 
 // DefaultHistogramBoundaries have been copied from prometheus.DefBuckets.
@@ -170,17 +165,18 @@ func (o *oTrace) apply(ctx context.Context, t *Telemetry) func(context.Context) 
 	traceExp, err := otlptrace.New(ctx, traceClient)
 	handleErr(err, "Failed to create the collector trace exporter")
 
-	bsp := sdktrace.NewBatchSpanProcessor(traceExp)
-	tracerProvider := tracesdktel.NewTracerProvider(
-		cardinalitydetector.NewConfig(
+	bsp := tracesdk.NewBatchSpanProcessor(traceExp)
+
+	tracerProvider := sdktrace.NewTracerProvider(ctx,
+		cardinalitydetector.NewOptions(
 			cardinalitydetector.WithEnable(t.cfg.Traces.CardinalityDetector.Enable),
 			cardinalitydetector.WithMaxCardinality(t.cfg.Traces.CardinalityDetector.MaxCardinality),
 			cardinalitydetector.WithMaxInstruments(t.cfg.Traces.CardinalityDetector.MaxInstruments),
-			cardinalitydetector.WithDiagnosticInterval(t.cfg.Traces.CardinalityDetector.DiagnosticInterval),
+			cardinalitydetector.WithCheckInterval(t.cfg.Traces.CardinalityDetector.DiagnosticInterval),
 		),
-		sdktrace.WithSampler(t.cfg.OtelConfig.Traces.sampler),
-		sdktrace.WithResource(o.res),
-		sdktrace.WithSpanProcessor(bsp),
+		tracesdk.WithSampler(t.cfg.OtelConfig.Traces.sampler),
+		tracesdk.WithResource(o.res),
+		tracesdk.WithSpanProcessor(bsp),
 	)
 
 	// set global propagator to tracecontext (the default is no-op).
@@ -241,19 +237,23 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 		metric.WithInterval(time.Duration(t.cfg.OtelConfig.MetricsPeriodicIntervalSec)*time.Second),
 	)
 
-	var views []view.View
+	var views []metric.View
 
 	for _, opt := range t.cfg.OtelConfig.bucketView {
 		// View to customize histogram buckets and rename a single histogram instrument.
-		customBucketsView, err := view.New(
+		customBucketsView := metric.NewView(
 			// Match* to match instruments
-			view.MatchInstrumentName(opt.MetricName),
+			metric.Instrument{
+				Name: opt.MetricName,
+			},
 			//view.MatchInstrumentationScope(instrumentation.Scope{Name: meterName}),
 
 			// With* to modify instruments
-			view.WithSetAggregation(aggregation.ExplicitBucketHistogram{
-				Boundaries: opt.Bucket,
-			}),
+			metric.Stream{
+				Aggregation: metric.AggregationExplicitBucketHistogram{
+					Boundaries: opt.Bucket,
+				},
+			},
 			//view.WithRename("bar"),
 		)
 
@@ -263,23 +263,24 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 	}
 
 	// Default view to keep all instruments
-	defaultView, err := view.New(view.MatchInstrumentName("*"))
+	defaultView := metric.NewView(metric.Instrument{Name: "*"}, metric.Stream{})
 	handleErr(err, "creation default view")
 	views = append(views, defaultView)
 
-	meterProvider := metricsdktel.NewMeterProvider(
-		cardinalitydetector.NewConfig(
+	meterProvider := sdkmetric.NewMeterProvider(
+		ctx,
+		cardinalitydetector.NewOptions(
 			cardinalitydetector.WithEnable(t.cfg.Metrics.CardinalityDetector.Enable),
 			cardinalitydetector.WithMaxCardinality(t.cfg.Metrics.CardinalityDetector.MaxCardinality),
 			cardinalitydetector.WithMaxInstruments(t.cfg.Metrics.CardinalityDetector.MaxInstruments),
-			cardinalitydetector.WithDiagnosticInterval(t.cfg.Metrics.CardinalityDetector.DiagnosticInterval),
+			cardinalitydetector.WithCheckInterval(t.cfg.Metrics.CardinalityDetector.DiagnosticInterval),
 		),
 		metric.WithReader(reader),
 		metric.WithResource(o.res),
 		metric.WithView(views...),
 	)
 
-	global.SetMeterProvider(meterProvider)
+	otel.SetMeterProvider(meterProvider)
 	t.metricProvider = meterProvider
 
 	// runtime exported

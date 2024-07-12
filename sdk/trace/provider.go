@@ -6,29 +6,32 @@ import (
 
 	"github.com/tel-io/tel/v2/pkg/cardinalitydetector"
 	"go.opentelemetry.io/otel/sdk/instrumentation"
-	tracesdk "go.opentelemetry.io/otel/sdk/trace"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 )
 
-type LookupCardinalityDetector func(string) cardinalitydetector.CardinalityDetector
+type LookupCardinalityDetector func(string) cardinalitydetector.Detector
 
 var _ trace.TracerProvider = (*TracerProvider)(nil)
 
 func NewTracerProvider(
-	cardinalityDetectorConfig *cardinalitydetector.Config,
-	opts ...tracesdk.TracerProviderOption,
+	ctx context.Context,
+	cardinalityDetectorOptions cardinalitydetector.Options,
+	opts ...sdktrace.TracerProviderOption,
 ) *TracerProvider {
 	return &TracerProvider{
-		TracerProvider:            tracesdk.NewTracerProvider(opts...),
-		cardinalityDetectorConfig: cardinalityDetectorConfig,
-		tracers:                   make(map[instrumentation.Scope]*tracer),
+		TracerProvider:             sdktrace.NewTracerProvider(opts...),
+		cardinalityDetectorOptions: cardinalityDetectorOptions,
+		tracers:                    make(map[instrumentation.Scope]*tracer),
+		stopCtx:                    ctx,
 	}
 }
 
 type TracerProvider struct {
-	*tracesdk.TracerProvider
-	cardinalityDetectorConfig *cardinalitydetector.Config
-	tracers                   map[instrumentation.Scope]*tracer
+	*sdktrace.TracerProvider
+	cardinalityDetectorOptions cardinalitydetector.Options
+	tracers                    map[instrumentation.Scope]*tracer
+	stopCtx                    context.Context
 
 	mu sync.Mutex
 }
@@ -36,7 +39,7 @@ type TracerProvider struct {
 // Tracer implements trace.TracerProvider.
 func (p *TracerProvider) Tracer(name string, options ...trace.TracerOption) trace.Tracer {
 	c := trace.NewTracerConfig(options...)
-	is := instrumentation.Scope{
+	scope := instrumentation.Scope{
 		Name:      name,
 		Version:   c.InstrumentationVersion(),
 		SchemaURL: c.SchemaURL(),
@@ -45,16 +48,16 @@ func (p *TracerProvider) Tracer(name string, options ...trace.TracerOption) trac
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	if tracer, ok := p.tracers[is]; ok {
+	if tracer, ok := p.tracers[scope]; ok {
 		return tracer
 	}
 
 	tracer := newTracer(
 		p.TracerProvider.Tracer(name, options...),
-		cardinalitydetector.NewPool(name, p.cardinalityDetectorConfig),
+		cardinalitydetector.NewPool(p.stopCtx, name, p.cardinalityDetectorOptions),
 	)
 
-	p.tracers[is] = tracer
+	p.tracers[scope] = tracer
 
 	return tracer
 }

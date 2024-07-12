@@ -5,8 +5,6 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/metric/instrument"
-	"go.opentelemetry.io/otel/metric/instrument/asyncint64"
 )
 
 type Metrics struct {
@@ -14,7 +12,7 @@ type Metrics struct {
 
 	*Simple
 
-	counters map[string]asyncint64.Gauge
+	counters map[string]metric.Int64ObservableGauge
 }
 
 func NewMetric(pr metric.MeterProvider, checker ...Checker) *Metrics {
@@ -29,32 +27,39 @@ func NewMetric(pr metric.MeterProvider, checker ...Checker) *Metrics {
 }
 
 func (m *Metrics) createMeasures() {
-	m.counters = make(map[string]asyncint64.Gauge)
+	m.counters = make(map[string]metric.Int64ObservableGauge)
 
-	counter, err := m.meter.AsyncInt64().Gauge(MetricOnline)
+	counter, err := m.meter.Int64ObservableGauge(MetricOnline)
 	handleErr(err)
 
 	m.counters[MetricOnline] = counter
 
-	counter, err = m.meter.AsyncInt64().Gauge(MetricStatus)
+	counter, err = m.meter.Int64ObservableGauge(MetricStatus)
 	handleErr(err)
 
 	m.counters[MetricStatus] = counter
 
-	err = m.meter.RegisterCallback([]instrument.Asynchronous{m.counters[MetricOnline], m.counters[MetricStatus]}, func(ctx context.Context) {
+	_, err = m.meter.RegisterCallback(func(ctx context.Context, obs metric.Observer) error {
 		check := m.check(ctx)
 
-		m.counters[MetricOnline].Observe(ctx, cv(check.IsOnline()))
+		obs.ObserveInt64(m.counters[MetricOnline], cv(check.IsOnline()))
 
 		for _, rep := range check {
-			if conv, ok := rep.(interface {
+			conv, ok := rep.(interface {
 				GetAttr() []attribute.KeyValue
 				IsOnline() bool
-			}); ok {
-				m.counters[MetricStatus].Observe(ctx, cv(conv.IsOnline()), conv.GetAttr()...)
+			})
+			if ok {
+				obs.ObserveInt64(
+					m.counters[MetricStatus],
+					cv(conv.IsOnline()),
+					metric.WithAttributes(conv.GetAttr()...),
+				)
 			}
 		}
-	})
+
+		return nil
+	}, m.counters[MetricOnline], m.counters[MetricStatus])
 
 	handleErr(err)
 }

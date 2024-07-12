@@ -3,69 +3,64 @@ package cardinalitydetector
 import (
 	"time"
 
-	"go.uber.org/zap"
+	"github.com/tel-io/tel/v2/pkg/global"
+	"github.com/tel-io/tel/v2/pkg/log"
 )
 
-type Option interface {
-	apply(*Config)
+type Option func(*Options)
+
+func DefaultOptions() Options {
+	return Options{
+		Enable:         true,
+		MaxCardinality: 100,
+		MaxInstruments: 500,
+		Logger:         global.GetLogger(),
+	}
 }
 
-type optionFunc func(*Config)
-
-func (o optionFunc) apply(c *Config) {
-	o(c)
-}
-
-func NewConfig(opts ...Option) *Config {
-
-	c := &Config{
-		MaxCardinality:     100,
-		MaxInstruments:     500,
-		DiagnosticInterval: 10 * time.Minute,
-		Logger:             func() *zap.Logger { return zap.L() },
+func NewOptions(options ...Option) Options {
+	opts := DefaultOptions()
+	for _, opt := range options {
+		opt(&opts)
 	}
 
-	for _, opt := range opts {
-		opt.apply(c)
-	}
-
-	return c
+	return opts
 }
 
-type Config struct {
-	Enable             bool
-	MaxCardinality     int
-	MaxInstruments     int
-	DiagnosticInterval time.Duration
-	Logger             func() *zap.Logger
+type Options struct {
+	Enable         bool
+	MaxCardinality int
+	MaxInstruments int
+	CheckInterval  time.Duration
+	Logger         log.Logger
 }
 
 func WithEnable(b bool) Option {
-	return optionFunc(func(c *Config) {
-		c.Enable = b
-	})
+	return func(opts *Options) {
+		opts.Enable = b
+	}
 }
 
 func WithMaxCardinality(cardinality int) Option {
-	return optionFunc(func(c *Config) {
-		c.MaxCardinality = cardinality
-	})
+	return func(opts *Options) {
+		opts.MaxCardinality = cardinality
+	}
 }
 
 func WithMaxInstruments(instruments int) Option {
-	return optionFunc(func(c *Config) {
-		c.MaxInstruments = instruments
-	})
+	return func(opts *Options) {
+		opts.MaxInstruments = instruments
+	}
 }
 
-func WithDiagnosticInterval(interval time.Duration) Option {
-	return optionFunc(func(c *Config) {
-		c.DiagnosticInterval = interval
-	})
+func WithCheckInterval(interval time.Duration) Option {
+	return func(opts *Options) {
+		opts.CheckInterval = interval
+	}
 }
 
-func WithLogger(logger *zap.Logger) Option {
-	return optionFunc(func(c *Config) {
-		c.Logger = func() *zap.Logger { return logger }
-	})
+func WithLogger(logger log.Logger) Option {
+	return func(opts *Options) {
+		opts.Logger = logger
+	}
 }

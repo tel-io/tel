@@ -7,55 +7,58 @@ import (
 	"github.com/tel-io/tel/v2/pkg/cardinalitydetector"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/sdk/instrumentation"
-	metricsdk "go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/metric/view"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
-type LookupCardinalityDetector func(view.InstrumentKind, string) cardinalitydetector.CardinalityDetector
+type LookupCardinalityDetector func(sdkmetric.InstrumentKind, string) cardinalitydetector.Detector
 
 var _ metric.MeterProvider = (*MeterProvider)(nil)
 
 func NewMeterProvider(
-	cardinalityDetectorConfig *cardinalitydetector.Config,
-	opts ...metricsdk.Option,
+	ctx context.Context,
+	cardinalityDetectorOptions cardinalitydetector.Options,
+	opts ...sdkmetric.Option,
 ) *MeterProvider {
 	return &MeterProvider{
-		MeterProvider:             metricsdk.NewMeterProvider(opts...),
-		cardinalityDetectorConfig: cardinalityDetectorConfig,
-		meters:                    make(map[instrumentation.Scope]*meter),
+		MeterProvider:              sdkmetric.NewMeterProvider(opts...),
+		cardinalityDetectorOptions: cardinalityDetectorOptions,
+		meters:                     make(map[instrumentation.Scope]*meter),
+		stopCtx:                    ctx,
 	}
 }
 
 type MeterProvider struct {
-	*metricsdk.MeterProvider
-	cardinalityDetectorConfig *cardinalitydetector.Config
-	meters                    map[instrumentation.Scope]*meter
+	*sdkmetric.MeterProvider
+	cardinalityDetectorOptions cardinalitydetector.Options
+	meters                     map[instrumentation.Scope]*meter
+	stopCtx                    context.Context
 
 	mu sync.Mutex
 }
 
 // Meter implements metric.MeterProvider.
 func (p *MeterProvider) Meter(name string, opts ...metric.MeterOption) metric.Meter {
-	c := metric.NewMeterConfig(opts...)
-	s := instrumentation.Scope{
+	config := metric.NewMeterConfig(opts...)
+	scope := instrumentation.Scope{
 		Name:      name,
-		Version:   c.InstrumentationVersion(),
-		SchemaURL: c.SchemaURL(),
+		Version:   config.InstrumentationVersion(),
+		SchemaURL: config.SchemaURL(),
 	}
 
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	if meter, ok := p.meters[s]; ok {
+	if meter, ok := p.meters[scope]; ok {
 		return meter
 	}
 
 	meter := newMeter(
+		p.stopCtx,
 		p.MeterProvider.Meter(name, opts...),
-		cardinalitydetector.NewPool(name, p.cardinalityDetectorConfig),
+		cardinalitydetector.NewPool(p.stopCtx, name, p.cardinalityDetectorOptions),
 	)
 
-	p.meters[s] = meter
+	p.meters[scope] = meter
 
 	return meter
 }
@@ -67,6 +70,11 @@ func (p *MeterProvider) Shutdown(ctx context.Context) error {
 
 	for _, meter := range p.meters {
 		meter.Shutdown()
+	}
+
+	err := p.MeterProvider.ForceFlush(ctx)
+	if err != nil {
+		return err
 	}
 
 	return p.MeterProvider.Shutdown(ctx)

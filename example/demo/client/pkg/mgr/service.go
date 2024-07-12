@@ -2,17 +2,15 @@ package mgr
 
 import (
 	"context"
-	"github.com/tel-io/tel/v2"
 	"math/rand"
 	"sync"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/tel-io/tel/v2"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/baggage"
-	"go.opentelemetry.io/otel/metric/instrument"
-	"go.opentelemetry.io/otel/metric/instrument/syncfloat64"
-	"go.opentelemetry.io/otel/metric/instrument/syncint64"
+	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 )
 
@@ -26,8 +24,8 @@ type hClient interface {
 }
 
 type Service struct {
-	requestLatency syncfloat64.Histogram
-	requestCount   syncint64.Counter
+	requestLatency metric.Float64Histogram
+	requestCount   metric.Int64Counter
 
 	// TODO: Use baggage when supported to extract labels from baggage.
 	commonLabels []attribute.KeyValue
@@ -38,14 +36,14 @@ type Service struct {
 func New(t tel.Telemetry, clt hClient) *Service {
 	m := t.Meter("github.com/tel-io/tel/example/demo/client/v2")
 
-	requestLatency, err := m.SyncFloat64().Histogram(ServerLatency,
-		instrument.WithDescription("The latency of requests processed"))
+	requestLatency, err := m.Float64Histogram(ServerLatency,
+		metric.WithDescription("The latency of requests processed"))
 	if err != nil {
 		t.Fatal("metric load error", tel.Error(err))
 	}
 
-	requestCount, err := m.SyncInt64().Counter(ServerCounter,
-		instrument.WithDescription("The number of requests processed"))
+	requestCount, err := m.Int64Counter(ServerCounter,
+		metric.WithDescription("The number of requests processed"))
 	if err != nil {
 		t.Fatal("metric load error", tel.Error(err))
 	}
@@ -153,8 +151,8 @@ func (s *Service) oneShoot(t tel.Telemetry) error {
 		go func(ctx context.Context) {
 			ms := float64(time.Now().Sub(start).Microseconds())
 
-			s.requestCount.Add(ctx, 1, s.commonLabels...)
-			s.requestLatency.Record(ctx, ms, s.commonLabels...)
+			s.requestCount.Add(ctx, 1, metric.WithAttributes(s.commonLabels...))
+			s.requestLatency.Record(ctx, ms, metric.WithAttributes(s.commonLabels...))
 
 			x := []zap.Field{tel.String("field A", "a"),
 				tel.Int("field B", 100400), tel.Bool("fieldC", true),

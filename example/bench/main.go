@@ -8,8 +8,7 @@ import (
 	"os/signal"
 
 	"github.com/tel-io/tel/v2"
-	"go.opentelemetry.io/otel/metric/instrument/syncfloat64"
-	"go.opentelemetry.io/otel/metric/instrument/syncint64"
+	"go.opentelemetry.io/otel/metric"
 )
 
 func main() {
@@ -47,18 +46,18 @@ func main() {
 }
 
 type TT struct {
-	mf [3]syncfloat64.Histogram
-	mi syncint64.Counter
+	mf [3]metric.Float64Histogram
+	mi metric.Int64Counter
 }
 
 func NewTT(tele *tel.Telemetry) *TT {
-	m, _ := tele.Meter("XXX").SyncFloat64().Histogram("std_histogram")
-	h1, _ := tele.Meter("XXX").SyncFloat64().Histogram("histogram_1")
-	h2, _ := tele.Meter("XXX").SyncFloat64().Histogram("test2")
-	i, _ := tele.Meter("XXX").SyncInt64().Counter("test_int")
+	m, _ := tele.Meter("XXX").Float64Histogram("std_histogram")
+	h1, _ := tele.Meter("XXX").Float64Histogram("histogram_1")
+	h2, _ := tele.Meter("XXX").Float64Histogram("test2")
+	i, _ := tele.Meter("XXX").Int64Counter("test_int")
 
 	return &TT{
-		mf: [3]syncfloat64.Histogram{m, h1, h2},
+		mf: [3]metric.Float64Histogram{m, h1, h2},
 		mi: i,
 	}
 }

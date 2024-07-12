@@ -1,47 +1,55 @@
 package cardinalitydetector
 
 import (
+	"context"
+	"fmt"
 	"sync"
 	"time"
 
-	"go.uber.org/zap"
+	"github.com/tel-io/tel/v2/pkg/global"
+	"github.com/tel-io/tel/v2/pkg/log"
 )
 
-var noopCardinalityDetectorPoolInstance = &noopCardinalityDetectorPool{}
+var noopPoolInstance = &noopPool{} //nolint:gochecknoglobals
 
-type CardinalityDetectorPool interface {
-	Lookup(string) (CardinalityDetector, bool)
+type Pool interface {
+	Lookup(context.Context, string) (Detector, bool)
 	Shutdown()
 }
 
-func NewPool(instrumentationName string, config *Config) CardinalityDetectorPool {
-	if config == nil || !config.Enable || config.MaxInstruments <= 0 {
-		return noopCardinalityDetectorPoolInstance
+func NewPool(ctx context.Context, instrumentationName string, opts Options) Pool {
+	if !opts.Enable || opts.MaxInstruments <= 0 {
+		return noopPoolInstance
 	}
 
-	p := &cardinalityDetectorPool{
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	pool := &cardinalityDetectorPool{
+		opts:                opts,
 		pool:                &sync.Map{},
 		instrumentationName: instrumentationName,
-		config:              config,
 		names:               make(map[string]struct{}),
 	}
 
-	if config.DiagnosticInterval > 0 {
-		p.diagnosticTicker = time.NewTicker(config.DiagnosticInterval)
-		p.diagnosticDone = make(chan struct{})
-		go p.diagnosticLoop()
+	if opts.CheckInterval > 0 {
+		pool.checkTicker = time.NewTicker(opts.CheckInterval)
+		pool.checkDone = make(chan struct{})
+		go pool.checkLoop(ctx)
 	}
 
-	return p
+	return pool
 }
 
 type cardinalityDetectorPool struct {
+	opts                Options
 	pool                *sync.Map
 	instrumentationName string
-	config              *Config
 	names               map[string]struct{}
-	diagnosticTicker    *time.Ticker
-	diagnosticDone      chan struct{}
+	checkTicker         *time.Ticker
+	checkDone           chan struct{}
+	stopCtx             context.Context
 	limitDetected       bool
 
 	closed bool
@@ -49,33 +57,51 @@ type cardinalityDetectorPool struct {
 	mu sync.Mutex
 }
 
-func (p *cardinalityDetectorPool) diagnosticLoop() {
+func (p *cardinalityDetectorPool) checkLoop(ctx context.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			global.Error(fmt.Errorf("%+v", r), "pool check loop") //nolint:goerr113
+		}
+	}()
+
 	for {
 		select {
-		case <-p.diagnosticTicker.C:
-			p.mu.Lock()
-			detected := p.limitDetected
-			p.mu.Unlock()
-
-			if !detected {
-				continue
-			}
-
-			p.config.Logger().Warn(
-				"detected a lot of instruments",
-				zap.String("instrumentation_name", p.instrumentationName),
-				zap.Int("instruments_size", p.config.MaxInstruments),
-			)
-		case <-p.diagnosticDone:
+		case <-p.checkTicker.C:
+			p.checkLimit(ctx)
+		case <-ctx.Done():
+			return
+		case <-p.checkDone:
 			return
 		}
 	}
 }
 
-func (p *cardinalityDetectorPool) Lookup(name string) (CardinalityDetector, bool) {
+func (p *cardinalityDetectorPool) checkLimit(ctx context.Context) {
+	p.mu.Lock()
+	detected := p.limitDetected //nolint:ifshort
+	p.mu.Unlock()
+
+	if !detected {
+		return
+	}
+
+	p.opts.Logger.Warn(
+		ctx,
+		"detected a lot of instruments",
+		log.String("instrumentation_name", p.instrumentationName),
+		log.Int("instruments_size", p.opts.MaxInstruments),
+	)
+}
+
+func (p *cardinalityDetectorPool) Lookup(ctx context.Context, name string) (Detector, bool) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	detector, ok, details := p.lookup(name)
 	if len(details) > 0 {
-		p.config.Logger().Warn(
+		p.opts.Logger.Warn(
+			ctx,
 			"detected a lot of instruments",
 			details...,
 		)
@@ -84,7 +110,7 @@ func (p *cardinalityDetectorPool) Lookup(name string) (CardinalityDetector, bool
 	return detector, ok
 }
 
-func (p *cardinalityDetectorPool) lookup(name string) (CardinalityDetector, bool, []zap.Field) {
+func (p *cardinalityDetectorPool) lookup(name string) (Detector, bool, []log.Attr) {
 	p.mu.Lock()
 	limitDetected := p.limitDetected
 	_, nameFound := p.names[name]
@@ -97,32 +123,33 @@ func (p *cardinalityDetectorPool) lookup(name string) (CardinalityDetector, bool
 	detectorName := p.instrumentationName + "/" + name
 	if limitDetected && nameFound {
 		detector, _ := p.pool.Load(detectorName)
-		return detector.(CardinalityDetector), true, nil
+
+		return detector.(Detector), true, nil //nolint:forcetypeassert
 	}
 
-	detectorNew := New(detectorName, p.config)
+	detectorNew := New(p.stopCtx, detectorName, p.opts)
 	detector, loaded := p.pool.LoadOrStore(detectorName, detectorNew)
 
-	var details []zap.Field = nil
+	var details []log.Attr
 	if loaded {
 		detectorNew.Shutdown()
 	} else {
 		p.mu.Lock()
 		if !p.limitDetected {
 			p.names[name] = struct{}{}
-			if len(p.names) >= p.config.MaxInstruments {
+			if len(p.names) >= p.opts.MaxInstruments {
 				p.limitDetected = true
-				details = []zap.Field{
-					zap.String("instrumentation_name", p.instrumentationName),
-					zap.Int("instruments_size", p.config.MaxInstruments),
-					zap.String("last_value", name),
+				details = []log.Attr{
+					log.String("instrumentation_name", p.instrumentationName),
+					log.Int("instruments_size", p.opts.MaxInstruments),
+					log.String("last_value", name),
 				}
 			}
 		}
 		p.mu.Unlock()
 	}
 
-	return detector.(CardinalityDetector), true, details
+	return detector.(Detector), true, details //nolint:forcetypeassert
 }
 
 func (p *cardinalityDetectorPool) Shutdown() {
@@ -134,25 +161,26 @@ func (p *cardinalityDetectorPool) Shutdown() {
 	}
 	p.closed = true
 
-	if p.diagnosticTicker != nil {
-		p.diagnosticTicker.Stop()
-		close(p.diagnosticDone)
+	if p.checkTicker != nil {
+		p.checkTicker.Stop()
+		close(p.checkDone)
 	}
 
 	p.pool.Range(func(_, detector interface{}) bool {
-		if d, ok := detector.(CardinalityDetector); ok {
+		if d, ok := detector.(Detector); ok {
 			d.Shutdown()
 		}
+
 		return true
 	})
 }
 
-type noopCardinalityDetectorPool struct{}
+type noopPool struct{}
 
 // Shutdown implements CardinalityDetector.
-func (*noopCardinalityDetectorPool) Shutdown() {}
+func (*noopPool) Shutdown() {}
 
 // CheckAttrs implements HighCardinalityDetector.
-func (*noopCardinalityDetectorPool) Lookup(string) (CardinalityDetector, bool) {
-	return noopCardinalityDetectorInstance, true
+func (*noopPool) Lookup(_ context.Context, _ string) (Detector, bool) {
+	return noopDetectorInstance, true
 }

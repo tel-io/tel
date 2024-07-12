@@ -4,141 +4,131 @@ import (
 	"context"
 
 	"github.com/tel-io/tel/v2/pkg/cardinalitydetector"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric/instrument/asyncfloat64"
-	"go.opentelemetry.io/otel/metric/instrument/asyncint64"
-	"go.opentelemetry.io/otel/metric/instrument/syncfloat64"
-	"go.opentelemetry.io/otel/metric/instrument/syncint64"
+	"go.opentelemetry.io/otel/metric"
 )
 
-type asyncFloat64Counter struct {
-	asyncfloat64.Counter
-	cardinalityDetector cardinalitydetector.CardinalityDetector
+type cdInt64Counter struct {
+	metric.Int64Counter
+	cardinalityDetector cardinalitydetector.Detector
 }
 
-func (c *asyncFloat64Counter) Observe(ctx context.Context, x float64, attrs ...attribute.KeyValue) {
-	if c.cardinalityDetector.CheckAttrs(attrs) {
-		c.Counter.Observe(ctx, x, attrs...)
+func (c *cdInt64Counter) Add(ctx context.Context, incr int64, options ...metric.AddOption) {
+	attrs := metric.NewAddConfig(options).Attributes()
+	if c.cardinalityDetector.CheckAttrs(ctx, attrs.ToSlice()) {
+		c.Int64Counter.Add(ctx, incr, options...)
 	}
 }
 
-type asyncFloat64Gauge struct {
-	asyncfloat64.Gauge
-	cardinalityDetector cardinalitydetector.CardinalityDetector
+type cdInt64UpDownCounter struct {
+	metric.Int64UpDownCounter
+	cardinalityDetector cardinalitydetector.Detector
 }
 
-func (g *asyncFloat64Gauge) Observe(ctx context.Context, x float64, attrs ...attribute.KeyValue) {
-	if g.cardinalityDetector.CheckAttrs(attrs) {
-		g.Gauge.Observe(ctx, x, attrs...)
+func (c *cdInt64UpDownCounter) Add(ctx context.Context, incr int64, options ...metric.AddOption) {
+	attrs := metric.NewAddConfig(options).Attributes()
+	if c.cardinalityDetector.CheckAttrs(ctx, attrs.ToSlice()) {
+		c.Int64UpDownCounter.Add(ctx, incr, options...)
 	}
 }
 
-type asyncFloat64UpDownCounter struct {
-	asyncfloat64.UpDownCounter
-	cardinalityDetector cardinalitydetector.CardinalityDetector
+type cdInt64Histogram struct {
+	metric.Int64Histogram
+	cardinalityDetector cardinalitydetector.Detector
 }
 
-func (c *asyncFloat64UpDownCounter) Observe(ctx context.Context, x float64, attrs ...attribute.KeyValue) {
-	if c.cardinalityDetector.CheckAttrs(attrs) {
-		c.UpDownCounter.Observe(ctx, x, attrs...)
+func (h *cdInt64Histogram) Record(ctx context.Context, x int64, options ...metric.RecordOption) {
+	attrs := metric.NewRecordConfig(options).Attributes()
+	if h.cardinalityDetector.CheckAttrs(ctx, attrs.ToSlice()) {
+		h.Int64Histogram.Record(ctx, x, options...)
 	}
 }
 
-type asyncInt64Counter struct {
-	asyncint64.Counter
-	cardinalityDetector cardinalitydetector.CardinalityDetector
+type cdInt64ObservableCounter struct {
+	metric.Int64ObservableCounter
+	cardinalityDetector cardinalitydetector.Detector
 }
 
-func (c *asyncInt64Counter) Observe(ctx context.Context, x int64, attrs ...attribute.KeyValue) {
-	if c.cardinalityDetector.CheckAttrs(attrs) {
-		c.Counter.Observe(ctx, x, attrs...)
+func (c *cdInt64ObservableCounter) Unwrap() metric.Observable {
+	return c.Int64ObservableCounter
+}
+
+type cdInt64ObservableUpDownCounter struct {
+	metric.Int64ObservableUpDownCounter
+	cardinalityDetector cardinalitydetector.Detector
+}
+
+func (c *cdInt64ObservableUpDownCounter) Unwrap() metric.Observable {
+	return c.Int64ObservableUpDownCounter
+}
+
+type cdInt64ObservableGauge struct {
+	metric.Int64ObservableGauge
+	cardinalityDetector cardinalitydetector.Detector
+}
+
+func (c *cdInt64ObservableGauge) Unwrap() metric.Observable {
+	return c.Int64ObservableGauge
+}
+
+type cdFloat64Counter struct {
+	metric.Float64Counter
+	cardinalityDetector cardinalitydetector.Detector
+}
+
+func (c *cdFloat64Counter) Add(ctx context.Context, incr float64, options ...metric.AddOption) {
+	attrs := metric.NewAddConfig(options).Attributes()
+	if c.cardinalityDetector.CheckAttrs(ctx, attrs.ToSlice()) {
+		c.Float64Counter.Add(ctx, incr, options...)
 	}
 }
 
-type asyncInt64Gauge struct {
-	asyncint64.Gauge
-	cardinalityDetector cardinalitydetector.CardinalityDetector
+type cdFloat64UpDownCounter struct {
+	metric.Float64UpDownCounter
+	cardinalityDetector cardinalitydetector.Detector
 }
 
-func (g *asyncInt64Gauge) Observe(ctx context.Context, x int64, attrs ...attribute.KeyValue) {
-	if g.cardinalityDetector.CheckAttrs(attrs) {
-		g.Gauge.Observe(ctx, x, attrs...)
+func (c *cdFloat64UpDownCounter) Observe(ctx context.Context, incr float64, options ...metric.AddOption) {
+	attrs := metric.NewAddConfig(options).Attributes()
+	if c.cardinalityDetector.CheckAttrs(ctx, attrs.ToSlice()) {
+		c.Float64UpDownCounter.Add(ctx, incr, options...)
 	}
 }
 
-type asyncInt64UpDownCounter struct {
-	asyncint64.UpDownCounter
-	cardinalityDetector cardinalitydetector.CardinalityDetector
+type cdFloat64Histogram struct {
+	metric.Float64Histogram
+	cardinalityDetector cardinalitydetector.Detector
 }
 
-func (c *asyncInt64UpDownCounter) Observe(ctx context.Context, x int64, attrs ...attribute.KeyValue) {
-	if c.cardinalityDetector.CheckAttrs(attrs) {
-		c.UpDownCounter.Observe(ctx, x, attrs...)
+func (h *cdFloat64Histogram) Record(ctx context.Context, x float64, options ...metric.RecordOption) {
+	attrs := metric.NewRecordConfig(options).Attributes()
+	if h.cardinalityDetector.CheckAttrs(ctx, attrs.ToSlice()) {
+		h.Float64Histogram.Record(ctx, x, options...)
 	}
 }
 
-type syncFloat64Counter struct {
-	syncfloat64.Counter
-	cardinalityDetector cardinalitydetector.CardinalityDetector
+type cdFloat64ObservableCounter struct {
+	metric.Float64ObservableCounter
+	cardinalityDetector cardinalitydetector.Detector
 }
 
-func (c *syncFloat64Counter) Add(ctx context.Context, incr float64, attrs ...attribute.KeyValue) {
-	if c.cardinalityDetector.CheckAttrs(attrs) {
-		c.Counter.Add(ctx, incr, attrs...)
-	}
+func (c *cdFloat64ObservableCounter) Unwrap() metric.Observable {
+	return c.Float64ObservableCounter
 }
 
-type syncFloat64Histogram struct {
-	syncfloat64.Histogram
-	cardinalityDetector cardinalitydetector.CardinalityDetector
+type cdFloat64ObservableUpDownCounter struct {
+	metric.Float64ObservableUpDownCounter
+	cardinalityDetector cardinalitydetector.Detector
 }
 
-func (h *syncFloat64Histogram) Record(ctx context.Context, incr float64, attrs ...attribute.KeyValue) {
-	if h.cardinalityDetector.CheckAttrs(attrs) {
-		h.Histogram.Record(ctx, incr, attrs...)
-	}
+func (c *cdFloat64ObservableUpDownCounter) Unwrap() metric.Observable {
+	return c.Float64ObservableUpDownCounter
 }
 
-type syncFloat64UpDownCounter struct {
-	syncfloat64.UpDownCounter
-	cardinalityDetector cardinalitydetector.CardinalityDetector
+type cdFloat64ObservableGauge struct {
+	metric.Float64ObservableGauge
+	cardinalityDetector cardinalitydetector.Detector
 }
 
-func (c *syncFloat64UpDownCounter) Add(ctx context.Context, incr float64, attrs ...attribute.KeyValue) {
-	if c.cardinalityDetector.CheckAttrs(attrs) {
-		c.UpDownCounter.Add(ctx, incr, attrs...)
-	}
-}
-
-type syncInt64Counter struct {
-	syncint64.Counter
-	cardinalityDetector cardinalitydetector.CardinalityDetector
-}
-
-func (c *syncInt64Counter) Add(ctx context.Context, incr int64, attrs ...attribute.KeyValue) {
-	if c.cardinalityDetector.CheckAttrs(attrs) {
-		c.Counter.Add(ctx, incr, attrs...)
-	}
-}
-
-type syncInt64Histogram struct {
-	syncint64.Histogram
-	cardinalityDetector cardinalitydetector.CardinalityDetector
-}
-
-func (h *syncInt64Histogram) Record(ctx context.Context, incr int64, attrs ...attribute.KeyValue) {
-	if h.cardinalityDetector.CheckAttrs(attrs) {
-		h.Histogram.Record(ctx, incr, attrs...)
-	}
-}
-
-type syncInt64UpDownCounter struct {
-	syncint64.UpDownCounter
-	cardinalityDetector cardinalitydetector.CardinalityDetector
-}
-
-func (c *syncInt64UpDownCounter) Add(ctx context.Context, incr int64, attrs ...attribute.KeyValue) {
-	if c.cardinalityDetector.CheckAttrs(attrs) {
-		c.UpDownCounter.Add(ctx, incr, attrs...)
-	}
+func (c *cdFloat64ObservableGauge) Unwrap() metric.Observable {
+	return c.Float64ObservableGauge
 }
