@@ -8,9 +8,12 @@ import (
 	"github.com/tel-io/tel/v2/monitoring"
 	"github.com/tel-io/tel/v2/otlplog/logskd"
 	"github.com/tel-io/tel/v2/otlplog/otlploggrpc"
+	"github.com/tel-io/tel/v2/pkg/cardinalitydetector"
 	"github.com/tel-io/tel/v2/pkg/grpcerr"
 	"github.com/tel-io/tel/v2/pkg/otelerr"
 	"github.com/tel-io/tel/v2/pkg/zcore"
+	"github.com/tel-io/tel/v2/sdk/sdkmetric"
+	"github.com/tel-io/tel/v2/sdk/sdktrace"
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	rt "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
@@ -20,7 +23,7 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/grpclog"
@@ -162,14 +165,18 @@ func (o *oTrace) apply(ctx context.Context, t *Telemetry) func(context.Context) 
 	traceExp, err := otlptrace.New(ctx, traceClient)
 	handleErr(err, "Failed to create the collector trace exporter")
 
-	bsp := sdktrace.NewBatchSpanProcessor(traceExp)
+	bsp := tracesdk.NewBatchSpanProcessor(traceExp)
 
-	// For cardinality limiting use env variable OTEL_GO_X_CARDINALITY_LIMIT:
-	// https://github.com/open-telemetry/opentelemetry-go/pull/4457
-	tracerProvider := sdktrace.NewTracerProvider(
-		sdktrace.WithSampler(t.cfg.OtelConfig.Traces.sampler),
-		sdktrace.WithResource(o.res),
-		sdktrace.WithSpanProcessor(bsp),
+	tracerProvider := sdktrace.NewTracerProvider(ctx,
+		cardinalitydetector.NewOptions(
+			cardinalitydetector.WithEnable(t.cfg.Traces.CardinalityDetector.Enable),
+			cardinalitydetector.WithMaxCardinality(t.cfg.Traces.CardinalityDetector.MaxCardinality),
+			cardinalitydetector.WithMaxInstruments(t.cfg.Traces.CardinalityDetector.MaxInstruments),
+			cardinalitydetector.WithCheckInterval(t.cfg.Traces.CardinalityDetector.DiagnosticInterval),
+		),
+		tracesdk.WithSampler(t.cfg.OtelConfig.Traces.sampler),
+		tracesdk.WithResource(o.res),
+		tracesdk.WithSpanProcessor(bsp),
 	)
 
 	// set global propagator to tracecontext (the default is no-op).
@@ -260,9 +267,14 @@ func (o *oMetric) apply(ctx context.Context, t *Telemetry) func(context.Context)
 	handleErr(err, "creation default view")
 	views = append(views, defaultView)
 
-	// For cardinality limiting use env variable OTEL_GO_X_CARDINALITY_LIMIT:
-	// https://github.com/open-telemetry/opentelemetry-go/pull/4457
-	meterProvider := metric.NewMeterProvider(
+	meterProvider := sdkmetric.NewMeterProvider(
+		ctx,
+		cardinalitydetector.NewOptions(
+			cardinalitydetector.WithEnable(t.cfg.Metrics.CardinalityDetector.Enable),
+			cardinalitydetector.WithMaxCardinality(t.cfg.Metrics.CardinalityDetector.MaxCardinality),
+			cardinalitydetector.WithMaxInstruments(t.cfg.Metrics.CardinalityDetector.MaxInstruments),
+			cardinalitydetector.WithCheckInterval(t.cfg.Metrics.CardinalityDetector.DiagnosticInterval),
+		),
 		metric.WithReader(reader),
 		metric.WithResource(o.res),
 		metric.WithView(views...),
