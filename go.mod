@@ -8,6 +8,7 @@ require (
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/go-logr/logr v1.4.2
+	github.com/jackc/pgx/v5 v5.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/contrib/instrumentation/host v0.53.0
@@ -34,6 +35,8 @@ require (
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/lufia/plan9stats v0.0.0-20240513124658-fba389f38bae // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
@@ -44,6 +47,7 @@ require (
 	github.com/tklauser/numcpus v0.8.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
+	golang.org/x/crypto v0.24.0 // indirect
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
