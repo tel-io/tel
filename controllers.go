@@ -163,6 +163,9 @@ func (o *oTrace) apply(ctx context.Context, t *Telemetry) func(context.Context) 
 	handleErr(err, "Failed to create the collector trace exporter")
 
 	bsp := sdktrace.NewBatchSpanProcessor(traceExp)
+
+	// For cardinality limiting use env variable OTEL_GO_X_CARDINALITY_LIMIT:
+	// https://github.com/open-telemetry/opentelemetry-go/pull/4457
 	tracerProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(t.cfg.OtelConfig.Traces.sampler),
 		sdktrace.WithResource(o.res),
