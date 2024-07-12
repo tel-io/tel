@@ -1,4 +1,4 @@
-package sdktrace
+package trace
 
 import (
 	"context"

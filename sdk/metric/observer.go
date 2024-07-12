@@ -1,4 +1,4 @@
-package sdkmetric
+package metric
 
 import (
 	"context"

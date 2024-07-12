@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	sdktracenoop "github.com/tel-io/tel/v2/sdk/sdktrace/noop"
+	sdktracenoop "github.com/tel-io/tel/v2/sdk/trace/noop"
 )
 
 func TestTeeHandler_slog(t *testing.T) {

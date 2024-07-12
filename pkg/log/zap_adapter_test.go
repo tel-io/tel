@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	sdktracenoop "github.com/tel-io/tel/v2/sdk/sdktrace/noop"
+	sdktracenoop "github.com/tel-io/tel/v2/sdk/trace/noop"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
