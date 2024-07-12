@@ -1,25 +1,20 @@
+// Code created by gotmpl. DO NOT MODIFY.
+// source: internal/shared/otlp/retry/retry_test.go.tmpl
+
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package retry
 
 import (
 	"context"
 	"errors"
+	"math"
+	"sync"
 	"testing"
 	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,19 +25,16 @@ func TestWait(t *testing.T) {
 		expected error
 	}{
 		{
-			ctx:      context.Background(),
-			delay:    time.Duration(0),
-			expected: nil,
+			ctx:   context.Background(),
+			delay: time.Duration(0),
 		},
 		{
-			ctx:      context.Background(),
-			delay:    time.Duration(1),
-			expected: nil,
+			ctx:   context.Background(),
+			delay: time.Duration(1),
 		},
 		{
-			ctx:      context.Background(),
-			delay:    time.Duration(-1),
-			expected: nil,
+			ctx:   context.Background(),
+			delay: time.Duration(-1),
 		},
 		{
 			ctx: func() context.Context {
@@ -57,7 +49,12 @@ func TestWait(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Equal(t, test.expected, wait(test.ctx, test.delay))
+		err := wait(test.ctx, test.delay)
+		if test.expected == nil {
+			assert.NoError(t, err)
+		} else {
+			assert.ErrorIs(t, err, test.expected)
+		}
 	}
 }
 
@@ -131,7 +128,8 @@ func TestBackoffRetry(t *testing.T) {
 	origWait := waitFunc
 	var done bool
 	waitFunc = func(_ context.Context, d time.Duration) error {
-		assert.Equal(t, delay, d, "retry not backoffed")
+		delta := math.Ceil(float64(delay) * backoff.DefaultRandomizationFactor)
+		assert.InDelta(t, delay, d, delta, "retry not backoffed")
 		// Try twice to ensure call is attempted again after delay.
 		if done {
 			return assert.AnError
@@ -139,12 +137,37 @@ func TestBackoffRetry(t *testing.T) {
 		done = true
 		return nil
 	}
-	defer func() { waitFunc = origWait }()
+	t.Cleanup(func() { waitFunc = origWait })
 
 	ctx := context.Background()
 	assert.ErrorIs(t, reqFunc(ctx, func(context.Context) error {
 		return errors.New("not this error")
 	}), assert.AnError)
+}
+
+func TestBackoffRetryCanceledContext(t *testing.T) {
+	ev := func(error) (bool, time.Duration) { return true, 0 }
+
+	delay := time.Millisecond
+	reqFunc := Config{
+		Enabled:         true,
+		InitialInterval: delay,
+		MaxInterval:     delay,
+		// Never stop retrying.
+		MaxElapsedTime: 10 * time.Millisecond,
+	}.RequestFunc(ev)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	count := 0
+	cancel()
+	err := reqFunc(ctx, func(context.Context) error {
+		count++
+		return assert.AnError
+	})
+
+	assert.ErrorIs(t, err, context.Canceled)
+	assert.Contains(t, err.Error(), assert.AnError.Error())
+	assert.Equal(t, 1, count)
 }
 
 func TestThrottledRetryGreaterThanMaxElapsedTime(t *testing.T) {
@@ -194,4 +217,34 @@ func TestRetryNotEnabled(t *testing.T) {
 	assert.ErrorIs(t, reqFunc(ctx, func(context.Context) error {
 		return assert.AnError
 	}), assert.AnError)
+}
+
+func TestRetryConcurrentSafe(t *testing.T) {
+	ev := func(error) (bool, time.Duration) { return true, 0 }
+	reqFunc := Config{
+		Enabled: true,
+	}.RequestFunc(ev)
+
+	var wg sync.WaitGroup
+	ctx := context.Background()
+
+	for i := 1; i < 5; i++ {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			var done bool
+			assert.NoError(t, reqFunc(ctx, func(context.Context) error {
+				if !done {
+					done = true
+					return assert.AnError
+				}
+
+				return nil
+			}))
+		}()
+	}
+
+	wg.Wait()
 }
