@@ -21,9 +21,9 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.28.0
 	go.opentelemetry.io/otel/trace v1.28.0
 	go.opentelemetry.io/proto/otlp v1.3.1
-	go.uber.org/atomic v1.7.0
+	go.uber.org/atomic v1.11.0
 	go.uber.org/zap v1.27.0
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240701130421-f6361c86f094
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240709173604-40e1e62336c5
 	google.golang.org/grpc v1.65.0
 	google.golang.org/protobuf v1.34.2
 )
