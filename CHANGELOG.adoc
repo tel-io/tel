@@ -4,7 +4,8 @@
 * update go.opentelemetry.io/otel/* dependencies to 1.28.0
 ** replacement types / methods were taken from https://github.com/open-telemetry/opentelemetry-go/blob/main/CHANGELOG.md
 * update cardinality detector, trace provider, metric provider
-* fixed monitoring/health test
+* add pkg/log, pkg/ringbuffer, pkg/global
+* fix monitoring/health test
 * update otlplog/retry/* files from https://github.com/open-telemetry/opentelemetry-go/tree/cdee7205835f4919ae1bc5f810c695fa1dd77bd4/internal/shared/otlp/retry
 
 == v2.3.1
