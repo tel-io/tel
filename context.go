@@ -26,9 +26,18 @@ func WrapContext(ctx context.Context, l *Telemetry) context.Context {
 	return context.WithValue(ctx, tKey{}, l)
 }
 
+func ContextValue(ctx context.Context) *Telemetry {
+	//tKey - private, we can't check it from outside the tel package
+	if t, ok := ctx.Value(tKey{}).(*Telemetry); ok {
+		return t
+	}
+
+	return nil
+}
+
 // FromCtx retrieves from ctx tel object
 func FromCtx(ctx context.Context) *Telemetry {
-	if t, ok := ctx.Value(tKey{}).(*Telemetry); ok {
+	if t := ContextValue(ctx); t != nil {
 		return t
 	}
 
