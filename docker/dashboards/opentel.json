@@ -966,7 +966,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(otelcol_processor_batch_batch_size_trigger_send{ job=~\"$job\"}[$__interval])) by(processor)",
+          "expr": "sum(rate(otelcol_processor_batch_batch_size_trigger_send{ job=~\"$job\"}[1m])) by(processor)",
           "hide": false,
           "legendFormat": "{{processor}} | size send",
           "range": true,
@@ -978,7 +978,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(otelcol_processor_batch_timeout_trigger_send{ job=~\"$job\"}[$__interval])) by (processor)",
+          "expr": "sum(rate(otelcol_processor_batch_timeout_trigger_send{ job=~\"$job\"}[1m])) by (processor)",
           "hide": false,
           "legendFormat": "{{processor}} | timeout send",
           "range": true,

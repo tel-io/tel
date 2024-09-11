@@ -598,7 +598,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(process_cpu_time{namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"}[ $__interval])) by(state,service_instance_id)",
+          "expr": "sum(rate(process_cpu_time{namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"}[ 1m])) by(state,service_instance_id)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -774,7 +774,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "rate(process_runtime_go_gc_pause_total_ns{namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"}[$__interval])",
+          "expr": "rate(process_runtime_go_gc_pause_total_ns{namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"}[1m])",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,

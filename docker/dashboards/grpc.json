@@ -230,7 +230,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "(sum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"OK\"}[$__interval])) OR on() vector(0) + \nsum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"NotFound\"}[$__interval])) OR on() vector(0) + \nsum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"PermissionDenied\"}[$__interval])) OR on() vector(0) + \nsum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"InvalidArgument\"}[$__interval])) OR on() vector(0))\n/ \nsum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\"}[$__interval]))",
+          "expr": "(sum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"OK\"}[1m])) OR on() vector(0) + \nsum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"NotFound\"}[1m])) OR on() vector(0) + \nsum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"PermissionDenied\"}[1m])) OR on() vector(0) + \nsum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"InvalidArgument\"}[1m])) OR on() vector(0))\n/ \nsum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\"}[1m]))",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -312,7 +312,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(irate(grpc_server_started_total{service=\"$service\", namespace=\"$NS\"}[$__interval]))",
+          "expr": "sum(irate(grpc_server_started_total{service=\"$service\", namespace=\"$NS\"}[1m]))",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -408,7 +408,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(process_cpu_time{namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"}[ $__interval])) by(state,service_instance_id)",
+          "expr": "sum(rate(process_cpu_time{namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"}[ 1m])) by(state,service_instance_id)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -584,7 +584,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "rate(process_runtime_go_gc_pause_total_ns{namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"}[$__interval])",
+          "expr": "rate(process_runtime_go_gc_pause_total_ns{namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"}[1m])",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -1143,7 +1143,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "exemplar": true,
-              "expr": "sum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\"}[$__interval])) by (grpc_code)",
+              "expr": "sum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\"}[1m])) by (grpc_code)",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
@@ -1239,7 +1239,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "exemplar": true,
-              "expr": "sum(irate(grpc_server_started_total{service=\"$service\", namespace=\"$NS\"}[$__interval])) by (grpc_method)",
+              "expr": "sum(irate(grpc_server_started_total{service=\"$service\", namespace=\"$NS\"}[1m])) by (grpc_method)",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
@@ -1335,7 +1335,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "exemplar": true,
-              "expr": "avg(rate(grpc_server_handling_seconds_sum{service=\"$service\", namespace=\"$NS\",grpc_type=\"unary\"}[$__interval])) by (grpc_method) * 1000",
+              "expr": "avg(rate(grpc_server_handling_seconds_sum{service=\"$service\", namespace=\"$NS\",grpc_type=\"unary\"}[1m])) by (grpc_method) * 1000",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
@@ -1431,7 +1431,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "exemplar": true,
-              "expr": "sum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_code!=\"OK\"}[$__interval])) by (grpc_method)",
+              "expr": "sum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_code!=\"OK\"}[1m])) by (grpc_method)",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
@@ -1527,7 +1527,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "exemplar": true,
-              "expr": "sum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_code!=\"OK\"}[$__interval])) by (grpc_method)\n/ \nsum(rate(grpc_server_started_total{service=\"$service\", namespace=\"$NS\"}[$__interval])) by (grpc_method)",
+              "expr": "sum(rate(grpc_server_handled_total{service=\"$service\", namespace=\"$NS\", grpc_code!=\"OK\"}[1m])) by (grpc_method)\n/ \nsum(rate(grpc_server_started_total{service=\"$service\", namespace=\"$NS\"}[1m])) by (grpc_method)",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
@@ -1623,7 +1623,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "exemplar": true,
-              "expr": "histogram_quantile(0.99, \n  sum(rate(grpc_server_handling_seconds_bucket{service=\"$service\", namespace=\"$NS\"}[$__interval])) by (grpc_method,le)\n)",
+              "expr": "histogram_quantile(0.99, \n  sum(rate(grpc_server_handling_seconds_bucket{service=\"$service\", namespace=\"$NS\"}[1m])) by (grpc_method,le)\n)",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
@@ -1720,7 +1720,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "exemplar": true,
-              "expr": "100.0 - (\nsum(rate(grpc_server_handling_seconds_bucket{service=\"$service\", namespace=\"$NS\",le=\"$le\"}[$__interval])) by (grpc_method)\n / \nsum(rate(grpc_server_handling_seconds_count{service=\"$service\", namespace=\"$NS\"}[$__interval])) by (grpc_method)\n) * 100.0",
+              "expr": "100.0 - (\nsum(rate(grpc_server_handling_seconds_bucket{service=\"$service\", namespace=\"$NS\",le=\"$le\"}[1m])) by (grpc_method)\n / \nsum(rate(grpc_server_handling_seconds_count{service=\"$service\", namespace=\"$NS\"}[1m])) by (grpc_method)\n) * 100.0",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
@@ -1835,7 +1835,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "exemplar": true,
-              "expr": "sum(rate(grpc_client_msg_sent_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\"}[$__interval])) by (grpc_service,grpc_method)",
+              "expr": "sum(rate(grpc_client_msg_sent_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\"}[1m])) by (grpc_service,grpc_method)",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
@@ -1931,7 +1931,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "exemplar": true,
-              "expr": "sum(rate(grpc_client_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"OK\"}[$__interval])) by (grpc_service,grpc_method)",
+              "expr": "sum(rate(grpc_client_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code=\"OK\"}[1m])) by (grpc_service,grpc_method)",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
@@ -2027,7 +2027,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "exemplar": true,
-              "expr": "sum(rate(grpc_client_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code!=\"OK\"}[$__interval])) by (grpc_code,grpc_service,grpc_method)",
+              "expr": "sum(rate(grpc_client_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\", grpc_code!=\"OK\"}[1m])) by (grpc_code,grpc_service,grpc_method)",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
@@ -2123,7 +2123,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "exemplar": true,
-              "expr": "sum(rate(grpc_client_started_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\"}[$__interval])) by (grpc_service, grpc_method) - \nsum(rate(grpc_client_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\"}[$__interval])) by (grpc_service, grpc_method)",
+              "expr": "sum(rate(grpc_client_started_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\"}[1m])) by (grpc_service, grpc_method) - \nsum(rate(grpc_client_handled_total{service=\"$service\", namespace=\"$NS\", grpc_type=\"unary\"}[1m])) by (grpc_service, grpc_method)",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
@@ -2219,7 +2219,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "exemplar": true,
-              "expr": "histogram_quantile(0.90, \n  sum(rate(grpc_client_handling_seconds_bucket{service=\"$service\", namespace=\"$NS\"}[$__interval])) by (grpc_method,le)\n)",
+              "expr": "histogram_quantile(0.90, \n  sum(rate(grpc_client_handling_seconds_bucket{service=\"$service\", namespace=\"$NS\"}[1m])) by (grpc_method,le)\n)",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
@@ -2315,7 +2315,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "exemplar": true,
-              "expr": "histogram_quantile(0.99, \n  sum(rate(grpc_client_handling_seconds_bucket{service=\"$service\", namespace=\"$NS\"}[$__interval])) by (grpc_method,le)\n)",
+              "expr": "histogram_quantile(0.99, \n  sum(rate(grpc_client_handling_seconds_bucket{service=\"$service\", namespace=\"$NS\"}[1m])) by (grpc_method,le)\n)",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
@@ -2540,7 +2540,7 @@
               "datasource": {
                 "uid": "$cluster"
               },
-              "expr": "sum(rate(db_max_idle_closed{namespace=\"$NS\", service=\"$service\"}[$__interval])) by (driver)",
+              "expr": "sum(rate(db_max_idle_closed{namespace=\"$NS\", service=\"$service\"}[1m])) by (driver)",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "{{ driver }} (SetMaxIdleConns)",
@@ -2550,7 +2550,7 @@
               "datasource": {
                 "uid": "$cluster"
               },
-              "expr": "sum(rate(db_max_lifetime_closed{namespace=\"$NS\", service=\"$service\"}[$__interval])) by (driver)",
+              "expr": "sum(rate(db_max_lifetime_closed{namespace=\"$NS\", service=\"$service\"}[1m])) by (driver)",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "{{ driver }} (SetConnMaxLifetime)",
@@ -2641,7 +2641,7 @@
               "datasource": {
                 "uid": "$cluster"
               },
-              "expr": "sum(rate(db_wait_count{namespace=\"$NS\", service=\"$service\"}[$__interval])) by (driver)",
+              "expr": "sum(rate(db_wait_count{namespace=\"$NS\", service=\"$service\"}[1m])) by (driver)",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "{{ driver }}",
@@ -2732,7 +2732,7 @@
               "datasource": {
                 "uid": "$cluster"
               },
-              "expr": "sum(rate(db_wait_duration_seconds{namespace=\"$NS\", service=\"$service\"}[$__interval])) by (driver)",
+              "expr": "sum(rate(db_wait_duration_seconds{namespace=\"$NS\", service=\"$service\"}[1m])) by (driver)",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "{{ driver }}",
