@@ -130,8 +130,8 @@ processors:
       - action: insert
         from_attribute: service
         key: service.name
-      - action: delete
-        key: service
+#      - action: delete
+#        key: service
   transform/log:
     # backport compatibility tel < 2.2.0
     log_statements:

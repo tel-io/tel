@@ -211,7 +211,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "sum(rate(system_cpu_time{service_namespace=\"$NS\"}[1m])) by ( service_namespace, service, service_version)",
+          "expr": "sum(rate(system_cpu_time{namespace=\"$NS\"}[1m])) by ( namespace, service, service_version)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -371,7 +371,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "service_name"
+              "options": "service"
             },
             "properties": [
               {
@@ -387,7 +387,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "service_namespace"
+              "options": "namespace"
             },
             "properties": [
               {
@@ -475,7 +475,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "max_over_time(runtime_uptime{service_namespace=\"$NS\",deployment_environment=\"$stage\"}[30s])",
+          "expr": "max_over_time(runtime_uptime{namespace=\"$NS\",deployment_environment=\"$stage\"}[30s])",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -601,7 +601,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(process_cpu_time{service_namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"}[ $__interval])) by(state,service_instance_id) >= 0",
+          "expr": "sum(rate(process_cpu_time{namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"}[ $__interval])) by(state,service_instance_id) >= 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -673,7 +673,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "process_runtime_go_goroutines{service_namespace=\"$NS\", deployment_environment=\"$stage\", service_name=\"$service\"} >= 0",
+          "expr": "process_runtime_go_goroutines{namespace=\"$NS\", deployment_environment=\"$stage\", service=\"$service\"} >= 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -779,7 +779,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "rate(process_runtime_go_gc_pause_total_ns{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}[$__interval]) >= 0",
+          "expr": "rate(process_runtime_go_gc_pause_total_ns{namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"}[$__interval]) >= 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -923,7 +923,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "sum(process_runtime_go_mem_heap_sys{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}) by (service_instance_id) >= 0",
+          "expr": "sum(process_runtime_go_mem_heap_sys{namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"}) by (service_instance_id) >= 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -938,7 +938,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "sum(process_runtime_go_mem_heap_alloc{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}) by (service_instance_id) >= 0",
+          "expr": "sum(process_runtime_go_mem_heap_alloc{namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"}) by (service_instance_id) >= 0",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -954,7 +954,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "sum(process_runtime_go_mem_heap_inuse{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}) by (service_instance_id) >= 0",
+          "expr": "sum(process_runtime_go_mem_heap_inuse{namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"}) by (service_instance_id) >= 0",
           "hide": false,
           "interval": "",
           "legendFormat": "in-use spans {{service_instance_id}}",
@@ -966,7 +966,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "sum(system_memory_usage{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}) by (state, service_instance_id) >= 0",
+          "expr": "sum(system_memory_usage{namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"}) by (state, service_instance_id) >= 0",
           "hide": true,
           "interval": "",
           "legendFormat": "{{state}} {{service_instance_id}}",
@@ -1042,7 +1042,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "process_runtime_go_mem_heap_alloc{service_name=\"$service\", service_namespace=\"$NS\"} >= 0",
+          "expr": "process_runtime_go_mem_heap_alloc{service=\"$service\", namespace=\"$NS\"} >= 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -1057,7 +1057,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "rate(go_memstats_alloc_bytes_total{service_name=\"$service\", service_namespace=\"$NS\"}[30s]) >= 0",
+          "expr": "rate(go_memstats_alloc_bytes_total{service=\"$service\", namespace=\"$NS\"}[30s]) >= 0",
           "format": "time_series",
           "hide": true,
           "interval": "",
@@ -1073,7 +1073,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "process_runtime_go_mem_stack_inuse{service_name=\"$service\", service_namespace=\"$NS\"} >= 0",
+          "expr": "process_runtime_go_mem_stack_inuse{service=\"$service\", namespace=\"$NS\"} >= 0",
           "format": "time_series",
           "hide": true,
           "interval": "",
@@ -1089,7 +1089,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "process_runtime_go_mem_heap_inuse{service_name=\"$service\", service_namespace=\"$NS\"} >= 0 ",
+          "expr": "process_runtime_go_mem_heap_inuse{service=\"$service\", namespace=\"$NS\"} >= 0 ",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -1221,7 +1221,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "system_memory_usage{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"} / 1024 / 1024 >= 0",
+          "expr": "system_memory_usage{namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"} / 1024 / 1024 >= 0",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1235,7 +1235,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "system_memory_utilization{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"} / 1024 / 1024 >= 0",
+          "expr": "system_memory_utilization{namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"} / 1024 / 1024 >= 0",
           "format": "time_series",
           "hide": true,
           "instant": false,
@@ -1611,7 +1611,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "(sum(increase(db_sql_client_latency_sum{service=\"$service\", service_namespace=\"$NS\"}[$interval])) by ( db_operation)\n/ sum(increase(db_sql_client_latency_count{service=\"$service\", service_namespace=\"$NS\"}[$interval])) by (db_operation)) >= 0",
+          "expr": "(sum(increase(db_sql_client_latency_sum{service=\"$service\", namespace=\"$NS\"}[$interval])) by ( db_operation)\n/ sum(increase(db_sql_client_latency_count{service=\"$service\", namespace=\"$NS\"}[$interval])) by (db_operation)) >= 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1696,7 +1696,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(db_sql_client_latency_count{service=\"$service\",service_namespace=\"$NS\"}[$interval]))",
+          "expr": "sum(rate(db_sql_client_latency_count{service=\"$service\",namespace=\"$NS\"}[$interval]))",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1889,7 +1889,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "(sum(increase(db_sql_client_latency_sum{service=\"$service\", service_namespace=\"$NS\"}[$interval])) by (db_sql_status)\n/ sum(increase(db_sql_client_latency_count{service=\"$service\", service_namespace=\"$NS\"}[$interval])) by (db_sql_status)) >= 0",
+          "expr": "(sum(increase(db_sql_client_latency_sum{service=\"$service\", namespace=\"$NS\"}[$interval])) by (db_sql_status)\n/ sum(increase(db_sql_client_latency_count{service=\"$service\", namespace=\"$NS\"}[$interval])) by (db_sql_status)) >= 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1960,7 +1960,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(irate(db_sql_client_latency_count{service=\"$service\", service_namespace=\"$NS\"}[$interval])) by (db_operation)",
+          "expr": "sum(irate(db_sql_client_latency_count{service=\"$service\", namespace=\"$NS\"}[$interval])) by (db_operation)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -2093,7 +2093,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "avg(\nincrease(db_sql_client_latency_sum{service=\"$service\", service_namespace=\"$NS\"}[$__rate_interval]) / increase(db_sql_client_latency_count{service=\"$service\", service_namespace=\"$NS\"}[$__rate_interval])\n) by (db_operation) >= 0",
+          "expr": "avg(\nincrease(db_sql_client_latency_sum{service=\"$service\", namespace=\"$NS\"}[$__rate_interval]) / increase(db_sql_client_latency_count{service=\"$service\", namespace=\"$NS\"}[$__rate_interval])\n) by (db_operation) >= 0",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -2193,7 +2193,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(rate(db_sql_client_latency_count{service=\"$service\", service_namespace=\"$NS\", db_sql_status!=\"OK\"}[$interval])) by (db_operation)\n/ \nsum(rate(db_sql_client_latency_count{service=\"$service\", service_namespace=\"$NS\"}[$interval])) by (db_operation)",
+          "expr": "sum(rate(db_sql_client_latency_count{service=\"$service\", namespace=\"$NS\", db_sql_status!=\"OK\"}[$interval])) by (db_operation)\n/ \nsum(rate(db_sql_client_latency_count{service=\"$service\", namespace=\"$NS\"}[$interval])) by (db_operation)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -2297,7 +2297,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "histogram_quantile($quantile,\nsum(rate(db_sql_client_latency_bucket{service=\"$service\", service_namespace=\"$NS\"}[1m])) by ( db_operation,le)\n)",
+          "expr": "histogram_quantile($quantile,\nsum(rate(db_sql_client_latency_bucket{service=\"$service\", namespace=\"$NS\"}[1m])) by ( db_operation,le)\n)",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -2370,7 +2370,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(rate(db_sql_client_latency_count{service=\"$service\", service_namespace=\"$NS\", db_sql_status!=\"OK\"}[$interval])) by (db_operation)",
+          "expr": "sum(rate(db_sql_client_latency_count{service=\"$service\", namespace=\"$NS\", db_sql_status!=\"OK\"}[$interval])) by (db_operation)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -2504,7 +2504,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "db_sql_connections_open{service_namespace=\"$NS\", service=\"$service\"} >=0 ",
+          "expr": "db_sql_connections_open{namespace=\"$NS\", service=\"$service\"} >=0 ",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "opened | {{ service_instance_id }}",
@@ -2517,7 +2517,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "db_sql_connections_active{service_namespace=\"$NS\", service=\"$service\"} >=0 ",
+          "expr": "db_sql_connections_active{namespace=\"$NS\", service=\"$service\"} >=0 ",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "used |  | {{ service_instance_id }}",
@@ -2531,7 +2531,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "db_sql_connections_idle{service_namespace=\"$NS\", service=\"$service\"} >=0 ",
+          "expr": "db_sql_connections_idle{namespace=\"$NS\", service=\"$service\"} >=0 ",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -2601,7 +2601,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(db_sql_connections_idle_closed{service_namespace=\"$NS\", service_name=\"$service\"}[$interval])) by (service_instance_id)",
+          "expr": "sum(rate(db_sql_connections_idle_closed{namespace=\"$NS\", service=\"$service\"}[$interval])) by (service_instance_id)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{ service_instance_id }} (SetMaxIdleConns)",
@@ -2614,7 +2614,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(db_sql_connections_lifetime_closed{service_namespace=\"$NS\", service_name=\"$service\"}[$interval])) by (service_instance_id)",
+          "expr": "sum(rate(db_sql_connections_lifetime_closed{namespace=\"$NS\", service=\"$service\"}[$interval])) by (service_instance_id)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{ service_instance_id }} (SetConnMaxLifetime)",
@@ -2743,7 +2743,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(db_sql_connections_wait_count{service_namespace=\"$NS\", service_name=\"$service\"}[$interval])) by (service_instance_id)",
+          "expr": "sum(rate(db_sql_connections_wait_count{namespace=\"$NS\", service=\"$service\"}[$interval])) by (service_instance_id)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{ service_instance_id }}",
@@ -2811,7 +2811,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(db_sql_connections_wait_duration{service_namespace=\"$NS\", service_name=\"$service\"}[$interval])) by ( service_instance_id)",
+          "expr": "sum(rate(db_sql_connections_wait_duration{namespace=\"$NS\", service=\"$service\"}[$interval])) by ( service_instance_id)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{ service_instance_id }}",
@@ -3003,7 +3003,7 @@
           "type": "prometheus",
           "uid": "${DS_PROMETHEUS}"
         },
-        "definition": "label_values(db_sql_client_calls{}, service_namespace)",
+        "definition": "label_values(db_sql_client_calls{}, namespace)",
         "hide": 0,
         "includeAll": false,
         "label": "namespace",
@@ -3011,7 +3011,7 @@
         "name": "NS",
         "options": [],
         "query": {
-          "query": "label_values(db_sql_client_calls{}, service_namespace)",
+          "query": "label_values(db_sql_client_calls{}, namespace)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -3026,14 +3026,14 @@
           "type": "prometheus",
           "uid": "${DS_PROMETHEUS}"
         },
-        "definition": "label_values(db_sql_client_calls{service_namespace=\"$NS\"}, service)",
+        "definition": "label_values(db_sql_client_calls{namespace=\"$NS\"}, service)",
         "hide": 0,
         "includeAll": false,
         "multi": false,
         "name": "service",
         "options": [],
         "query": {
-          "query": "label_values(db_sql_client_calls{service_namespace=\"$NS\"}, service)",
+          "query": "label_values(db_sql_client_calls{namespace=\"$NS\"}, service)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -3051,14 +3051,14 @@
           "type": "prometheus",
           "uid": "${DS_PROMETHEUS}"
         },
-        "definition": "label_values(db_sql_client_calls{service_namespace=\"$NS\"}, deployment_environment)",
+        "definition": "label_values(db_sql_client_calls{namespace=\"$NS\"}, deployment_environment)",
         "hide": 0,
         "includeAll": false,
         "multi": false,
         "name": "stage",
         "options": [],
         "query": {
-          "query": "label_values(db_sql_client_calls{service_namespace=\"$NS\"}, deployment_environment)",
+          "query": "label_values(db_sql_client_calls{namespace=\"$NS\"}, deployment_environment)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,

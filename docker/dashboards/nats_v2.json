@@ -161,7 +161,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "sum(rate(runtime_uptime{service_namespace=\"$NS\"}[$__range])) by ( namespace, service, service_version)",
+          "expr": "sum(rate(runtime_uptime{namespace=\"$NS\"}[$__range])) by ( namespace, service, service_version)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -321,7 +321,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "service_name"
+              "options": "service"
             },
             "properties": [
               {
@@ -337,7 +337,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "service_namespace"
+              "options": "namespace"
             },
             "properties": [
               {
@@ -425,7 +425,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "max_over_time(runtime_uptime{service_namespace=\"$NS\",deployment_environment=\"$stage\"}[30s])",
+          "expr": "max_over_time(runtime_uptime{namespace=\"$NS\",deployment_environment=\"$stage\"}[30s])",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -552,7 +552,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(rate(process_cpu_time{service_namespace=\"$NS\", service=~\"$service\",deployment_environment=\"$stage\"}[ $__interval])) by(state,service_instance_id,service)",
+          "expr": "sum(rate(process_cpu_time{namespace=\"$NS\", service=~\"$service\",deployment_environment=\"$stage\"}[ $__interval])) by(state,service_instance_id,service)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -653,7 +653,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(process_runtime_go_goroutines{service_namespace=\"$NS\", deployment_environment=\"$stage\", service_name=~\"$service\"}) by (service_instance_id, service)",
+          "expr": "sum(process_runtime_go_goroutines{namespace=\"$NS\", deployment_environment=\"$stage\", service=~\"$service\"}) by (service_instance_id, service)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -755,7 +755,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(rate(process_runtime_go_gc_pause_total_ns{service_namespace=\"$NS\", service_name=~\"$service\",deployment_environment=\"$stage\"}[$__interval])) by (service_instance_id, service)",
+          "expr": "sum(rate(process_runtime_go_gc_pause_total_ns{namespace=\"$NS\", service=~\"$service\",deployment_environment=\"$stage\"}[$__interval])) by (service_instance_id, service)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -870,7 +870,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "sum(process_runtime_go_mem_heap_sys{service_namespace=\"$NS\", service_name=~\"$service\",deployment_environment=\"$stage\"}) by (service_instance_id)",
+          "expr": "sum(process_runtime_go_mem_heap_sys{namespace=\"$NS\", service=~\"$service\",deployment_environment=\"$stage\"}) by (service_instance_id)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -885,7 +885,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "sum(process_runtime_go_mem_heap_alloc{service_namespace=\"$NS\", service_name=~\"$service\",deployment_environment=\"$stage\"}) by (service, service_instance_id)",
+          "expr": "sum(process_runtime_go_mem_heap_alloc{namespace=\"$NS\", service=~\"$service\",deployment_environment=\"$stage\"}) by (service, service_instance_id)",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -901,7 +901,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "sum(process_runtime_go_mem_heap_inuse{service_namespace=\"$NS\", service_name=~\"$service\",deployment_environment=\"$stage\"}) by (service, service_instance_id)",
+          "expr": "sum(process_runtime_go_mem_heap_inuse{namespace=\"$NS\", service=~\"$service\",deployment_environment=\"$stage\"}) by (service, service_instance_id)",
           "hide": false,
           "interval": "",
           "legendFormat": "in-use spans {{service_instance_id}}",
@@ -913,7 +913,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "sum(system_memory_usage{service_namespace=\"$NS\", service_name=\"$service\",deployment_environment=\"$stage\"}) by (state, service_instance_id)",
+          "expr": "sum(system_memory_usage{namespace=\"$NS\", service=\"$service\",deployment_environment=\"$stage\"}) by (state, service_instance_id)",
           "hide": true,
           "interval": "",
           "legendFormat": "{{state}} {{service_instance_id}}",
@@ -1023,7 +1023,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "process_runtime_go_mem_heap_alloc{service_name=~\"$service\", service_namespace=\"$NS\"}",
+          "expr": "process_runtime_go_mem_heap_alloc{service=~\"$service\", namespace=\"$NS\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -1038,7 +1038,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "rate(go_memstats_alloc_bytes_total{service_name=~\"$service\", service_namespace=\"$NS\"}[30s])",
+          "expr": "rate(go_memstats_alloc_bytes_total{service=~\"$service\", namespace=\"$NS\"}[30s])",
           "format": "time_series",
           "hide": true,
           "interval": "",
@@ -1054,7 +1054,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": false,
-          "expr": "process_runtime_go_mem_stack_inuse{service_name=~\"$service\", service_namespace=\"$NS\"}",
+          "expr": "process_runtime_go_mem_stack_inuse{service=~\"$service\", namespace=\"$NS\"}",
           "format": "time_series",
           "hide": true,
           "interval": "",
@@ -1070,7 +1070,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "process_runtime_go_mem_heap_inuse{service_name=~\"$service\", service_namespace=\"$NS\"}",
+          "expr": "process_runtime_go_mem_heap_inuse{service=~\"$service\", namespace=\"$NS\"}",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -1172,7 +1172,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "system_memory_usage{service_namespace=\"$NS\", service_name=~\"$service\",deployment_environment=\"$stage\"} / 1024 / 1024",
+          "expr": "system_memory_usage{namespace=\"$NS\", service=~\"$service\",deployment_environment=\"$stage\"} / 1024 / 1024",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1186,7 +1186,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "system_memory_utilization{service_namespace=\"$NS\", service_name=~\"$service\",deployment_environment=\"$stage\"} / 1024 / 1024",
+          "expr": "system_memory_utilization{namespace=\"$NS\", service=~\"$service\",deployment_environment=\"$stage\"} / 1024 / 1024",
           "format": "time_series",
           "hide": true,
           "instant": false,
@@ -1675,7 +1675,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(nats_duration_count{service=~\"$service\",service_namespace=\"$NS\", kind_of=~\"$kind\"}[$__range]))",
+          "expr": "sum(rate(nats_duration_count{service=~\"$service\",namespace=\"$NS\", kind_of=~\"$kind\"}[$__range]))",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1942,7 +1942,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "(sum(rate(nats_duration_sum{service=~\"$service\", service_namespace=\"$NS\",kind_of=~\"$kind\"}[$__rate_interval])) by (error)\n/ sum(rate(nats_duration_count{service=~\"$service\", service_namespace=\"$NS\",kind_of=~\"$kind\"}[$__rate_interval]))  by (error)) >= 0",
+          "expr": "(sum(rate(nats_duration_sum{service=~\"$service\", namespace=\"$NS\",kind_of=~\"$kind\"}[$__rate_interval])) by (error)\n/ sum(rate(nats_duration_count{service=~\"$service\", namespace=\"$NS\",kind_of=~\"$kind\"}[$__rate_interval]))  by (error)) >= 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -2043,7 +2043,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "(sum(increase(nats_duration_sum{service=~\"$service\", service_namespace=\"$NS\", kind_of=~\"$kind\"}[$__range])) by (subject)\n/ sum(increase(nats_duration_count{service=~\"$service\", service_namespace=\"$NS\",kind_of=~\"$kind\"}[$__range])) by (subject)) >= 0",
+          "expr": "(sum(increase(nats_duration_sum{service=~\"$service\", namespace=\"$NS\", kind_of=~\"$kind\"}[$__range])) by (subject)\n/ sum(increase(nats_duration_count{service=~\"$service\", namespace=\"$NS\",kind_of=~\"$kind\"}[$__range])) by (subject)) >= 0",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -2173,7 +2173,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "histogram_quantile($quantile,\nsum(rate(nats_duration_bucket{service=~\"$service\", service_namespace=\"$NS\",kind_of=~\"$kind\"}[1m])) by (subject,le)\n)",
+          "expr": "histogram_quantile($quantile,\nsum(rate(nats_duration_bucket{service=~\"$service\", namespace=\"$NS\",kind_of=~\"$kind\"}[1m])) by (subject,le)\n)",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -2273,7 +2273,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(irate(nats_duration_count{service=~\"$service\", service_namespace=\"$NS\", kind_of=~\"$kind\"}[$__range])) by (subject)",
+          "expr": "sum(irate(nats_duration_count{service=~\"$service\", namespace=\"$NS\", kind_of=~\"$kind\"}[$__range])) by (subject)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -2483,7 +2483,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(nats_duration_count{service=~\"$service\", service_namespace=\"$NS\", error=\"true\"}[$__range])) by (subject)\n/ \nsum(rate(nats_duration_count{service=~\"$service\", service_namespace=\"$NS\", kind_of=~\"$kind\"}[$__range])) by (subject)",
+          "expr": "sum(rate(nats_duration_count{service=~\"$service\", namespace=\"$NS\", error=\"true\"}[$__range])) by (subject)\n/ \nsum(rate(nats_duration_count{service=~\"$service\", namespace=\"$NS\", kind_of=~\"$kind\"}[$__range])) by (subject)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -2554,7 +2554,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(rate(nats_duration_count{service=~\"$service\", service_namespace=\"$NS\", error=\"true\", kind_of=~\"$kind\"}[$__range])) by (subject)",
+          "expr": "sum(rate(nats_duration_count{service=~\"$service\", namespace=\"$NS\", error=\"true\", kind_of=~\"$kind\"}[$__range])) by (subject)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -2632,7 +2632,7 @@
           "type": "prometheus",
           "uid": "${DS_PROMETHEUS}"
         },
-        "definition": "label_values(nats_duration_count{}, service_namespace)",
+        "definition": "label_values(nats_duration_count{}, namespace)",
         "hide": 0,
         "includeAll": false,
         "label": "namespace",
@@ -2640,7 +2640,7 @@
         "name": "NS",
         "options": [],
         "query": {
-          "query": "label_values(nats_duration_count{}, service_namespace)",
+          "query": "label_values(nats_duration_count{}, namespace)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 2,
@@ -2659,14 +2659,14 @@
           "type": "prometheus",
           "uid": "${DS_PROMETHEUS}"
         },
-        "definition": "label_values(nats_duration_count{service_namespace=\"$NS\"}, service)",
+        "definition": "label_values(nats_duration_count{namespace=\"$NS\"}, service)",
         "hide": 0,
         "includeAll": true,
         "multi": true,
         "name": "service",
         "options": [],
         "query": {
-          "query": "label_values(nats_duration_count{service_namespace=\"$NS\"}, service)",
+          "query": "label_values(nats_duration_count{namespace=\"$NS\"}, service)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -2733,14 +2733,14 @@
           "type": "prometheus",
           "uid": "${DS_PROMETHEUS}"
         },
-        "definition": "label_values(nats_duration_count{service_namespace=\"$NS\"}, deployment_environment)",
+        "definition": "label_values(nats_duration_count{namespace=\"$NS\"}, deployment_environment)",
         "hide": 0,
         "includeAll": false,
         "multi": false,
         "name": "stage",
         "options": [],
         "query": {
-          "query": "label_values(nats_duration_count{service_namespace=\"$NS\"}, deployment_environment)",
+          "query": "label_values(nats_duration_count{namespace=\"$NS\"}, deployment_environment)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -2763,14 +2763,14 @@
           "type": "prometheus",
           "uid": "${DS_PROMETHEUS}"
         },
-        "definition": "label_values(nats_count{service_namespace=\"$NS\"}, kind_of)",
+        "definition": "label_values(nats_count{namespace=\"$NS\"}, kind_of)",
         "hide": 0,
         "includeAll": true,
         "multi": true,
         "name": "kind",
         "options": [],
         "query": {
-          "query": "label_values(nats_count{service_namespace=\"$NS\"}, kind_of)",
+          "query": "label_values(nats_count{namespace=\"$NS\"}, kind_of)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
