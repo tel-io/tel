@@ -23,7 +23,7 @@ to view the traces. A tutorial / walkthrough is available:
 
 ### Run TEL infra
 
-* Download folder `demo` from https://github.com/d7561985/tel/tree/master/example
+* Download folder `demo` from https://github.com/tel-io/tel/tree/master/example
 * Run Tel infrastructure backend (OTEL Collector, Grafana, Grafana Loki, Grafana Tempo and Prometheus) and HotROD demo with `docker-compose -f path-to-yml-file up`
 * Access Grafana UI at http://localhost:3000
 * Shutdown / cleanup with `docker-compose -f path-to-yml-file down`

@@ -22,8 +22,8 @@ import (
 
 	"hotrod/services/driver"
 
-	"github.com/d7561985/tel/v2"
 	"github.com/spf13/cobra"
+	"github.com/tel-io/tel/v2"
 )
 
 // driverCmd represents the driver command

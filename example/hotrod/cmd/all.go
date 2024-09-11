@@ -16,8 +16,8 @@
 package cmd
 
 import (
-	"github.com/d7561985/tel/v2"
 	"github.com/spf13/cobra"
+	"github.com/tel-io/tel/v2"
 )
 
 // allCmd represents the all command

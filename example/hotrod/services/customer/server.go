@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/d7561985/tel/v2"
+	"github.com/tel-io/tel/v2"
 	"go.uber.org/zap"
 
 	"hotrod/pkg/httperr"

@@ -22,7 +22,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/d7561985/tel/v2"
+	"github.com/tel-io/tel/v2"
 	"go.opentelemetry.io/otel/baggage"
 	"go.uber.org/zap"
 

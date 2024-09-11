@@ -19,7 +19,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/d7561985/tel/v2"
+	"github.com/tel-io/tel/v2"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"

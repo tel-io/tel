@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/d7561985/tel/v2"
+	"github.com/tel-io/tel/v2"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/trace"

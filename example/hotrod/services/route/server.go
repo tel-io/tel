@@ -24,8 +24,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/d7561985/tel/v2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/tel-io/tel/v2"
 	"go.uber.org/zap"
 
 	"hotrod/pkg/delay"

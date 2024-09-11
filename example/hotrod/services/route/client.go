@@ -18,12 +18,12 @@ package route
 import (
 	"context"
 	"encoding/json"
-	"github.com/d7561985/tel/v2"
 	"io"
 	"net/http"
 	"net/url"
 
 	"github.com/pkg/errors"
+	"github.com/tel-io/tel/v2"
 	"go.uber.org/zap"
 
 	mw "github.com/tel-io/instrumentation/middleware/http"

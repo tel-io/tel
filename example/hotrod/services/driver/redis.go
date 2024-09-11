@@ -22,8 +22,8 @@ import (
 	"math/rand"
 	"sync"
 
-	"github.com/d7561985/tel/v2"
 	"github.com/pkg/errors"
+	"github.com/tel-io/tel/v2"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 

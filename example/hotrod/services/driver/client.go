@@ -19,8 +19,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/d7561985/tel/v2"
 	mw "github.com/tel-io/instrumentation/middleware/grpc"
+	"github.com/tel-io/tel/v2"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
